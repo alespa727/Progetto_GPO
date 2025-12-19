@@ -1,0 +1,25 @@
+
+
+# Cartella server 
+
+/server/bin/
+/server/out/
+/server/target/
+/server/*.class
+/server/*.jar
+/server/*.war
+/server/.idea/
+/server/*.iml
+/server/.vscode/
+
+# Cartella client 
+
+/client/node_modules/
+/client/dist/
+/client/build/
+/client/.vscode/
+
+# File temporanei
+*.log
+*.tmp
+*.bak
