@@ -1,0 +1,18 @@
+.chats{
+  width: 300px;
+  height: 100%;
+  background-color:	#1e1e2e;
+  border-radius: 10px;
+}
+
+.lista{
+  margin: 0;
+  padding: 10px;
+}
+
+.chat{
+  padding: 16px;
+  margin-bottom: 3px;
+  border-radius: 9px;
+  background: #181825;
+}
