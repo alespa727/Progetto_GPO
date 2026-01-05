@@ -1,6 +1,5 @@
 .canali{
   width: 300px;
-  height: 100%;
   background-color:	#1e1e2e;
   border-radius: 10px;
 }
@@ -10,14 +9,79 @@
   padding: 10px;
 }
 
-.canale{
+.sezione{
   padding: 16px;
-  margin-bottom: 3px;
+  margin-bottom: 5px;
   border-radius: 9px;
   background: #181825;
+ 
+}
+
+.canale{
+   margin: 11px;
+}
+
+.canale{
+   padding: 5px;
+   border-radius: 4px;
+}
+
+.canale:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+}
+
+
+.sezione.nome{
+  margin: 11px;
+  border-bottom: 1px solid #313244;
+  font-size: 10px;
+  display: flex;
 }
 
 .nome{
-  padding: 13px;
+  padding: 11px;
   border-bottom: 1px solid #313244;
+  font-size: 14px;
+  display: flex;
+}
+
+.nome p{
+  margin: auto;
+  margin-left: 0;
+  padding: 10px;
+  border-radius: 7px;
+  width:50%;
+}
+
+
+.nome p:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+}
+.sezioni {
+  overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent; /* Firefox */
+}
+
+/* Chrome, Edge, Safari */
+.sezioni::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sezioni::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sezioni::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.sezioni::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4);
 }

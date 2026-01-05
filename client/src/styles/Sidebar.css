@@ -26,6 +26,7 @@
   margin-bottom: 8px;
   background-color: #45475a;
   box-sizing: border-box;
+   cursor: pointer;
 }
 
 .break-line{
@@ -37,7 +38,6 @@
   aspect-ratio: 1 / 1; 
   border-radius: 50%;
   margin-bottom: 8px;
-  background-color: red;
   box-sizing: border-box;
 }
 

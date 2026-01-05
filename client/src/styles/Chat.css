@@ -6,13 +6,14 @@
   overflow: hidden;
   border-radius: 8px;
   box-sizing: border-box;
+    position: relative;
 }
 
 .chat-header {
   padding: 12px 20px;
   border-bottom: 1px solid #313244;
   color: white;
-  font-weight: bold;
+  font-weight: 300;
 }
 
 .messages {
@@ -22,6 +23,7 @@
   flex-direction: column;
   overflow-y: auto;
   padding: 10px 0;
+  margin-bottom: 67px;
 }
 
 .messages::-webkit-scrollbar {
@@ -41,13 +43,12 @@
   background-color: rgba(255,255,255,0.5); 
 }
 
-.message {
-  width: 100%;
-  min-height: 3px;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  margin-top: 10px;
-  transition: background 0.2s;
+.messages {
+  display: flex;
+  flex-direction: column-reverse; /* tutti i messaggi partono dal basso */
+  overflow-y: auto;
+  height: calc(100vh - 36px - 50px); /* header + input */
+  padding: 8px;
 }
 
 .message:hover {
@@ -61,7 +62,11 @@
 }
 
 .message-box {
-  flex-shrink: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
   padding: 8px 10px;
   border-top: 1px solid #313244;
   background: #2a2a3d;

@@ -11,8 +11,25 @@
 }
 
 .chat{
-  padding: 16px;
+  padding: 9px;
   margin-bottom: 3px;
+  display: flex;
+   cursor: pointer;
+    gap: 9px;  
+    font-size:  18px;
+    font-weight: 300;
   border-radius: 9px;
+  align-items: center;
   background: #181825;
+}
+
+.pfp {
+  width: 50px;
+  height: 50px;
+    display: flex;         
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #45475a;
+  box-sizing: border-box;
 }
