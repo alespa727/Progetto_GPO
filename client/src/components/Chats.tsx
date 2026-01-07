@@ -1,12 +1,17 @@
+import { useActiveChatContext } from "../context/ActiveChatProvider.tsx";
+import { useChats } from "../context/ChatProvider.tsx";
 import "../styles/Chats.css";
-import { chat_type, chat } from "../types.tsx";
+import { PrivateChat, PrivateChatResponse } from "../types.tsx";
 
-function Chats({chats, onChatClick}: {chats: chat[], onChatClick: (chat: chat)=>void}) {
+function Chats() {
+  const chats = useChats();
+  if(!chats) return;
+  const setChat = useActiveChatContext().setActiveChat;
   return (
     <div className="chats">
         <div className="lista">
             {chats.map((chat, index)=>{
-              return <div className="chat" onClick={() => onChatClick(chat)}><div className="pfp"/>{chat.name}</div>
+              return <div key={chat.chatId} className="chat" onClick={() => {setChat(chat); console.log("Selezionata: "); console.log(chat)}}><div className="pfp"/>{chat.otherUser.username}</div>
             })}
         </div>
     </div>

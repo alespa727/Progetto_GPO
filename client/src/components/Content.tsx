@@ -1,46 +1,38 @@
 import Chats from "./Chats.tsx";
 import Chat from "./Chat.tsx";
-import Canali from "./Canali.tsx";
+import Canali from "./Canali.tsx"
 import "../styles/Content.css";
-import { chat_type, chat, server } from "../types.tsx";
+import { Channel, PrivateChatResponse, Server } from "../types.tsx";
+import { ClientMode, useMode } from "../context/ModeProvider.tsx";
+import { useChats } from "../context/ChatProvider.tsx";
+import { useActiveServerContext } from "../context/ActiveServerProvider.tsx";
 
-interface ContentProps {
-  mode: string;
-  server: server;
-  chats: chat[];
-  setChats: React.Dispatch<React.SetStateAction<chat[]>>;
-  activeChat: chat;
-  setActiveChat: React.Dispatch<React.SetStateAction<chat>>;
-}
+function Content() {
 
-function Content({
-  mode,
-  server,
-  chats,
-  setChats,
-  activeChat,
-  setActiveChat
-}: ContentProps) {
+  const chats = useChats();
+  const mode = useMode().mode;
 
-  if (mode === "servers") {
-    return (
-      <div className="content">
-        <div className="server">
-          <Canali server={server} onChannelClick={(chat: chat) => { setActiveChat(chat); }}></Canali>
-          <Chat chat={activeChat} type="server"></Chat>
+  switch(mode){
+    case ClientMode.Server:
+      return (
+        <div className="content">
+          <div className="server">
+            <Canali></Canali>
+            <Chat></Chat>
+          </div>
         </div>
-      </div>
-    );
-  } else if (mode === "chats") {
- 
-    return (
-      <div className="content">  
-        <div className="server">
-          <Chats chats={chats} onChatClick={(chat: chat) => { setActiveChat(chat); }} ></Chats>
-          <Chat chat={activeChat} type="friend"></Chat>
+      );
+    case ClientMode.Chats:
+      console.log(chats);
+      if(!chats) return;
+      return (
+        <div className="content">  
+          <div className="server">
+            <Chats></Chats>
+            <Chat></Chat>
+          </div>
         </div>
-      </div>
-    );
+      );
   }
 
 }

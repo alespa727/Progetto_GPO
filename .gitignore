@@ -1,25 +1,35 @@
+# Dipendenze (ignora node_modules in ogni sottocartella)
+**/node_modules/
 
+# Build e Output
+dist/
+dist-ssr/
+build/
+*.local
 
-# Cartella server 
+# Variabili d'ambiente e segreti
+.env
+.env.*
+!.env.example
 
-/server/bin/
-/server/out/
-/server/target/
-/server/*.class
-/server/*.jar
-/server/*.war
-/server/.idea/
-/server/*.iml
-/server/.vscode/
-
-# Cartella client 
-
-/client/node_modules/
-/client/dist/
-/client/build/
-/client/.vscode/
-
-# File temporanei
+# File di log
+logs
 *.log
-*.tmp
-*.bak
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor (VS Code, IntelliJ)
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# File di sistema
+.DS_Store
+Thumbs.db
