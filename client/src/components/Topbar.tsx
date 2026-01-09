@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "../styles/Topbar.css";
 
 function Topbar() {
+  const topbar = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="topbar">
-      <div className="title">Tommycord</div>
+    <div className="topbar q-electron-drag">
+      <div className="drag-layer" ref={topbar}></div>
+      <div className="title">Discord</div>
     </div>
   );
 }

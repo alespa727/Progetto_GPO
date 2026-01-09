@@ -6,6 +6,7 @@ function createWindow() {
     width: 900,
     height: 600,
     autoHideMenuBar: true,
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
@@ -13,7 +14,7 @@ function createWindow() {
 
   // Se siamo in modalità sviluppo (vite), carichiamo il server locale
   if (process.env.NODE_ENV === 'development') {
-    win.loadURL('http://localhost:5174')
+    win.loadURL('http://localhost:5173')
   } else {
     // In produzione, carichiamo i file buildati
     win.loadFile(path.join(__dirname, 'dist/index.html'))

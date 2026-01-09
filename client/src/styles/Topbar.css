@@ -1,5 +1,7 @@
 .topbar {
-  width: 100%;           
+  position: relative;
+  width: 100%;          
+  cursor: grab;
   height: 36px;         
   background-color: #1e1e2e;
   color: white;
@@ -9,6 +11,19 @@
   box-sizing: border-box;
 }
 
+.drag-layer {
+  position: absolute;
+  inset: 0;
+  -webkit-app-region: drag;
+  background-color: red;
+  z-index: 1;
+  
+}
+
+.topbar:active{
+  cursor: grabbing;
+}
+
 .title {
   display: flex;
   color: #cdd6f4;
@@ -16,4 +31,8 @@
   justify-content: center;
   flex: 1; 
   font-weight: 300;
+}
+
+.title:hover{
+  cursor: grab;
 }
