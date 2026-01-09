@@ -3,9 +3,11 @@ import "../styles/Topbar.css";
 
 function Topbar() {
 
+  
+
   return (
     <div className="topbar">
-      <div className="title">Tommycord</div>
+      <div className="title">Tommydumb</div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ export const FriendProvider = ({ children }: { children: ReactNode }) => {
         setFriends(list);
       
       } catch (err) {
-        console.error("Errore nel fetch utente:", err);
+        console.error("Errore nel fetch degli amici:", err);
       }
     };
 

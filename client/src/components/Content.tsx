@@ -2,10 +2,8 @@ import Chats from "./Chats.tsx";
 import Chat from "./Chat.tsx";
 import Canali from "./Canali.tsx"
 import "../styles/Content.css";
-import { Channel, PrivateChatResponse, Server } from "../types.tsx";
 import { ClientMode, useMode } from "../context/ModeProvider.tsx";
 import { useChats } from "../context/ChatProvider.tsx";
-import { useActiveServerContext } from "../context/ActiveServerProvider.tsx";
 
 function Content() {
 
@@ -36,8 +34,5 @@ function Content() {
   }
 
 }
-
-
-
 
 export default Content;

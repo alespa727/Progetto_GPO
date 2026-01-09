@@ -8,7 +8,6 @@ import { ClientMode, useMode } from "../context/ModeProvider.tsx";
 import { useChats } from "../context/ChatProvider.tsx";
 import { useActiveChatContext } from "../context/ActiveChatProvider.tsx";
 import { useActiveServerContext } from "../context/ActiveServerProvider.tsx";
-import { chmod } from "original-fs";
 import { useUser } from "../context/UserProvider.tsx";
 
 
@@ -31,6 +30,7 @@ function Chat() {
     if (!socket) return;
 
     const handleNewMessage = (data: any) => {
+      console.log(data);
       setMessages((prevMessages) => [...prevMessages, data]);
     };
 
@@ -53,11 +53,11 @@ function Chat() {
   const aggiungiMessaggio = () => {
     if (!nuovoTesto) return;
     if (nuovoTesto.trim() === "") return;
-    if(!activeChat) return; 
     if(!user) return;
-    let chatId = activeChat.chatId;
+    let id = activeChat ? activeChat.chatId : activeChannel ? activeChannel.id : null ;
     let message = new Message(nuovoTesto, user);
-    socket.emit("sendMessage", { chatId, message});
+    let type = ClientMode.Chats === mode ? "chat" : "channel";
+    socket.emit("sendMessage", { id, type, message});
 
     setNuovoTesto("");
   };
@@ -139,6 +139,19 @@ function Chat() {
   }, [activeChat, mode, socket]);
 
   useEffect(() => {
+    if (mode === ClientMode.Chats) return;
+    if (!activeChannel) return;
+    if (!socket) return;
+
+    const channelId = activeChannel.id;
+    console.log("emit join_channel", channelId);
+    socket.emit("join_channel", { channelId });
+
+    return () => { socket.emit("leave_channel", { channelId }); };
+
+  }, [activeChannel, mode, socket]);
+
+  useEffect(() => {
     if (!activeChannel) return;
     setHeader("# " + activeChannel.title);
     fetchMessages(activeChannel.id);
@@ -148,6 +161,7 @@ function Chat() {
     switch (mode) {
       case ClientMode.Chats:
         if (!activeChat) return;
+        setActiveChannel(null);
         fetchMessages(activeChat.chatId);
         break;
 
@@ -170,11 +184,6 @@ function Chat() {
       break;
   }
   return render();
-}
-
-
-function isPrivateChatResponse(chat: any): chat is PrivateChatResponse {
-  return chat && "chatId" in chat;
 }
 
 

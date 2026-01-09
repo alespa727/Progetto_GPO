@@ -15,6 +15,10 @@ import { createServer } from "http";
 import { Socket, Server as SocketServer } from "socket.io";
 import cors from "cors";
 import { send } from "process";
+import { AccessToken } from 'livekit-server-sdk';
+
+const apiKey = 'devkey'; 
+const apiSecret = 'secret'; 
 
 const app = express();
 app.use(cors());
@@ -31,12 +35,13 @@ const io = new SocketServer(httpServer, {
 let map: Map<string, Socket> = new Map();
 
 io.on("connection", (socket) => {
-    console.log(`🟢 Utente connesso: ${socket.id}`);
+    console.log(`Utente connesso: ${socket.id}`);
     let currentUser: null | User = null;
-    let currentChat: null | PrivateChat = null;
+    let key: string;
 
     socket.on("login", (data) => {
         const { username, password } = data;
+        
         const sender = Array.from(users.values()).find(u => u.username === username);
 
         if(sender !== undefined){
@@ -45,22 +50,33 @@ io.on("connection", (socket) => {
      
 
         if (sender?.password === password) {
-            console.log(username + " connesso!");
+           
+            let i = 0;
+            while(map.get(username+"-"+i)){
+                console.log(username+"-"+i+ " già presente");
+                i++;
+            }
+            key = username.concat("-"+i);
             socket.emit("message", { message: "ok" });
-            map.set(username, socket);
+            map.set(key, socket);
+            console.log(key + " connesso!");
         } else {
             console.log(username + " ha inserito la password errata!");
             socket.emit("message", { message: "wrong password" });
         }
     });
 
+    socket.on("disconnecting", () => {
+        socket.rooms.forEach((room: string)=>{
+            if(room !== socket.id){
+                console.log(key + " è uscito da "+room);
+            }
+        });
+    })
+
    socket.on("disconnect", () => {
-        for (const [username, s] of map.entries()) {
-            if (s.id === socket.id){
-                map.delete(username);
-                console.log(username +" è andato offline");
-            } 
-        }
+        map.delete(key);
+        console.log(key + " è andato offline");
     });
 
     socket.on("join_chat", (data) => {
@@ -70,7 +86,17 @@ io.on("connection", (socket) => {
         if (!chat) return;
 
         socket.join(`chat_${chatId}`);
-        console.log(currentUser?.username+" è entrato nella chat "+chatId);
+        console.log(key+" è entrato nella chat_"+chatId);
+    });
+
+    socket.on("join_channel", (data) => {
+        const { channelId } = data;
+        const channel = channels.find(c => c.id === channelId);
+
+        if (!channel) return;
+
+        socket.join(`channel_${channelId}`);
+        console.log(key+" è entrato nel channel_"+channelId);
     });
 
     socket.on("leave_chat", (data) => {
@@ -80,17 +106,35 @@ io.on("connection", (socket) => {
         if (!chat) return;
 
         socket.leave(`chat_${chatId}`);
-        console.log(currentUser?.username+" è uscito dalla chat "+chatId);
+        console.log(key+" è uscito dalla chat "+chatId);
+    });
+
+    socket.on("leave_channel", (data) => {
+        const { channelId } = data;
+        const channel = channels.find(c => c.id === channelId);
+
+        if (!channel) return;
+
+        socket.leave(`channel_${channelId}`);
+        console.log(key+" è uscito dal canale "+channelId);
     });
 
     socket.on("sendMessage", (data) => {
-        const { chatId, message } = data;
-        const chat = privateChats.find(c => c.id === chatId);
-       
-        if (!chat) return;
-        chat.addMessages([message]);
+        const { id, type,  message } = data;
         console.log(data);
-        io.to(`chat_${chatId}`).emit("newMessage", message);
+        if(type==="channel"){
+            const channel = channels.find(c => c.id === id);
+            if(!channel) return;
+            channel.addMessages([message]);
+            io.to(`channel_${id}`).emit("newMessage", message);
+        }else if(type==="chat"){
+            const chat = privateChats.find(c => c.id === id);
+            if (!chat) return;
+            chat.addMessages([message]);
+            io.to(`chat_${id}`).emit("newMessage", message);
+        }
+       
+        
     })
 
 });
@@ -206,11 +250,7 @@ const techSection = new Section(3, "Tecnologia", [techChannel, gamesChannel]);
 // ================= Servers =================
 let servers: Server[] = [
     new Server(1, "Server 1", [mainSection, funSection], "Il primo server di prova"),
-    new Server(2, "Server 2", [mainSection, techSection], "Il secondo server di prova"),
-    new Server(3, "Server 3", [mainSection, funSection, techSection], "Server completo di test"),
-    new Server(4, "Server 4", [funSection], "Server solo per divertimento"),
-    new Server(5, "Server 5", [techSection], "Server solo tecnologia"),
-    new Server(6, "Server 6", [mainSection], "Server minimale con una sola sezione"),
+    new Server(2, "Server 2", [techSection], "Il secondo server di prova")
 ];
 
 
@@ -270,6 +310,25 @@ app.get("/channel/:id/messages", (req, res) => {
         }
     });
     res.json(yourMessages);
+});
+
+let i = 0;
+app.post('/token', async (req, res) => {
+  const { identity, roomName } = req.body;
+
+  const name = identity+i;
+  i++;
+
+  const at = new AccessToken(apiKey, apiSecret, { identity: name });
+  at.addGrant({
+    roomJoin: true,
+    room: roomName,
+  });
+
+  const token = await at.toJwt();
+  console.log('Generated token for', name, 'room:', roomName);
+  console.log(token);
+  res.json({ token });
 });
 
 httpServer.listen(4000, () => {
