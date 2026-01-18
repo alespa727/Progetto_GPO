@@ -36,7 +36,68 @@ public final class Channel {
 	@Column(name = "description")
 	private String description;
 	
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()")
+	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
+
+	public Channel(){
+		super();
+	}
 	
+	public Channel(Integer pkID, Section fkSection, String name, String type, String description, LocalDate createdAt) {
+		super();
+		this.pkID = pkID;
+		this.fkSection = fkSection;
+		this.name = name;
+		this.type = type;
+		this.description = description;
+		this.createdAt = createdAt;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public Section getFkSection() {
+		return fkSection;
+	}
+
+	public void setFkSection(Section fkSection) {
+		this.fkSection = fkSection;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public LocalDate getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDate createdAt) {
+		this.createdAt = createdAt;
+	}
 }

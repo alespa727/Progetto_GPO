@@ -30,16 +30,86 @@ public final class User {
 	@Column(name = "password", length = 256, nullable = false)
 	private String password;
 	
-	@Column(name = "isAdmin", columnDefinition = "isAdmin TINYINT(1) DEFAULT 0")
-	private boolean isAdmin;
+	@Column(name = "isAdmin", columnDefinition = "isAdmin TINYINT(1) DEFAULT 0", insertable = false)
+	private Boolean isAdmin;
 	
-	@Column(name = "timeLastAccess", columnDefinition = "timeLastAccess DATETIME DEFAULT CURRENT_TIMESTAMP()")
+	@Column(name = "timeLastAccess")
 	private LocalDateTime timeLastAccess;
 	
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()")
+	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
 	
 	@Column(name = "imagePath", length = 100)
 	private String imagePath;
+
+	public User(){
+		super();
+	}
 	
+	public User(Integer pkID, String username, String password, Boolean isAdmin, LocalDateTime timeLastAccess, LocalDate createdAt, String imagePath) {
+		super();
+		this.pkID = pkID;
+		this.username = username;
+		this.password = password;
+		this.isAdmin = isAdmin;
+		this.timeLastAccess = timeLastAccess;
+		this.createdAt = createdAt;
+		this.imagePath = imagePath;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public Boolean isAdmin() {
+		return isAdmin;
+	}
+
+	public void setAdmin(Boolean isAdmin) {
+		this.isAdmin = isAdmin;
+	}
+
+	public LocalDateTime getTimeLastAccess() {
+		return timeLastAccess;
+	}
+
+	public void setTimeLastAccess(LocalDateTime timeLastAccess) {
+		this.timeLastAccess = timeLastAccess;
+	}
+
+	public LocalDate getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDate createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public String getImagePath() {
+		return imagePath;
+	}
+
+	public void setImagePath(String imagePath) {
+		this.imagePath = imagePath;
+	}
 }

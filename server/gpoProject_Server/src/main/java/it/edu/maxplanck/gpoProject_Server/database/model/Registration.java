@@ -30,7 +30,41 @@ public final class Registration {
     
     
     // Entity Fields
-	@Column(name = "date", columnDefinition = "date DATETIME DEFAULT CURRENT_TIMESTAMP()")
+	@Column(name = "date", columnDefinition = "date DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
     private LocalDateTime date;
-    
+
+	public Registration(){
+		super();
+	}
+	
+	public Registration(Community fkCommunity, User fkUser, LocalDateTime date) {
+		super();
+		this.fkCommunity = fkCommunity;
+		this.fkUser = fkUser;
+		this.date = date;
+	}
+
+	public Community getFkCommunity() {
+		return fkCommunity;
+	}
+
+	public void setFkCommunity(Community fkCommunity) {
+		this.fkCommunity = fkCommunity;
+	}
+
+	public User getFkUser() {
+		return fkUser;
+	}
+
+	public void setFkUser(User fkUser) {
+		this.fkUser = fkUser;
+	}
+
+	public LocalDateTime getDate() {
+		return date;
+	}
+
+	public void setDate(LocalDateTime date) {
+		this.date = date;
+	}
 }

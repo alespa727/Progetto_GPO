@@ -7,5 +7,8 @@ import it.edu.maxplanck.gpoProject_Server.database.model.User;
 
 @Repository
 public interface UsersRepo extends JpaRepository<User, Integer> {
-	
+
+    boolean existsByUsername(String username);
+
+    User findByUsername(String username);
 }

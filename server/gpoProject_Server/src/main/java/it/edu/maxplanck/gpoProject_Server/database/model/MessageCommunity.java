@@ -34,7 +34,59 @@ public final class MessageCommunity {
 	@Column(name = "message")
 	private String message;
 	
-	@Column(name = "sentAt", columnDefinition = "sentAt DATETIME DEFAULT CURRENT_TIMESTAMP()")
+	@Column(name = "sentAt", columnDefinition = "sentAt DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
 	private LocalDateTime sentAt;
+
+	public MessageCommunity(){
+		super();
+	}
 	
+	public MessageCommunity(Integer pkID, Channel fkChannel, User fkUser, String message, LocalDateTime sentAt) {
+		super();
+		this.pkID = pkID;
+		this.fkChannel = fkChannel;
+		this.fkUser = fkUser;
+		this.message = message;
+		this.sentAt = sentAt;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public Channel getFkChannel() {
+		return fkChannel;
+	}
+
+	public void setFkChannel(Channel fkChannel) {
+		this.fkChannel = fkChannel;
+	}
+
+	public User getFkUser() {
+		return fkUser;
+	}
+
+	public void setFkUser(User fkUser) {
+		this.fkUser = fkUser;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public LocalDateTime getSentAt() {
+		return sentAt;
+	}
+
+	public void setSentAt(LocalDateTime sentAt) {
+		this.sentAt = sentAt;
+	}
 }

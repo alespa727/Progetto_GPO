@@ -27,4 +27,39 @@ public final class Attached {
 	// Entity Fields
 	@Column(name = "path", nullable = false, length = 255)
 	private String path;
+
+	public Attached() {
+		super();
+	}
+
+	public Attached(Integer pkID, MessageChat fkMessage, String path) {
+		super();
+		this.pkID = pkID;
+		this.fkMessage = fkMessage;
+		this.path = path;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public MessageChat getFkMessage() {
+		return fkMessage;
+	}
+
+	public void setFkMessage(MessageChat fkMessage) {
+		this.fkMessage = fkMessage;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
 }

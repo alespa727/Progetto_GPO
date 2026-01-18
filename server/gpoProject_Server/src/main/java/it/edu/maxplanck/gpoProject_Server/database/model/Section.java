@@ -27,5 +27,39 @@ public final class Section {
 	// Entity Fields
 	@Column(name = "name", length = 30, nullable = false)
 	private String name;
+
+	public Section(){
+		super();
+	}
 	
+	public Section(Integer pkID, Community fkCommunity, String name) {
+		super();
+		this.pkID = pkID;
+		this.fkCommunity = fkCommunity;
+		this.name = name;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public Community getFkCommunity() {
+		return fkCommunity;
+	}
+
+	public void setFkCommunity(Community fkCommunity) {
+		this.fkCommunity = fkCommunity;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 }

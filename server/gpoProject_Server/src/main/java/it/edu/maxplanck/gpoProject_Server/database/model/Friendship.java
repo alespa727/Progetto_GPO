@@ -31,7 +31,50 @@ public final class Friendship {
 	private User fkUser2;
 	
 	// Entity Fields
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()")
+	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
+
+	public Friendship(){
+		super();
+	}
 	
+	public Friendship(Integer pkID, User fkUser1, User fkUser2, LocalDate createdAt) {
+		super();
+		this.pkID = pkID;
+		this.fkUser1 = fkUser1;
+		this.fkUser2 = fkUser2;
+		this.createdAt = createdAt;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public User getFkUser1() {
+		return fkUser1;
+	}
+
+	public void setFkUser1(User fkUser1) {
+		this.fkUser1 = fkUser1;
+	}
+
+	public User getFkUser2() {
+		return fkUser2;
+	}
+
+	public void setFkUser2(User fkUser2) {
+		this.fkUser2 = fkUser2;
+	}
+
+	public LocalDate getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDate createdAt) {
+		this.createdAt = createdAt;
+	}
 }

@@ -34,7 +34,59 @@ public final class MessageChat {
 	@Column(name = "message")
 	private String message;
 	
-	@Column(name = "sentAt", columnDefinition = "sentAt DATETIME DEFAULT CURRENT_TIMESTAMP()")
+	@Column(name = "sentAt", columnDefinition = "sentAt DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
 	private LocalDateTime sentAt;
+
+	public MessageChat(){
+		super();
+	}
 	
+	public MessageChat(Integer pkID, Chat fkChat, User fkUser, String message, LocalDateTime sentAt) {
+		super();
+		this.pkID = pkID;
+		this.fkChat = fkChat;
+		this.fkUser = fkUser;
+		this.message = message;
+		this.sentAt = sentAt;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public Chat getFkChat() {
+		return fkChat;
+	}
+
+	public void setFkChat(Chat fkChat) {
+		this.fkChat = fkChat;
+	}
+
+	public User getFkUser() {
+		return fkUser;
+	}
+
+	public void setFkUser(User fkUser) {
+		this.fkUser = fkUser;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public LocalDateTime getSentAt() {
+		return sentAt;
+	}
+
+	public void setSentAt(LocalDateTime sentAt) {
+		this.sentAt = sentAt;
+	}
 }

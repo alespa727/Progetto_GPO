@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;
-import it.edu.maxplanck.gpoProject_Server.exceptions.InputNullException;
 import it.edu.maxplanck.gpoProject_Server.util.UtilToken;
 
 import java.security.Key;
@@ -21,10 +20,12 @@ public class TokenService extends TokenManager {
 	private final Key keyAccess;
 	private final Key keyRefresh;
 
-	public TokenService(@Value(UtilToken.accessTokenPath) String secretAccess,
+	public TokenService(
+			@Value(UtilToken.accessTokenPath) String secretAccess,
 			@Value(UtilToken.accessTokenExpirationDatePath) int expirationAccessDays,
 			@Value(UtilToken.refreshTokenPath) String secretRefresh,
-			@Value(UtilToken.refreshTokenExpirationDatePath) int expirationRefreshDays) {
+			@Value(UtilToken.refreshTokenExpirationDatePath) int expirationRefreshDays
+		) {
 		this.accessExpiration = expirationAccessDays * UtilToken.timeExpirationDateAccessToken; // giorni -> ms
 		this.refreshExpiration = expirationRefreshDays * UtilToken.timeExpirationDateRefreshToken; // giorni -> ms
 
@@ -34,10 +35,10 @@ public class TokenService extends TokenManager {
 	
 	
 	// Errore input -> Throws
-	private String checkDatagetToken(String subject, Map<String, Object> claims, Key key, long expiration) throws InputNullException {
+	private String checkDatagetToken(String subject, Map<String, Object> claims, Key key, long expiration) throws NullPointerException {
 		
-		if(subject == null) throw new InputNullException("Input null", HttpStatus.BAD_REQUEST.value());
-		if(claims == null) throw new InputNullException("Input null", HttpStatus.BAD_REQUEST.value());
+		if(subject == null) throw new NullPointerException("Errore valore null");
+		if(claims == null) throw new NullPointerException("Errore valore null");
 		
 		String token = this.generateToken(subject, claims, key, expiration, UtilToken.algorithm);
 		return token;
@@ -48,7 +49,7 @@ public class TokenService extends TokenManager {
 		String token = null;
 		try {
 			token = this.checkDatagetToken(subject, claims, keyAccess, accessExpiration);
-		} catch (InputNullException e) {
+		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch(Exception e) {
@@ -64,7 +65,7 @@ public class TokenService extends TokenManager {
 		String token = null;
 		try {
 			token = this.checkDatagetToken(subject, claims, keyRefresh, refreshExpiration);
-		} catch (InputNullException e) {
+		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch(Exception e) {
@@ -76,9 +77,9 @@ public class TokenService extends TokenManager {
 	}
 	
 	
-	private Claims checkDataobtainClaims(String token, Key key) throws InputNullException {
+	private Claims checkDataobtainClaims(String token, Key key) throws NullPointerException {
 		
-		if(token == null) throw new InputNullException("Input null", HttpStatus.BAD_REQUEST.value());
+		if(token == null) throw new NullPointerException("Errore valore null");
 		
 		Claims claims = this.obtainTokenClaims(token, key);
 		
@@ -90,7 +91,7 @@ public class TokenService extends TokenManager {
 		Claims claims = null;
 		try {
 			claims = this.checkDataobtainClaims(token, keyAccess);
-		} catch (InputNullException e) {
+		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch(Exception e) {
@@ -106,7 +107,7 @@ public class TokenService extends TokenManager {
 		Claims claims = null;
 		try {
 			claims = this.checkDataobtainClaims(token, keyRefresh);
-		} catch (InputNullException e) {
+		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch(Exception e) {

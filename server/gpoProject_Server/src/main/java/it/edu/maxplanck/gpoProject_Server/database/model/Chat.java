@@ -31,7 +31,50 @@ public final class Chat {
 	@Column(name = "timeLastMessage")
 	private LocalDateTime timeLastMessage;
 	
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()")
+	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
+
+	public Chat(){
+		super();
+	}
 	
+	public Chat(Integer pkID, Friendship fkFriendship, LocalDateTime timeLastMessage, LocalDate createdAt) {
+		super();
+		this.pkID = pkID;
+		this.fkFriendship = fkFriendship;
+		this.timeLastMessage = timeLastMessage;
+		this.createdAt = createdAt;
+	}
+
+	public Integer getPkID() {
+		return pkID;
+	}
+
+	public void setPkID(Integer pkID) {
+		this.pkID = pkID;
+	}
+
+	public Friendship getFkFriendship() {
+		return fkFriendship;
+	}
+
+	public void setFkFriendship(Friendship fkFriendship) {
+		this.fkFriendship = fkFriendship;
+	}
+
+	public LocalDateTime getTimeLastMessage() {
+		return timeLastMessage;
+	}
+
+	public void setTimeLastMessage(LocalDateTime timeLastMessage) {
+		this.timeLastMessage = timeLastMessage;
+	}
+
+	public LocalDate getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDate createdAt) {
+		this.createdAt = createdAt;
+	}
 }
