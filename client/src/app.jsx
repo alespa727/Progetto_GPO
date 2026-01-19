@@ -6,11 +6,18 @@ import Menu from './components/Menu.tsx'
 import { ContextProvider } from './context/ContextProvider.tsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
     <ContextProvider>
       <Topbar />
       <Menu />
-    </ContextProvider>
-  </StrictMode>,
+    </ContextProvider>,
+)
+/*
+createRoot(document.getElementById('root')).render(
+    <ContextProvider>
+      
+    </ContextProvider>,
 )
 
+
+
+*/

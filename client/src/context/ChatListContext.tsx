@@ -5,7 +5,7 @@ import { PrivateChatResponse, User } from "../types";
 const ChatContext = createContext<PrivateChatResponse[] | null>(null);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const [Chats, setChats] = useState<PrivateChatResponse[] | null>(null);
+  const [chats, setChats] = useState<PrivateChatResponse[] | null>(null);
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -27,7 +27,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <ChatContext.Provider value={Chats}>
+    <ChatContext.Provider value={chats}>
       {children}
     </ChatContext.Provider>
   );

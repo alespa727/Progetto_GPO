@@ -34,7 +34,5 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useSocket = () => {
-  const socket = useContext(SocketContext);
-  if (!socket) throw new Error("useSocket deve essere usato dentro SocketProvider");
-  return socket;
+  return useContext(SocketContext);
 };

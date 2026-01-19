@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Channel, Server } from "../types";
 
 interface ActiveServerContextType {
@@ -13,6 +13,11 @@ const ActiveServerContext = createContext<ActiveServerContextType | null>(null);
 export const ActiveServerProvider = ({ children }: { children: ReactNode }) => {
   const [activeServer, setActiveServer] = useState<Server | null>(null);
   const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
+
+  useEffect(()=>{
+    if(activeServer)
+      setActiveChannel(activeServer.sections[0].channels[0]);
+  }, [activeServer]);
 
   return (
     <ActiveServerContext.Provider value={{ activeServer, activeChannel, setActiveServer, setActiveChannel  }}>

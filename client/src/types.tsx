@@ -82,16 +82,20 @@ export class PrivateChat {
 }
 
 // ================= Channel & TextChannel =================
+
+export enum ChannelType{
+  VOICE, TEXT
+}
 export class Channel {
   id: number;
-  type: ChatType.CHANNEL;
+  type: ChannelType;
   title: string;
   description?: string;
   createdAt?: Date;
 
-  constructor(id: number, title: string, description?: string, createdAt?: Date) {
+  constructor(id: number, type: ChannelType, title: string, description?: string, createdAt?: Date) {
     this.id = id;
-    this.type = ChatType.CHANNEL;
+    this.type = type;
     this.title = title;
     this.description = description;
     this.createdAt = createdAt;
@@ -101,7 +105,7 @@ export class Channel {
     if (json.messages) {
       return TextChannel.fromJSON(json);
     }
-    return new Channel(json.id, json.title, json.description);
+    return new Channel(json.id, json.type, json.title, json.description);
   }
 }
 
@@ -109,7 +113,7 @@ export class TextChannel extends Channel {
   messages: Message[];
 
   constructor(id: number, title: string, description?: string, createdAt?: Date) {
-    super(id, title, description, createdAt);
+    super(id, ChannelType.TEXT, title, description, createdAt);
     this.messages = [];
   }
 
