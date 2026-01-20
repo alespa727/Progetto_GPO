@@ -1,7 +1,6 @@
 package it.edu.maxplanck.gpoProject_Server.token;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
@@ -14,20 +13,13 @@ import java.util.Map;
 @Service
 public class TokenService extends TokenManager {
 
-	private final long accessExpiration; // in ms
-	private final long refreshExpiration; // in ms
-
 	private final Key keyAccess;
 	private final Key keyRefresh;
 
 	public TokenService(
 			@Value(UtilToken.accessTokenPath) String secretAccess,
-			@Value(UtilToken.accessTokenExpirationDatePath) int expirationAccessDays,
-			@Value(UtilToken.refreshTokenPath) String secretRefresh,
-			@Value(UtilToken.refreshTokenExpirationDatePath) int expirationRefreshDays
+			@Value(UtilToken.refreshTokenPath) String secretRefresh
 		) {
-		this.accessExpiration = expirationAccessDays * UtilToken.timeExpirationDateAccessToken; // giorni -> ms
-		this.refreshExpiration = expirationRefreshDays * UtilToken.timeExpirationDateRefreshToken; // giorni -> ms
 
 		this.keyAccess = Keys.hmacShaKeyFor(secretAccess.getBytes(UtilToken.charset));
 		this.keyRefresh = Keys.hmacShaKeyFor(secretRefresh.getBytes(UtilToken.charset));
@@ -48,7 +40,7 @@ public class TokenService extends TokenManager {
 		
 		String token = null;
 		try {
-			token = this.checkDatagetToken(subject, claims, keyAccess, accessExpiration);
+			token = this.checkDatagetToken(subject, claims, keyAccess, UtilToken.timeExpirationDateAccessToken);
 		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -64,7 +56,7 @@ public class TokenService extends TokenManager {
 		
 		String token = null;
 		try {
-			token = this.checkDatagetToken(subject, claims, keyRefresh, refreshExpiration);
+			token = this.checkDatagetToken(subject, claims, keyRefresh, UtilToken.timeExpirationDateRefreshToken);
 		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -123,7 +115,7 @@ public class TokenService extends TokenManager {
 		return this.isTokenValid(token, keyAccess);
 	}
 	
-	public boolean isTokenAccessRefresh(String token) {
+	public boolean isTokenRefreshValid(String token) {
 		return this.isTokenValid(token, keyRefresh);
 	}
 }

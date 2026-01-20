@@ -1,33 +1,15 @@
 package it.edu.maxplanck.gpoProject_Server.database.services;
 
-import java.util.List;
-
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.edu.maxplanck.gpoProject_Server.database.model.Friendship;
-import it.edu.maxplanck.gpoProject_Server.database.model.User;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.AttachmentsRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.CallsRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.ChannelsRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.ChatsRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.CommunitiesRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.FriendshipsRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.MessagesChatRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.MessagesCommunityRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.RegistrationsRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.SectionsRepo;
-import it.edu.maxplanck.gpoProject_Server.database.repositories.UsersRepo;
+import it.edu.maxplanck.gpoProject_Server.database.repositories.*;
 
 @Transactional
 @Service
 public class DatabaseService {
 
-	/**
-	 * -------------------------------------------------------------------------
-	 *  			ATTRIBUTI
-	 * -------------------------------------------------------------------------
-	**/
 	private final AttachmentsRepo attachmentsRepo;
 	private final CallsRepo callsRepo;
 	private final ChannelsRepo channelsRepo;
@@ -39,13 +21,11 @@ public class DatabaseService {
 	private final RegistrationsRepo registrationsRepo;
 	private final SectionsRepo sectionsRepo;
 	private final UsersRepo usersRepo;
-	
-	/**
-	 * -------------------------------------------------------------------------
-	 *  			COSTRUTTORI
-	 * -------------------------------------------------------------------------
-	**/
-	public DatabaseService(AttachmentsRepo attachmentsRepo, 
+
+	private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+	public DatabaseService(
+			AttachmentsRepo attachmentsRepo, 
 			CallsRepo callsRepo, 
 			ChannelsRepo channelsRepo,
 			ChatsRepo chatsRepo, 
@@ -71,11 +51,6 @@ public class DatabaseService {
 		this.usersRepo = usersRepo;
 	}
 
-	/**
-	 * -------------------------------------------------------------------------
-	 *  			GETTER
-	 * -------------------------------------------------------------------------
-	**/
 	public AttachmentsRepo getAttachmentsRepo() {
 		return attachmentsRepo;
 	}
@@ -119,87 +94,8 @@ public class DatabaseService {
 	public UsersRepo getUsersRepo() {
 		return usersRepo;
 	}
-	
-	/**
-	 * -------------------------------------------------------------------------
-	 *  			METODI
-	 * -------------------------------------------------------------------------
-	**/
-	
-	/// Metodi FRIENDSHIP
-	
-	// Ottiene amici
-	public List<Friendship> getFriends() {
 
-		List<Friendship> friends = null;
-
-		return friends;
-	}
-	
-	/// Metodi USER
-	
-	// Crea un utente
-	public void createUser(User user) throws IllegalArgumentException, NullPointerException {
-		
-		if(user == null) throw new NullPointerException("Errore valore null");
-		
-		if (this.usersRepo.existsByUsername(user.getUsername())) {
-		    throw new IllegalArgumentException("Username already exists");
-		}
-		
-		this.usersRepo.save(user);
-	}
-	
-	// Ottiene un utente in base all'id
-	public User getUser(Integer pk) throws NullPointerException {
-		
-		if(pk == null) throw new NullPointerException("Errore valore null");
-		
-		return this.usersRepo.findById(pk).get();
-	}
-	
-	// Ottiene un utente in base allo username
-	
-	
-	// Aggiorna i dati di un utente
-	public void updateUser(User modifiedUser) throws NullPointerException, IllegalArgumentException {
-		
-		if(modifiedUser == null) throw new NullPointerException("Errore valore null");
-		
-		User u = this.usersRepo.findById(modifiedUser.getPkID()).orElse(null);
-		
-		if(u == null) throw new NullPointerException("Errore valore null");
-		
-		if(!u.getUsername().equals(modifiedUser.getUsername())) {
-			
-			if (this.usersRepo.existsByUsername(modifiedUser.getUsername())) {
-			    throw new IllegalArgumentException("Username already exists");
-			}
-			
-			u.setUsername(modifiedUser.getUsername());
-		}
-		
-		if(!u.getPassword().equals(modifiedUser.getPassword())) {
-			u.setPassword(modifiedUser.getPassword());
-		}
-		
-		if(u.isAdmin() && !modifiedUser.isAdmin()) {
-			u.setAdmin(modifiedUser.isAdmin());
-		}
-		
-		if(!u.getTimeLastAccess().equals(modifiedUser.getTimeLastAccess())) {
-			u.setTimeLastAccess(modifiedUser.getTimeLastAccess());
-		}
-		
-		if(!u.getImagePath().equals(modifiedUser.getImagePath())) {
-			u.setImagePath(modifiedUser.getImagePath());
-		}
-	}
-	
-	public void deleteUser(User user) throws NullPointerException {
-		
-		if(user == null) throw new NullPointerException("Errore valore null");
-		
-		this.usersRepo.delete(user);
+	public BCryptPasswordEncoder getPasswordEncoder() {
+		return passwordEncoder;
 	}
 }

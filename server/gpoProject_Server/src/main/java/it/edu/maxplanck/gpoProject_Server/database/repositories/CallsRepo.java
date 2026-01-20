@@ -8,4 +8,9 @@ import it.edu.maxplanck.gpoProject_Server.database.model.Call;
 @Repository
 public interface CallsRepo extends JpaRepository<Call, Integer> {
 
+	Call startCall(int chatId);
+
+    void endCall(int callId);
+
+    Call getCallByChat(int chatId);
 }
