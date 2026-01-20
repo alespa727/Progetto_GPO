@@ -46,7 +46,6 @@ function ChannelChat() {
 
   useEffect(() => {
     setCallActive(activeChannel?.type === ChannelType.VOICE);
-    console.log(isCallActive);
   }, [activeChannel]);
 
   useEffect(() => {
@@ -95,7 +94,7 @@ function ChannelChat() {
 
         <div className="messages" ref={messagesRef}>
           {[...messages].reverse().map((msg: Message, index: number) => {
-            console.log(msg)
+      
             return (
             <div key={index} className="rounded-r-md px-4 mr-4 hover:bg-white/10 flex items-center">
               <div key={index} className="gap-2 flex p-2 "><p className=" text-[14px] font-extralight">{

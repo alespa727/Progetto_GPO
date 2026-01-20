@@ -7,9 +7,12 @@ import {
     Server,
     Section,
     Message,
-    PrivateChatResponse
+    PrivateChatResponse,
+    ChannelType,
+    VoiceChannel
 } from "./types";
 
+import 'dotenv/config';
 import express from "express";
 import { createServer } from "http";
 import { Socket, Server as SocketServer } from "socket.io";
@@ -17,22 +20,28 @@ import cors from "cors";
 import { send } from "process";
 import { AccessToken } from 'livekit-server-sdk';
 
-const apiKey = 'devkey'; 
-const apiSecret = 'secret'; 
+const apiKey = process.env.LIVEKIT_API_KEY;
+const apiSecret = process.env.LIVEKIT_API_SECRET;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// HTTP server
 const httpServer = createServer(app);
-
-// Socket.IO
 const io = new SocketServer(httpServer, {
     cors: { origin: "*" },
 });
 
 let map: Map<string, Socket> = new Map();
+
+function getKeyBySocket(targetSocket: Socket): string | null {
+    for (const [key, socket] of map.entries()) {
+        if (socket === targetSocket) {
+            return key; 
+        }
+    }
+    return null; 
+}
 
 io.on("connection", (socket) => {
     console.log(`Utente connesso: ${socket.id}`);
@@ -41,22 +50,22 @@ io.on("connection", (socket) => {
 
     socket.on("login", (data) => {
         const { username, password } = data;
-        
+
         const sender = Array.from(users.values()).find(u => u.username === username);
 
-        if(sender !== undefined){
+        if (sender !== undefined) {
             currentUser = sender;
         }
-     
+
 
         if (sender?.password === password) {
-           
+
             let i = 0;
-            while(map.get(username+"-"+i)){
-                console.log(username+"-"+i+ " già presente");
+            while (map.get(username + "-" + i)) {
+                console.log(username + "-" + i + " già presente");
                 i++;
             }
-            key = username.concat("-"+i);
+            key = username.concat("-" + i);
             socket.emit("message", { message: "ok" });
             map.set(key, socket);
             console.log(key + " connesso!");
@@ -67,14 +76,14 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnecting", () => {
-        socket.rooms.forEach((room: string)=>{
-            if(room !== socket.id){
-                console.log(key + " è uscito da "+room);
+        socket.rooms.forEach((room: string) => {
+            if (room !== socket.id) {
+                console.log(key + " è uscito da " + room);
             }
         });
     })
 
-   socket.on("disconnect", () => {
+    socket.on("disconnect", () => {
         map.delete(key);
         console.log(key + " è andato offline");
     });
@@ -86,17 +95,45 @@ io.on("connection", (socket) => {
         if (!chat) return;
 
         socket.join(`chat_${chatId}`);
-        console.log(key+" è entrato nella chat_"+chatId);
+        console.log(key + " è entrato nella chat_" + chatId);
     });
 
-    socket.on("join_channel", (data) => {
-        const { channelId } = data;
-        const channel = channels.find(c => c.id === channelId);
+    socket.on("join_server", (data) => {
+        const { serverId } = data;
+        const server = servers.find(c => c.id.toString() === serverId.toString());
 
-        if (!channel) return;
+        if (!server) return;
 
+        socket.join(`server_${serverId}`);
+        console.log(key + " è entrato nel server_" + serverId);
+        server.sections.forEach((s)=>{
+            s.channels.forEach((c)=>{
+                if(c.type === ChannelType.VOICE){
+                    emitVoiceUsersUpdate(c.id);
+                }
+            })
+        })
+        
+    });
+
+    socket.on("leave_server", (data) => {
+        const { serverId } = data;
+        const server = servers.find(c => c.id.toString() === serverId.toString());
+
+        if (!server) return;
+
+        socket.leave(`server_${serverId}`);
+    });
+
+    socket.on("join_channel", ({ channelId }) => {
         socket.join(`channel_${channelId}`);
-        console.log(key+" è entrato nel channel_"+channelId);
+        console.log(typeof(channelId), channelId)
+        emitVoiceUsersUpdate(parseInt(channelId));
+    });
+
+     socket.on("leave_channel", ({ channelId }) => {
+        socket.leave(`channel_${channelId}`);
+        emitVoiceUsersUpdate(parseInt(channelId));
     });
 
     socket.on("leave_chat", (data) => {
@@ -106,51 +143,52 @@ io.on("connection", (socket) => {
         if (!chat) return;
 
         socket.leave(`chat_${chatId}`);
-        console.log(key+" è uscito dalla chat "+chatId);
+        console.log(key + " è uscito dalla chat " + chatId);
     });
 
-    socket.on("leave_channel", (data) => {
-        const { channelId } = data;
-        const channel = channels.find(c => c.id === channelId);
-
-        if (!channel) return;
-
-        socket.leave(`channel_${channelId}`);
-        console.log(key+" è uscito dal canale "+channelId);
-    });
+  
 
     socket.on("sendMessage", (data) => {
-        const { id, type,  message } = data;
+        const { id, type, message } = data;
         console.log(data);
-        if(type==="channel"){
+        if (type === "channel") {
             const channel = channels.find(c => c.id === id);
-            if(!channel) return;
-            channel.addMessages([message]);
-            io.to(`channel_${id}`).emit("newMessage", message);
-        }else if(type==="chat"){
+            if (!channel) return;
+            if (channel instanceof TextChannel) {
+                channel.addMessages([message]);
+                io.to(`channel_${id}`).emit("newMessage", message);
+            }
+        } else if (type === "chat") {
             const chat = privateChats.find(c => c.id === id);
             if (!chat) return;
             chat.addMessages([message]);
             io.to(`chat_${id}`).emit("newMessage", message);
         }
-       
-        
+
+
     })
 
 });
 
-
+function getKeyBySocketId(socketId: string): string | null {
+    for (const [key, socket] of map.entries()) {
+        if (socket.id === socketId) {
+            return key;
+        }
+    }
+    return null;
+}
 
 let users: Map<string, User> = new Map([
     ["ale", new User(1, "ale", "password1")],
-    ["mario", new User(2, "mario", "password2")],
+    ["marialuisa della madonna mannara", new User(2, "marialuisa della madonna mannara", "password2")],
     ["luigi", new User(3, "luigi", "password3")],
     ["giulia", new User(4, "giulia", "password4")],
 ]);
 
 // Estrai gli utenti dalla Map
 const ale = users.get("ale")!;
-const mario = users.get("mario")!;
+const mario = users.get("marialuisa della madonna mannara")!;
 const luigi = users.get("luigi")!;
 const giulia = users.get("giulia")!;
 
@@ -171,11 +209,11 @@ let privateChats: PrivateChat[] = [
 // Chat Ale ↔ Mario
 privateChats[0].addMessages([
     new Message("[Ale] messaggio 1", ale, new Date()),
-    new Message("[Mario] messaggio 2", mario, new Date()),
+    new Message("[marialuisa della madonna mannara] messaggio 2", mario, new Date()),
     new Message("[Ale] messaggio 3", ale, new Date()),
-    new Message("[Mario] messaggio 4", mario, new Date()),
+    new Message("[marialuisa della madonna mannara] messaggio 4", mario, new Date()),
     new Message("[Ale] messaggio 5", ale, new Date()),
-    new Message("[Mario] messaggio 6", mario, new Date()),
+    new Message("[marialuisa della madonna mannara] messaggio 6", mario, new Date()),
 ]);
 
 // Chat Ale ↔ Luigi
@@ -200,44 +238,33 @@ privateChats[2].addMessages([
 
 // ================= Canali =================
 const generalChannel = new TextChannel(1, "general", "Canale generale");
-const randomChannel = new TextChannel(2, "random", "Canale chiacchiere");
+const randomChannel = new VoiceChannel(2, "random", "Canale chiacchiere");
 const memesChannel = new TextChannel(3, "memes", "Condividi meme e gif");
 const techChannel = new TextChannel(4, "tech-talk", "Discussioni tecnologiche");
-const musicChannel = new TextChannel(5, "music", "Condividi musica");
+const musicChannel = new VoiceChannel(5, "music", "Condividi musica");
 const gamesChannel = new TextChannel(6, "games", "Parliamo di videogiochi");
 
 // ================= Messaggi placeholder =================
 generalChannel.addMessages([
-  new Message("Messaggio 1 da Ale", new User(1, "ale", "")),
-  new Message("Messaggio 2 da Mario", new User(2, "mario", "")),
-  new Message("Messaggio 3 da Luigi", new User(3, "luigi", "")),
+    new Message("Messaggio 1 da Ale", new User(1, "ale", "")),
+    new Message("Messaggio 2 da Mario", new User(2, "mario", "")),
+    new Message("Messaggio 3 da Luigi", new User(3, "luigi", "")),
 ]);
-
-randomChannel.addMessages([
-  new Message("Messaggio 1 da Giulia", new User(4, "giulia", "")),
-  new Message("Messaggio 2 da Ale", new User(1, "ale", "")),
-]);
-
 memesChannel.addMessages([
-  new Message("Messaggio 1 da Mario", new User(2, "mario", "")),
-  new Message("Messaggio 2 da Luigi", new User(3, "luigi", "")),
-  new Message("Messaggio 3 da Giulia", new User(4, "giulia", "")),
+    new Message("Messaggio 1 da Mario", new User(2, "mario", "")),
+    new Message("Messaggio 2 da Luigi", new User(3, "luigi", "")),
+    new Message("Messaggio 3 da Giulia", new User(4, "giulia", "")),
 ]);
 
 techChannel.addMessages([
-  new Message("Messaggio 1 da Ale", new User(1, "ale", "")),
-  new Message("Messaggio 2 da Mario", new User(2, "mario", "")),
-]);
-
-musicChannel.addMessages([
-  new Message("Messaggio 1 da Giulia", new User(4, "giulia", "")),
-  new Message("Messaggio 2 da Ale", new User(1, "ale", "")),
+    new Message("Messaggio 1 da Ale", new User(1, "ale", "")),
+    new Message("Messaggio 2 da Mario", new User(2, "mario", "")),
 ]);
 
 gamesChannel.addMessages([
-  new Message("Messaggio 1 da Luigi", new User(3, "luigi", "")),
-  new Message("Messaggio 2 da Mario", new User(2, "mario", "")),
-  new Message("Messaggio 3 da Ale", new User(1, "ale", "")),
+    new Message("Messaggio 1 da Luigi", new User(3, "luigi", "")),
+    new Message("Messaggio 2 da Mario", new User(2, "mario", "")),
+    new Message("Messaggio 3 da Ale", new User(1, "ale", "")),
 ]);
 
 const channels = [gamesChannel, musicChannel, techChannel, memesChannel, randomChannel, generalChannel];
@@ -258,7 +285,7 @@ app.get("/servers", (req, res) => {
     res.json(servers);
 });
 
-app.get("/whoami", (req, res)=>{
+app.get("/whoami", (req, res) => {
     res.json(users.get("ale"));
 });
 
@@ -304,34 +331,75 @@ app.get("/chat/:id/messages", (req, res) => {
 app.get("/channel/:id/messages", (req, res) => {
 
     let yourMessages: Message[] = [];
-    channels.forEach(element => {
-        if (parseInt(req.params.id) == element.id) {
-            yourMessages = element.messages;
-        }
-    });
+    channels.map((c) => {
+        if (c.id === parseInt(req.params.id) && c instanceof TextChannel) yourMessages = c.messages;
+    })
+
     res.json(yourMessages);
+
 });
 
 let i = 0;
 app.post('/token', async (req, res) => {
-  const { identity, roomName } = req.body;
+    const { identity, roomName } = req.body;
 
-  const name = identity+i;
-  i++;
+    const name = identity + i;
+    i++;
 
-  const at = new AccessToken(apiKey, apiSecret, { identity: name });
-  at.addGrant({
-    roomJoin: true,
-    room: roomName,
-  });
+    const at = new AccessToken(apiKey, apiSecret, { identity: name });
+    at.addGrant({
+        roomJoin: true,
+        room: roomName,
+    });
 
-  const token = await at.toJwt();
-  console.log('Generated token for', name, 'room:', roomName);
-  console.log(token);
-  res.json({ token });
+    const token = await at.toJwt();
+    console.log('Generated token for', name, 'room:', roomName);
+    console.log(token);
+    res.json({ token });
 });
 
 httpServer.listen(4000, () => {
     console.log(`Server in ascolto sulla porta ${4000}`);
 });
 
+function emitVoiceUsersUpdate(channelId: number) {
+  const room = io.sockets.adapter.rooms.get(`channel_${channelId}`);
+  const users: string[] = [];
+
+  if (room) {
+    for (const socketId of room) {
+      const userId = getKeyBySocketId(socketId);
+      if (userId) users.push(userId);
+    }
+  }
+  const serverId = getServerIdByChannel(channelId);
+  console.log(serverId)
+  console.log("Utenti nel server partendo dal ", channelId, io.sockets.adapter.rooms.get(`server_${serverId}`));
+
+  io.to(`server_${serverId}`).emit("voice_users_update", {
+    channelId,
+    users
+  });
+  io.to(`server_${serverId}`).emit("message", {
+    channelId,
+    users
+  });
+}
+
+function getServerIdByChannel(channelId: number): number | undefined {
+  for (const server of servers) {
+    for (const section of server.sections) {
+      for (const channel of section.channels) {
+        // handle both TextChannel and VoiceChannel
+        if ("id" in channel && channel.id === channelId) {
+          console.log("Trovato serverId:", server.id, "per channelId:", channelId);
+          return server.id;
+        }
+      }
+    }
+  }
+  console.log("ChannelId non trovato:", channelId);
+  return undefined;
+}
+
+console.log("Test",getServerIdByChannel(2))

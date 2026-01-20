@@ -4,50 +4,62 @@ import { ChannelType } from "../../types";
 import { Hash, Mic, Headphones, Volume2, PhoneCall } from "lucide-react";
 import { ProfilePicture } from "../chat/ProfilePicture";
 import { useActiveRoomContext } from "../../context/CallContext";
-import { Room } from "livekit-client";
+import { Participant, Room } from "livekit-client";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useUser } from "../../context/UserProvider";
+import { useSocket } from "../../context/SocketProvider";
+import { ParticipantContext, ParticipantLoop, RoomAudioRenderer, useParticipants, useRoomContext } from "@livekit/components-react";
 
 export function ChannelName() {
   const channel = useChannelContext();
   const { setActiveChannel, activeChannel } = useActiveServerContext();
 
   const isActive = activeChannel?.id === channel.id;
-  const setRoom = useActiveRoomContext().setRoom;
 
   const user = useUser();
+  const { setToken, setTitle, setUrl } = useActiveRoomContext();
   const url = "wss://progettogpo-dfna4rrr.livekit.cloud";
-  const [room] = useState<Room>(new Room());
-  const [token, setToken] = useState("");
+  const socket = useSocket();
+  const [userList, setUsers] = useState<string[]>([]);
+  let [count, setCount] = useState<number>(0);
+  const participants = useParticipants();
+  const room = useRoomContext();
+ 
+  useEffect(() => {
 
-  const connectRoom = async () => {
-    if (token.length === 0) return;
-    await room.connect(url, token, {
-      rtcConfig: { iceTransportPolicy: "all" },
-    });
+    const handleUsers = ({
+      channelId,
+      users
+    }:
+      {
+        channelId: number,
+        users: string[]
+      }) => {
+      
+      if (channelId !== channel.id) return;
+      setCount(prev => prev + 1);
+      setUsers(users)
+    }
 
-    console.log('connected to room', room.name);
-  }
+    socket?.emit("get_channel_users", { channelId: channel.id });
+    socket?.on("voice_users_update", handleUsers);
 
-  const handleClick = async() => {
+  }, []);
+
+  const handleClick = async () => {
     if (channel.type !== ChannelType.VOICE) {
       setActiveChannel(channel);
     } else {
-      console.log(user);
       const res = await axios.post("http://localhost:4000/token", {
         identity: user?.username,
-        roomName: "channel_"+channel.id
+        roomName: "channel_" + channel.id
       });
+      setUrl(url)
       setToken(res.data.token);
-      //setRoom();
+      setTitle(channel.title);
     }
   };
-  
-  useEffect(()=>{
-    if(token.length > 0)
-    connectRoom();
-  }, [token])
 
   return (
     <>
@@ -88,22 +100,31 @@ export function ChannelName() {
 
 
       </button>
-
       
-        {channel.type === ChannelType.VOICE ? (
-          <div className="  w-full text-left rounded-md px-3 pl- mb-1
+
+      {channel.type === ChannelType.VOICE ? (
+        <div className="  w-full text-left rounded-md px-3 pl- mb-1
         flex flex-col gap-1/2 mt-1
         transition-all duration-150 pb-2">
-            <div className="rounded-md p-2 flex gap-2 hover:bg-white/10 ">
-              <ProfilePicture className="w-5 h-5"></ProfilePicture>
-              <p>user1</p>
-            </div>
-             <div className="rounded-md p-2 flex gap-2 hover:bg-white/10 ">
-              <ProfilePicture className="w-5 h-5"></ProfilePicture>
-              <p>user2</p>
-            </div>
-          </div>
-        ) : ""}
+          <RoomAudioRenderer />
+            {
+
+                userList.map((userName) => {
+
+                  return (
+                    <div className="rounded-md p-2 flex gap-2 hover:bg-white/10 ">
+                      <ProfilePicture className="w-5 h-5"></ProfilePicture>
+                      <p>{userName}</p>
+                    </div>
+                  )
+                }
+
+                )
+              }
+        
+         
+        </div>
+      ) : ""}
     </>
 
   );
