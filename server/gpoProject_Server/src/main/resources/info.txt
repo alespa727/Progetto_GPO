@@ -1,0 +1,89 @@
+
+Differenze di tempo
+	LocalDateTime = 2007-12-03T10:15:30
+	LocalDate = 2007-12-03
+	LocalTime = 10:15:30
+
+Relazioni:
+	1 - 1 -> @OneToOne -> Un’entità è collegata a una sola altra entità.
+	1 - N -> @OneToMany -> Un’entità è collegata a molte altre.
+	N - 1 -> @ManyToOne -> Molte entità puntano alla stessa entità.
+	N - N -> @ManyToMany -> Molti a molti, tramite tabella di join.
+
+
+Primary Keys:
+	@Id -> Unico
+	@EmbeddedId -> multipla (crea classe nuova con @Embeddable) (usato di solito se piu' entity hanno valori uguali)
+	@IdClass(.class) -> metti multipli @Id + la classe deve essere Serializable e avere gli stessi dati che metti come id
+
+Foreign Keys:
+	@JoinColumn(name = "NOME colonna")
+
+Valori Default:
+	@Column(columnDefinition = "TIPODATO(int, varchar, ecc...) DEFAULT '...'")
+
+Valori unici:
+	@Column(unique = BOOLEAN) -> solo 1 campo
+	@Table(uniqueConstraints = @UniqueConstraint(columnNames = "...")) -> unique nella tabella
+
+Check:
+	@...(Min, Max, ecc...)
+
+Null/Not Null:
+	@Column(nullable = BOOLEAN)
+
+
+Relazione 1-N / 0-N(se nullable = true(default)):
+	@OneToMany(mappedBy = "NOME VARIABILE in JAVA (non colonna)")
+	private List<...> ...;
+
+Relazione N-1:
+	@ManyToOne
+	@JoinColumn(name = "NOME COLONNA DB", nullable = false)
+	private ... ...;
+
+Relazione 1-1:
+	@OneToOne
+	@JoinColumn(name = "NOME COLONNA DB")
+	private ... ...;
+
+Relazione 0-1:
+	@OneToOne(optional = true)
+	@JoinColumn(name = "NOME COLONNA DB")
+	private ... ...;
+
+Relazione N-N:
+	@ManyToMany
+	@JoinTable(
+	    name = "...",
+	    joinColumns = @JoinColumn(name = "NOME COLONNA DB"),
+	    inverseJoinColumns = @JoinColumn(name = "NOME COLONNA DB")
+	)
+	private List<...> ...;
+
+
+Enum:
+	@Enumerated(EnumType.)
+
+Index:
+	@Table(indexes = {
+	    @Index(name = "CREA NOME ATTRIBUTO", columnList = "NOME VARIABILE in JAVA (non colonna)")
+	})
+
+
+🧱 TIPI DI DATI SQL → JPA
+	SQL					JPA
+VARCHAR, CHAR		String
+TEXT				@Lob String
+BLOB				@Lob byte[]
+INT					Integer / int
+BIGINT				Long
+DECIMAL				BigDecimal
+BOOLEAN				Boolean
+DATE				LocalDate
+TIME				LocalTime
+TIMESTAMP			LocalDateTime
+ENUM				@Enumerated(EnumType.)
+INDEX				@Index
+JSON				String / @Convert
+

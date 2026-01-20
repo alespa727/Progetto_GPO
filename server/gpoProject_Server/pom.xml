@@ -52,7 +52,14 @@
 			<artifactId>spring-boot-starter-logging</artifactId>
 		</dependency>
 		 -->
-		 <!-- cryptare password -->
+		<!-- Per Sicurezza -->
+		<!--
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		-->
+		<!-- cryptare password -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-crypto</artifactId>
@@ -60,15 +67,19 @@
 
 		<!--  MAIN Dipendenze Spring Boot utilizzate   -->
 		<!--  Controllare le richieste in entrata  -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+		-->
 		<!--  Inviare i messaggi ad altri client  -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
+		-->
 		<!--  Comunicare con altri server  -->
 		<!--
 		<dependency>
@@ -78,7 +89,7 @@
 		-->
 
 		<!--  TOKEN Dipendenze Spring Boot utilizzate   -->
-		<!--  Generare token  -->
+		<!--  token  -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -108,11 +119,15 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+		<!-- Inserire dati attraverso chiamate rest -->
+		<!--
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-rest</artifactId>
 		</dependency>
-
+		-->
+		
+		
 		<!--   LOG-BACKUP Dipendenze Spring Boot utilizzate   -->
 		<!--
 		<dependency>
