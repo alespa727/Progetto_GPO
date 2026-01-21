@@ -1,35 +1,25 @@
-# Dipendenze (ignora node_modules in ogni sottocartella)
-**/node_modules/
-
-# Build e Output
-dist/
-dist-ssr/
-build/
-*.local
-
-# Variabili d'ambiente e segreti
-.env
-.env.*
-!.env.example
-
-# File di log
+# Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor (VS Code, IntelliJ)
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea/
+.idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# File di sistema
-.DS_Store
-Thumbs.db
+    

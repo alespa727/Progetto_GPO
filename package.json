@@ -1,25 +1,28 @@
 {
-  "name": "progetto_gpo",
+  "name": "server_mock",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/alespa727/Progetto_GPO.git"
+    "start": "ts-node src/server.ts",
+    "build": "tsc",
+    "dev": "ts-node src/server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/alespa727/Progetto_GPO/issues"
-  },
-  "homepage": "https://github.com/alespa727/Progetto_GPO#readme",
   "dependencies": {
-    "axios": "^1.13.2",
-    "dotenv": "^17.2.3"
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "livekit-server-sdk": "^2.15.0",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
