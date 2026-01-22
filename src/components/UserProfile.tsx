@@ -11,7 +11,7 @@ function UserProfile() {
   const { state, setState } = useSettingsStatusContext()
   const {setToken} = useActiveRoomContext();
   return (
-    <div className="flex-col fixed bottom-0 p-1.5 box-border w-[26.149%] text-black flex items-center shadow-lg rounded-lg min-w-66.5 max-w-76.5">
+    <div className="flex-col fixed bottom-0 p-1.5 box-border text-black flex items-center shadow-lg rounded-lg w-66">
       <div className="transition-all ease-in duration-200 flex gap-4 flex-col items-center w-full h-full rounded-[6px] bg-[#313244] text-white text-xl p-2">
         
         <CallInterface></CallInterface>

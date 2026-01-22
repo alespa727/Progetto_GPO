@@ -12,7 +12,7 @@ function Server() {
   if (!activeServer) return;
 
   return (
-      <div className="w-[21.27%] bg-[#1e1e2e] min-w-50 max-w-60 font-medium flex flex-col h-full pb-16">
+      <div className="bg-[#1e1e2e] shrink-0 w-50 font-medium flex flex-col h-full pb-16">
         <ServerName></ServerName>
 
         <SectionLoop>

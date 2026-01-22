@@ -19,7 +19,7 @@ export function ChannelName() {
 
   const user = useUser();
   const { setToken, setTitle, setUrl } = useActiveRoomContext();
-  const url = "wss://progettogpo-dfna4rrr.livekit.cloud";
+  const url = "wss://alessio-cn4uwebw.livekit.cloud";//"wss://progettogpo-dfna4rrr.livekit.cloud"; 
   const socket = useSocket();
   const [userList, setUsers] = useState<string[]>([]);
   let [count, setCount] = useState<number>(0);
