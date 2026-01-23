@@ -132,7 +132,7 @@ public class StarterApiController extends BasicApiRestController {
 	 * @param response
 	 * @return
 	 */
-	@PostMapping("open")
+	@PostMapping("status")
 	public ResponseEntity<?> postOpen(HttpServletRequest request, HttpServletResponse response){
 		
 		/*
@@ -171,82 +171,22 @@ public class StarterApiController extends BasicApiRestController {
 		/*
 		 * Update database
 		*/
+		LocalDateTime time;
 		try {
-			this.databaseService.updateUser(id, null);
+			time = this.databaseService.updateStatusUser(id);
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 		
 		/*
-		 * Aggiunta in cache
+		 * Aggiunta/eliminazione da cache
 		*/
-		Cache.getSetuseronline().add(id);
-		
-		return ResponseEntity.ok().build();
-	}
-	
-	/**
-	 * Aggiorna i dati se l'app viene chiusa
-	 * @param request
-	 * @param response
-	 * @return
-	 */
-	@PostMapping("leave")
-	public ResponseEntity<?> postLeave(HttpServletRequest request, HttpServletResponse response){
-		
-		/*
-		 * Controllo se ha cookies/ cookies non validi:
-		 * 		- No -> Errore
-		 */
-		ArrayList<String> cookiesNames = new ArrayList<String>();
-		cookiesNames.add(UtilServer.accessCookieName);
-		cookiesNames.add(UtilServer.refreshCookieName);
-		HashMap<String, Cookie> cookies;
-		
-		try {
-			cookies = this.authenticationService.getCookieService().findCookies(request, cookiesNames);
-			if(cookies == null) throw new IllegalArgumentException("Cookies non trovati");
-			if(!cookies.containsKey(UtilServer.refreshCookieName)) throw new IllegalArgumentException("Cookie non presente");
-			
-			if(this.authenticationService.shouldRefreshCookie(cookies.get(UtilServer.accessCookieName), cookies.get(UtilServer.refreshCookieName))) {
-				Cookie access =  this.authenticationService.refreshCookieAccess(cookies.get(UtilServer.refreshCookieName));
-				cookies.put(UtilServer.accessCookieName, access);
-				response.addCookie(access);
-			}
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
+		if(time != null) {
+			Cache.getSetuseronline().remove(id);
 		}
+		else Cache.getSetuseronline().add(id);
 		
-		/*
-		 * Ottengo l'id dello user
-		 */
-		int id;
-		try{
-			id = this.authenticationService.getTokenService().getClaimsAccess(cookies.get(UtilServer.accessCookieName).getValue()).get("id", Integer.class);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-		
-		/*
-		 * Controllo cache
-		 */
-		if(!Cache.getSetuseronline().contains(id)) return ResponseEntity.badRequest().build();
-		
-		/*
-		 * Update database
-		*/
-		try {
-			this.databaseService.updateUser(id, LocalDateTime.now());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-		
-		/*
-		 * Rimozione da cache
-		*/
-		Cache.getSetuseronline().remove(id);
-		
-		return ResponseEntity.ok().build();
+		return ResponseEntity.ok().body(time);
 	}
 
 	/**
@@ -300,7 +240,7 @@ public class StarterApiController extends BasicApiRestController {
 		 * Update database
 		*/
 		try {
-			this.databaseService.updateUser(id, LocalDateTime.now());
+			this.databaseService.updateStatusUser(id);
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}

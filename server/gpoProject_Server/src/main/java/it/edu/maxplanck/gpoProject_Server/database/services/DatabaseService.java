@@ -129,13 +129,16 @@ public class DatabaseService {
 		return u.getPkID();
 	}
 
-	public void updateUser(int id, LocalDateTime time) throws IllegalArgumentException {
+	public LocalDateTime updateStatusUser(int id) throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		
 		User u = this.usersRepo.findById(id).orElse(null);
 		if(u == null) throw new IllegalArgumentException("Utente non trovato");
 		
-		u.setTimeLastAccess(time);
+		if(u.getTimeLastAccess() == null) u.setTimeLastAccess(LocalDateTime.now());
+		else u.setTimeLastAccess(null);
+		
+		return u.getTimeLastAccess();
 	}
 
 	// ------------------------------------------------------------------------------------
