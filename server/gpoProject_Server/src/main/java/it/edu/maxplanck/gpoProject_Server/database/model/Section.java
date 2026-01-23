@@ -1,5 +1,6 @@
 package it.edu.maxplanck.gpoProject_Server.database.model;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.SectionData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,22 +11,22 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "sections")
+@Table(name = SectionData.tableName)
 public final class Section {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = SectionData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	@ManyToOne
-	@JoinColumn(name = "fkCommunity", nullable = false)
+	@JoinColumn(name = SectionData.columnNameFkCommunity, nullable = false)
 	private Community fkCommunity;
 	
 	// Entity Fields
-	@Column(name = "name", length = 30, nullable = false)
+	@Column(name = SectionData.columnNameName, length = SectionData.nameLenght, nullable = false)
 	private String name;
 
 	public Section(){

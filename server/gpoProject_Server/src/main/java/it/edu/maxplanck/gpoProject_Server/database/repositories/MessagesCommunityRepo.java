@@ -10,7 +10,5 @@ import it.edu.maxplanck.gpoProject_Server.database.model.MessageCommunity;
 @Repository
 public interface MessagesCommunityRepo extends JpaRepository<MessageCommunity, Integer> {
 
-	MessageCommunity createMessageCommunity(int channelId, int userId, String message);
-
-    List<MessageCommunity> getMessagesByChannel(int channelId);
+    List<MessageCommunity> getMessagesByFkChannel(int channelId);
 }

@@ -2,6 +2,7 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 
 import java.time.LocalDateTime;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.RegistrationData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,26 +12,30 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "registrations")
+@Table(name = RegistrationData.tableName)
 @IdClass(RegistrationID.class)
 public final class Registration {
 
 	// Primary Keys
 	@Id
+	@Column(name = RegistrationData.columnNamePrimaryKeyCommunity)
+	private Integer idCommunity;
+	
+	@Id
+	@Column(name = RegistrationData.columnNamePrimaryKeyUser)
+	private Integer idUser;
+	
+	// Foreign Keys
 	@ManyToOne
-	@JoinColumn(name = "fkCommunity", nullable = false)
+	@JoinColumn(name = RegistrationData.columnNameFkCommunity, nullable = false)
     private Community fkCommunity;
 
-	@Id
 	@ManyToOne
-	@JoinColumn(name = "fkUser", nullable = false)
+	@JoinColumn(name = RegistrationData.columnNameFkUser, nullable = false)
     private User fkUser;
     
-    // Foreign Keys
-    
-    
     // Entity Fields
-	@Column(name = "date", columnDefinition = "date DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
+	@Column(name = RegistrationData.columnNameDate, columnDefinition = "date DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
     private LocalDateTime date;
 
 	public Registration(){

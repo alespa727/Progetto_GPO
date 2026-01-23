@@ -86,4 +86,3 @@ TIMESTAMP			LocalDateTime
 ENUM				@Enumerated(EnumType.)
 INDEX				@Index
 JSON				String / @Convert
-

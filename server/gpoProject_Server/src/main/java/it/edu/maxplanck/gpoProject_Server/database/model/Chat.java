@@ -3,6 +3,7 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.ChatData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,25 +14,25 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "chats")
+@Table(name = ChatData.tableName)
 public final class Chat {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = ChatData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	@OneToOne
-	@JoinColumn(name = "fkFriendship", nullable = false)
+	@JoinColumn(name = ChatData.columnNameFkFriendship, nullable = false)
 	private Friendship fkFriendship;
 	
 	// Entity Fields
-	@Column(name = "timeLastMessage")
+	@Column(name = ChatData.columnNameTimeLastMessage)
 	private LocalDateTime timeLastMessage;
 	
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(name = ChatData.columnNamecreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
 
 	public Chat(){

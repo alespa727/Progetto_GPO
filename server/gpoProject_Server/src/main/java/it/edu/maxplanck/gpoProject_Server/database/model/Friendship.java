@@ -2,6 +2,7 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 
 import java.time.LocalDate;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.FriendshipData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,26 +13,26 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "friendships")
+@Table(name = FriendshipData.tableName)
 public final class Friendship {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = FriendshipData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	@ManyToOne
-	@JoinColumn(name = "fkUser1", nullable = false)
+	@JoinColumn(name = FriendshipData.columnNameFkUser1, nullable = false)
 	private User fkUser1;
 	
 	@ManyToOne
-	@JoinColumn(name = "fkUser2", nullable = false)
+	@JoinColumn(name = FriendshipData.columnNameFkUser2, nullable = false)
 	private User fkUser2;
 	
 	// Entity Fields
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(name = FriendshipData.columnNameCreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
 
 	public Friendship(){

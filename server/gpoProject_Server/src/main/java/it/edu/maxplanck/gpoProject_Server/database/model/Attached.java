@@ -1,5 +1,6 @@
 package it.edu.maxplanck.gpoProject_Server.database.model;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.AttachedData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,22 +11,22 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "attachments")
+@Table(name = AttachedData.tableName)
 public final class Attached {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = AttachedData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	@ManyToOne
-	@JoinColumn(name = "fkMessage", nullable = false)
+	@JoinColumn(name = AttachedData.columnNameFkMessage, nullable = false)
 	private MessageChat fkMessage;
 	
 	// Entity Fields
-	@Column(name = "path", nullable = false, length = 255)
+	@Column(name = AttachedData.columnNamePath, nullable = false, length = AttachedData.pathLenght)
 	private String path;
 
 	public Attached() {

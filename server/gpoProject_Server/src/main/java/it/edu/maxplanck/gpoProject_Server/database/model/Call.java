@@ -2,6 +2,7 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 
 import java.time.LocalDateTime;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.CallData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,25 +13,25 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "calls")
+@Table(name = CallData.tableName)
 public final class Call {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = CallData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	@ManyToOne
-	@JoinColumn(name = "fkChat", nullable = false)
+	@JoinColumn(name = CallData.columnNameFkChat, nullable = false)
 	private Chat fkChat;
 	
 	// Entity Fields
-	@Column(name = "startTime", columnDefinition = "startTime DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
+	@Column(name = CallData.columnNameStartTime, columnDefinition = "startTime DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
 	private LocalDateTime startTime;
 	
-	@Column(name = "endTime")
+	@Column(name = CallData.columnNameEndTime)
 	private LocalDateTime endTime;
 
 	public Call(){

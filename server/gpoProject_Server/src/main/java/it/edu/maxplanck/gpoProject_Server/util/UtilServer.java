@@ -2,12 +2,22 @@ package it.edu.maxplanck.gpoProject_Server.util;
 
 public final class UtilServer {
 	
+	// Subject del token di accesso
+	public static final String accessTokenSubject = "AccessToken";
 	
-	public static final String accessTokenSubjectPath = "${jwt.Subject.Token.Access}";
-	public static final String accessCookiePath = "${servlet.Name.Cookie.Access}";
+	// Nome del cookie di accesso
+	public static final String accessCookieName = "AccessCookie";
+	
+	// Valore di eliminazione del cookie di accesso, calcolato in base al token di accesso
 	public static final int timeExpirationDateAccessCookie = (int) (UtilToken.timeExpirationDateAccessToken / 1000);
 	
-	public static final String refreshTokenSubjectPath = "${jwt.Subject.Token.Refresh}";
-	public static final String refreshCookiePath = "${servlet.Name.Cookie.Refresh}";
+	
+	// Subject del token di refresh
+	public static final String refreshTokenSubject = "RefreshToken";
+	
+	// Nome del cookie di refresh
+	public static final String refreshCookieName = "RefreshCookie";
+	
+	// Valore di eliminazione del cookie di refresh, calcolato in base al token di refresh
 	public static final int timeExpirationDateRefreshCookie = (int) (UtilToken.timeExpirationDateRefreshToken / 1000);
 }

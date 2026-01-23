@@ -18,7 +18,7 @@ CREATE TABLE channels (
 	id INT AUTO_INCREMENT,
 	fkSection INT NOT NULL,
 	name VARCHAR(100) NOT NULL,
-	type VARCHAR(20) NOT NULL,
+	type ENUM('testo', 'vocale') NOT NULL,
 	description TEXT,
 	createdAt DATE DEFAULT CURDATE(),
 	PRIMARY KEY(id)
@@ -42,6 +42,7 @@ CREATE TABLE communities (
 	createdAt DATE DEFAULT CURDATE(),
 	PRIMARY KEY(id)
 );
+ALTER TABLE communities ADD CONSTRAINT checkIsInviteCodeValid check(isInviteCodeValid = 0 OR isInviteCodeValid = 1);
 
 CREATE TABLE friendships (
 	id INT AUTO_INCREMENT,
@@ -70,11 +71,15 @@ CREATE TABLE messagesCommunity (
 );
 
 CREATE TABLE registrations (
+	idCommunity INT,
+	idUser INT,
 	fkCommunity INT,
 	fkUser INT,
 	date DATETIME DEFAULT CURRENT_TIMESTAMP(),
-	PRIMARY KEY(fkCommunity, fkUser)
+	PRIMARY KEY(idCommunity, idUser)
 );
+ALTER TABLE registrations MODIFY idCommunity INT;
+ALTER TABLE registrations MODIFY idUser INT;
 
 CREATE TABLE sections (
 	id INT AUTO_INCREMENT,
@@ -93,6 +98,7 @@ CREATE TABLE users (
 	imagePath VARCHAR(100),
 	PRIMARY KEY(id)
 );
+ALTER TABLE users ADD CONSTRAINT checkIsAdmin check(isAdmin = 0 OR isAdmin = 1);
 
 
 ALTER TABLE attachments ADD CONSTRAINT fkAttachmentsMessagesChat FOREIGN KEY(fkMessage) REFERENCES messagesChat(id);

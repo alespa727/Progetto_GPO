@@ -3,6 +3,7 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.UserData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,39 +12,50 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users")
+@Table(name = UserData.tableName)
 public final class User {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = UserData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	
 	
 	// Entity Fields
-	@Column(name = "username", length = 20, nullable = false, unique = true)
+	@Column(name = UserData.columnNameUsername, length = UserData.usernameLength, nullable = false, unique = true)
 	private String username;
 	
-	@Column(name = "password", length = 256, nullable = false)
+	@Column(name = UserData.columnNamePassword, length = UserData.passwordLength, nullable = false)
 	private String password;
 	
-	@Column(name = "isAdmin", columnDefinition = "isAdmin TINYINT(1) DEFAULT 0", insertable = false)
+	@Column(name = UserData.columnNameIsAdmin, columnDefinition = "isAdmin TINYINT(1) DEFAULT 0", insertable = false)
 	private Boolean isAdmin;
 	
-	@Column(name = "timeLastAccess")
+	@Column(name = UserData.columnNameTimeLastAccess)
 	private LocalDateTime timeLastAccess;
 	
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(name = UserData.columnNameCreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
 	
-	@Column(name = "imagePath", length = 100)
+	@Column(name = UserData.columnNameImagePath, length = UserData.imagePathLenght)
 	private String imagePath;
 
 	public User(){
 		super();
+	}
+	
+	public User(String username, String password) {
+		super();
+		this.pkID = null;
+		this.username = username;
+		this.password = password;
+		this.isAdmin = null;
+		this.timeLastAccess = null;
+		this.createdAt = null;
+		this.imagePath = null;
 	}
 	
 	public User(Integer pkID, String username, String password, Boolean isAdmin, LocalDateTime timeLastAccess, LocalDate createdAt, String imagePath) {

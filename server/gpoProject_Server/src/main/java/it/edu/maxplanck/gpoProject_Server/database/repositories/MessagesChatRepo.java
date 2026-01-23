@@ -10,7 +10,5 @@ import it.edu.maxplanck.gpoProject_Server.database.model.MessageChat;
 @Repository
 public interface MessagesChatRepo extends JpaRepository<MessageChat, Integer> {
 
-	MessageChat createMessageChat(int chatId, int userId, String message);
-
-    List<MessageChat> getMessagesByChat(int chatId);
+    List<MessageChat> getMessagesByFkChat(int chatId);
 }

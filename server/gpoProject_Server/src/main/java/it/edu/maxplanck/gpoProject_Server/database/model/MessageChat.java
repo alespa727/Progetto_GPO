@@ -2,6 +2,7 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 
 import java.time.LocalDateTime;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.MessageChatData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,29 +13,29 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "messagesChat")
+@Table(name = MessageChatData.tableName)
 public final class MessageChat {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = MessageChatData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	@ManyToOne
-	@JoinColumn(name = "fkChat", nullable = false)
+	@JoinColumn(name = MessageChatData.columnNameFkChat, nullable = false)
 	private Chat fkChat;
 	
 	@ManyToOne
-	@JoinColumn(name = "fkUser", nullable = false)
+	@JoinColumn(name = MessageChatData.columnNameFkUser, nullable = false)
 	private User fkUser;
 	
 	// Entity Fields
-	@Column(name = "message")
+	@Column(name = MessageChatData.columnNameMessage)
 	private String message;
 	
-	@Column(name = "sentAt", columnDefinition = "sentAt DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
+	@Column(name = MessageChatData.columnNameSentAt, columnDefinition = "sentAt DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
 	private LocalDateTime sentAt;
 
 	public MessageChat(){

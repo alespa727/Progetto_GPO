@@ -1,9 +1,12 @@
 package it.edu.maxplanck.gpoProject_Server.database.services;
 
+import java.time.LocalDateTime;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.repositories.*;
 
 @Transactional
@@ -98,4 +101,42 @@ public class DatabaseService {
 	public BCryptPasswordEncoder getPasswordEncoder() {
 		return passwordEncoder;
 	}
+
+	public void createUser(String username, String password) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		if(username == null || password == null) throw new IllegalArgumentException("Dati non validi");
+		
+		if(this.usersRepo.existsUserByUsername(username)) throw new IllegalArgumentException("Username gia' in uso");
+		
+		password = this.passwordEncoder.encode(password);
+		while(this.passwordEncoder.upgradeEncoding(password)) password = this.passwordEncoder.encode(password);
+		
+		User u = new User(username, password);
+		this.usersRepo.save(u);
+	}
+
+	public int findUser(String username, String password) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		if(username == null || password == null) throw new IllegalArgumentException("Dati non validi");
+		
+		User u = this.usersRepo.findUserByUsername(username);
+		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		
+		if(!u.getUsername().equals(username) || !this.passwordEncoder.matches(password, u.getPassword())) throw new IllegalArgumentException("Credenziali errate");
+		
+		return u.getPkID();
+	}
+
+	public void updateUser(int id, LocalDateTime time) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		User u = this.usersRepo.findById(id).orElse(null);
+		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		
+		u.setTimeLastAccess(time);
+	}
+
+	// ------------------------------------------------------------------------------------
 }

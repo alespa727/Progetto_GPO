@@ -2,6 +2,7 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 
 import java.time.LocalDate;
 
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.ChannelData;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,31 +13,31 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "channels")
+@Table(name = ChannelData.tableName)
 public final class Channel {
 
 	// Primary Keys
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = ChannelData.columnNamePrimaryKey)
 	private Integer pkID;
 	
 	// Foreign Keys
 	@ManyToOne
-	@JoinColumn(name = "fkSection", nullable = false)
+	@JoinColumn(name = ChannelData.columnNameFkSection, nullable = false)
 	private Section fkSection;
 	
 	// Entity Fields
-	@Column(name = "name", length = 100, nullable = false)
+	@Column(name = ChannelData.columnNameName, length = ChannelData.nameLenght, nullable = false)
 	private String name;
 	
-	@Column(name = "type", length = 20, nullable = false)
+	@Column(name = ChannelData.columnNameType, nullable = false)
 	private String type;
 	
-	@Column(name = "description")
+	@Column(name = ChannelData.columnNameDescription)
 	private String description;
 	
-	@Column(name = "createdAt", columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(name = ChannelData.columnNameCreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
 	private LocalDate createdAt;
 
 	public Channel(){

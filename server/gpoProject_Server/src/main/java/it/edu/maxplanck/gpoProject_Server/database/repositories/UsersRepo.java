@@ -10,17 +10,5 @@ public interface UsersRepo extends JpaRepository<User, Integer> {
 	
     boolean existsUserByUsername(String username);
 
-    User createUser(String username, String encodedPassword);
-
     User findUserByUsername(String username);
-
-    User findUserById(int userId);
-
-    boolean checkPassword(int userId, String rawPassword);
-
-    void updateUser(int userId, User updatedUser);
-
-    void updateLastAccess(int userId);
-
-    void deleteUser(int userId);
 }

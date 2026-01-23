@@ -10,7 +10,5 @@ import it.edu.maxplanck.gpoProject_Server.database.model.Channel;
 @Repository
 public interface ChannelsRepo extends JpaRepository<Channel, Integer> {
 
-	Channel createChannel(int sectionId, String name, String type, String description);
-
-    List<Channel> getChannelsBySection(int sectionId);
+    List<Channel> getChannelsByFkSection(int sectionId);
 }

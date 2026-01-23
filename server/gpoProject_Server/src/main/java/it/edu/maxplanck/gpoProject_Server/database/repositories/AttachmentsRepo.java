@@ -9,8 +9,6 @@ import it.edu.maxplanck.gpoProject_Server.database.model.Attached;
 
 @Repository
 public interface AttachmentsRepo extends JpaRepository<Attached, Integer> {
-
-    Attached createAttachment(int messageId, String path);
-
-    List<Attached> getAttachmentsByMessage(int messageId);
+	
+    List<Attached> findByFkMessage(Integer messageId);
 }

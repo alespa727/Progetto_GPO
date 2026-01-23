@@ -1,11 +1,11 @@
 package it.edu.maxplanck.gpoProject_Server.token;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import it.edu.maxplanck.gpoProject_Server.util.UtilToken;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Map;
@@ -13,109 +13,61 @@ import java.util.Map;
 @Service
 public class TokenService extends TokenManager {
 
-	private final Key keyAccess;
-	private final Key keyRefresh;
+    private final Key keyAccess;
+    private final Key keyRefresh;
 
-	public TokenService(
-			@Value(UtilToken.accessTokenPath) String secretAccess,
-			@Value(UtilToken.refreshTokenPath) String secretRefresh
-		) {
+    public TokenService(
+            @Value(UtilToken.accessTokenPath) String secretAccess,
+            @Value(UtilToken.refreshTokenPath) String secretRefresh
+    ) {
+        this.keyAccess = Keys.hmacShaKeyFor(secretAccess.getBytes(UtilToken.charset));
+        this.keyRefresh = Keys.hmacShaKeyFor(secretRefresh.getBytes(UtilToken.charset));
+    }
 
-		this.keyAccess = Keys.hmacShaKeyFor(secretAccess.getBytes(UtilToken.charset));
-		this.keyRefresh = Keys.hmacShaKeyFor(secretRefresh.getBytes(UtilToken.charset));
-	}
-	
-	
-	// Errore input -> Throws
-	private String checkDatagetToken(String subject, Map<String, Object> claims, Key key, long expiration) throws NullPointerException {
-		
-		if(subject == null) throw new NullPointerException("Errore valore null");
-		if(claims == null) throw new NullPointerException("Errore valore null");
-		
-		String token = this.generateToken(subject, claims, key, expiration, UtilToken.algorithm);
-		return token;
-	}
-	
-	public String getTokenAccess(String subject, Map<String, Object> claims) {
-		
-		String token = null;
-		try {
-			token = this.checkDatagetToken(subject, claims, keyAccess, UtilToken.timeExpirationDateAccessToken);
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch(Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return token;
-	}
-	
-	public String getTokenRefresh(String subject, Map<String, Object> claims) {
-		
-		String token = null;
-		try {
-			token = this.checkDatagetToken(subject, claims, keyRefresh, UtilToken.timeExpirationDateRefreshToken);
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch(Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return token;
-	}
-	
-	
-	private Claims checkDataobtainClaims(String token, Key key) throws NullPointerException {
-		
-		if(token == null) throw new NullPointerException("Errore valore null");
-		
-		Claims claims = this.obtainTokenClaims(token, key);
-		
-		return claims;
-	}
-	
-	public Claims getClaimsAccess(String token) {
-		
-		Claims claims = null;
-		try {
-			claims = this.checkDataobtainClaims(token, keyAccess);
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch(Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return claims;
-	}
-	
-	public Claims getClaimsRefresh(String token) {
-		
-		Claims claims = null;
-		try {
-			claims = this.checkDataobtainClaims(token, keyRefresh);
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch(Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return claims;
-	}
+    // Genera token di accesso
+    public String generateTokenAccess(Map<String, Object> claims, String subject) throws IllegalArgumentException {
+        return generateTokenSafe(claims, subject, keyAccess, UtilToken.timeExpirationDateAccessToken);
+    }
 
-	
-	public boolean isTokenAccessValid(String token) {
-		return this.isTokenValid(token, keyAccess);
-	}
-	
-	public boolean isTokenRefreshValid(String token) {
-		return this.isTokenValid(token, keyRefresh);
-	}
+    // Genera token di refresh
+    public String generateTokenRefresh(Map<String, Object> claims, String subject) throws IllegalArgumentException {
+        return generateTokenSafe(claims, subject, keyRefresh, UtilToken.timeExpirationDateRefreshToken);
+    }
+
+    // Recupera claims access
+    public Claims getClaimsAccess(String token) throws IllegalArgumentException {
+        try {
+            return obtainTokenClaims(token, keyAccess);
+        } catch (JwtException e) {
+            throw new IllegalArgumentException("Access token non valido", e);
+        }
+    }
+
+    // Recupera claims refresh
+    public Claims getClaimsRefresh(String token) throws IllegalArgumentException {
+        try {
+            return obtainTokenClaims(token, keyRefresh);
+        } catch (JwtException e) {
+            throw new IllegalArgumentException("Refresh token non valido", e);
+        }
+    }
+
+    // Controlla se token access è valido
+    public boolean isTokenAccessValid(String token) {
+        return isTokenValid(token, keyAccess);
+    }
+
+    // Controlla se token refresh è valido
+    public boolean isTokenRefreshValid(String token) {
+        return isTokenValid(token, keyRefresh);
+    }
+
+    // Generatore token
+    private String generateTokenSafe(Map<String, Object> claims, String subject, Key key, long expiration) throws IllegalArgumentException {
+        try {
+            return generateToken(claims, subject, key, expiration, UtilToken.algorithm);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Errore nella generazione del token", e);
+        }
+    }
 }

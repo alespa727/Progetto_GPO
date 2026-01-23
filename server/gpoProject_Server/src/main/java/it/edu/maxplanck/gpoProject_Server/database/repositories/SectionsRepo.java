@@ -10,7 +10,5 @@ import it.edu.maxplanck.gpoProject_Server.database.model.Section;
 @Repository
 public interface SectionsRepo extends JpaRepository<Section, Integer> {
 
-	Section createSection(int communityId, String name);
-
-    List<Section> getSectionsByCommunity(int communityId);
+    List<Section> getSectionsByFkCommunity(int communityId);
 }

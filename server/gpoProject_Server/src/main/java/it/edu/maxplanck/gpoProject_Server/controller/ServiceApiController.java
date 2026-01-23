@@ -1,6 +1,5 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,8 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.jsonwebtoken.Claims;
-import it.edu.maxplanck.gpoProject_Server.cookies.CookieService;
+import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccountDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCallDTO;
@@ -22,185 +20,208 @@ import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestProfileDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSectionDTO;
-import it.edu.maxplanck.gpoProject_Server.token.TokenService;
-import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("api/services")
 public class ServiceApiController extends BasicApiRestController {
-
-	/**
-	 * @param tokenService
-	 * @param cookieService
-	 * @param databaseService
-	 * @param accessTokenSubject
-	 * @param accessCookieName
-	 * @param refreshTokenSubject
-	 * @param refreshCookieName
-	 */
-	public ServiceApiController(
-			TokenService tokenService, 
-			CookieService cookieService, 
-			DatabaseService databaseService,
-			@Value(UtilServer.accessTokenSubjectPath) String accessTokenSubject,
-			@Value(UtilServer.accessCookiePath) String accessCookieName,
-			@Value(UtilServer.refreshTokenSubjectPath) String refreshTokenSubject,
-			@Value(UtilServer.refreshCookiePath) String refreshCookieName
-		) {
-		super(tokenService, cookieService, databaseService, accessTokenSubject, accessCookieName, refreshTokenSubject, refreshCookieName);
-	}
-
-	/**
-	 * Autenticazione cookies
-	 * @param request
-	 * @param response
-	 * @throws IllegalStateException
-	 */
-	protected void authenticate(HttpServletRequest request, HttpServletResponse response) throws IllegalStateException {
-
-		// Check cookies
-		Cookie[] cookies = request.getCookies();
-		if (cookies == null || cookies.length == 0) throw new IllegalStateException("Nessun cookie presente");
-
-		// Check cookies
-		Cookie accessCookie = this.cookieService.getCookie(cookies, this.accessCookieName);
-		Cookie refreshCookie = this.cookieService.getCookie(cookies, this.refreshCookieName);
-		if (accessCookie == null && refreshCookie == null) throw new IllegalStateException("Access e Refresh cookie mancanti");
-
-		// Check access cookie
-		if (accessCookie != null) {
-			String accessToken = accessCookie.getValue();
-			
-			// Check token
-			if (this.tokenService.isTokenAccessValid(accessToken)) return;
-		}
-
-		// Check refresh cookie
-		if (refreshCookie != null) {
-			String refreshToken = refreshCookie.getValue();
-			
-			// Controllo token
-			if (this.tokenService.isTokenRefreshValid(refreshToken)) {
-
-				Claims claims = this.tokenService.getClaimsRefresh(refreshToken);
-				
-				// Creazione nuovo cookie e nuovo token
-				String newAccessToken = this.tokenService.getTokenAccess(claims.getSubject(), claims);
-				Cookie newAccessCookie = this.cookieService.generateCookie(this.accessCookieName, newAccessToken, true, false, "/api/", UtilServer.timeExpirationDateAccessCookie);
-
-				response.addCookie(newAccessCookie);
-				return;
-			}
-		}
-
-		throw new IllegalStateException("Cookie non validi, login necessario");
-	}
-
-	@GetMapping("logout")
-	public ResponseEntity<?> logoutAccount(HttpServletRequest request, HttpServletResponse response) {
-
-		return null;
-	}
 	
+	public ServiceApiController(DatabaseService databaseService, AuthenticationService authenticationService) {
+		super(databaseService, authenticationService);
+		// TODO Auto-generated constructor stub
+	}
+
 	// -----------------------------------------------------------------------
 
+	@GetMapping("account")
+	public ResponseEntity<?> getAccount(HttpServletRequest request, HttpServletResponse response) {
+		
+		/*
+		 * Autentificazione
+		 */
+		
+		/*
+		 * Prendi il cookie -> Token -> id
+		 */
+		
+		/*
+		 * Prendi user da database attraverso id
+		 */
+		
+		/*
+		 * Ritorna dati
+		 */
+		
+		return ResponseEntity.ok().body(null);
+	}
+	
 	@PatchMapping("account")
 	public ResponseEntity<?> patchAccount(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccountDTO body) {
 		
-		return null;
+		/*
+		 * Update dati in database attraverso id
+		 */
+		
+		return ResponseEntity.ok().build();
 	}
 
 	@DeleteMapping("account")
 	public ResponseEntity<?> deleteAccount(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Elimina dati in database attraverso id
+		 */
+		
+		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping("profile")
 	public ResponseEntity<?> getProfilo(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Prendi user da database attraverso id
+		 */
+		
+		/*
+		 * Ritorna dati
+		 */
+		
+		return ResponseEntity.ok().body(null);	
 	}
 
 	@PatchMapping("profile")
 	public ResponseEntity<?> patchProfilo(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestProfileDTO body) {
 		
-		return null;
+		/*
+		 * Update dati in database attraverso id
+		 */
+		
+		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping("friends")
 	public ResponseEntity<?> getFriends(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene dati da database attraverso id
+		 */
+		
+		/*
+		 * Ritorna dati
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@PostMapping("chat")
 	public ResponseEntity<?> postChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestChatDTO body) {
 		
-		return null;
+		/*
+		 * Crea una nuova chat in database
+		 */
+		
+		return ResponseEntity.created(null).build();
 	}
 
 	@PostMapping("community")
 	public ResponseEntity<?> postCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunityDTO body) {
 		
-		return null;
+		/*
+		 * Crea una nuova community in database
+		 */
+		
+		return ResponseEntity.created(null).build();
 	}
 
 	@PostMapping("messageChat")
 	public ResponseEntity<?> postMessageChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestMessageChatDTO body) {
 		
-		return null;
+		/*
+		 * Crea un messaggio in una determinata chat
+		 */
+		
+		return ResponseEntity.created(null).build();
 	}
 
 	@PostMapping("messageCommunity")
 	public ResponseEntity<?> postMessageCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestMessageCommunityDTO body) {
 		
-		return null;
+		/*
+		 * Crea un messaggio in una determinata community
+		 */
+		
+		return ResponseEntity.created(null).build();
 	}
 
 	@PostMapping("callChat")
-	public ResponseEntity<Object> postCallChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCallDTO body) {
+	public ResponseEntity<?> postCallChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCallDTO body) {
 		
-		return null;
+		/*
+		 * Crea una nuova chiamata nel database nella chat
+		 */
+		
+		return ResponseEntity.created(null).build();
 	}
 
 	@PostMapping("sectionCommunity")
 	public ResponseEntity<?> postSection(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestSectionDTO body) {
 		
-		return null;
+		/*
+		 * Crea una nuova sezione in una community in database
+		 */
+		
+		return ResponseEntity.created(null).build();
 	}
 
 	@PostMapping("channelSection")
 	public ResponseEntity<?> postChannel(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestChannelDTO body) {
 		
-		return null;
+		/*
+		 * Crea un nuovo canale in una sezione di una community in database
+		 */
+		
+		return ResponseEntity.created(null).build();
 	}
 
 	@GetMapping("chat")
 	public ResponseEntity<?> getChat(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene i dati di una chat
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@GetMapping("community")
 	public ResponseEntity<?> getCommunity(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene i dati di una community
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@DeleteMapping("chat")
 	public ResponseEntity<?> deleteChat(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Elimina una chat
+		 */
+		
+		return ResponseEntity.ok().build();
 	}
 
 	@DeleteMapping("community")
 	public ResponseEntity<?> deleteCommunity(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Elimina una community
+		 */
+		
+		return ResponseEntity.ok().build();
 	}
 
 	// -----------------------------------------------------------------------
@@ -208,36 +229,60 @@ public class ServiceApiController extends BasicApiRestController {
 	@GetMapping("messageChat")
 	public ResponseEntity<?> getMessageChat(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene i messaggi di una chat
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@GetMapping("callChat")
 	public ResponseEntity<?> getDatiCall(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene le chiamate di una chat
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@GetMapping("usersCommunity")
 	public ResponseEntity<?> getUserCommunity(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene gli user della community
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@GetMapping("sectionCommunity")
 	public ResponseEntity<?> getSections(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene tutte le sezioni della community
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@GetMapping("channelsSection")
 	public ResponseEntity<?> getChannels(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene tutte i canali della sezione
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	@GetMapping("messagesChannel")
 	public ResponseEntity<?> getMessagesChannel(HttpServletRequest request, HttpServletResponse response) {
 
-		return null;
+		/*
+		 * Ottiene tutti i messaggi della community
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 }
