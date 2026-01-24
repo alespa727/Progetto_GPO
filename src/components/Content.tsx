@@ -9,9 +9,6 @@ import { useActiveServerContext } from "../context/ActiveServerProvider.tsx";
 import { ServerContext } from "../context/ServerContext.tsx";
 import { useActiveChatContext } from "../context/ActiveChatProvider.tsx";
 import { ChatContext } from "../context/ChatContext.tsx";
-import { useState } from "react";
-import { Room } from "livekit-client";
-import ChiamataChat from "./chat/ChiamataChat.tsx";
 
 function Content() {
 
@@ -25,24 +22,26 @@ function Content() {
       return (
         <div className="content">
           <ServerContext value={activeServer}>
-            <div className="server">
+            <div className="flex box-border h-full border-solid border border-[#313244]  bg-[#292938ff]">
               <Server></Server>
               <ChannelChat></ChannelChat>
             </div>
           </ServerContext>
-          
+
         </div>
       );
     case ClientMode.Chats:
       return (
         <div className="content">
           <ChatContext value={activeChat}>
-            <div className="server">
+            <div className="flex box-border w-full h-full border-solid border border-[#313244]  bg-[#292938ff]">
               <Chats></Chats>
               <Chat></Chat>
             </div>
           </ChatContext>
-          
+
+         
+
         </div>
       );
   }

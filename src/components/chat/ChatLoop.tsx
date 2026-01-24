@@ -1,6 +1,5 @@
 import React from "react";
 import { PrivateChatResponse } from "../../types";
-import { SectionContext } from "../../context/SezioneContext";
 import { ChatContext } from "../../context/ChatContext";
 
 export interface ChatLoopProps {

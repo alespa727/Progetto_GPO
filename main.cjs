@@ -8,19 +8,17 @@ function createWindow() {
     autoHideMenuBar: true,
     frame: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,   
+      nodeIntegration: false  
     }
   })
 
-  // Se siamo in modalità sviluppo (vite), carichiamo il server locale
   if (process.env.NODE_ENV === 'development') {
     win.loadURL('http://localhost:5173')
   } else {
-    // In produzione, carichiamo i file buildati
     win.loadFile(path.join(__dirname, 'dist/index.html'))
   }
 }
 
-app.whenReady().then(() => {
-  createWindow()
-})
+app.whenReady().then(createWindow)

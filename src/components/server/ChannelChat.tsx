@@ -5,8 +5,8 @@ import { Message, ChannelType } from "../../types.tsx";
 import { useSocket } from "../../context/SocketProvider.tsx";
 import { useActiveServerContext } from "../../context/ActiveServerProvider.tsx";
 import { useUser } from "../../context/UserProvider.tsx";
-import { ProfilePicture } from "../chat/ProfilePicture.tsx";
 import { Plus } from "lucide-react";
+import { Messaggio } from "../common/Messaggio.tsx";
 
 function ChannelChat() {
   const user = useUser();
@@ -19,6 +19,7 @@ function ChannelChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [header, setHeader] = useState<string>("");
   const [isCallActive, setCallActive] = useState<boolean>(false);
+  const [selectedMsgIndex, setSelectedMsgIndex] = useState<number | null>(null);
 
   const scrollToBottom = () => {
     if (messagesRef.current) {
@@ -35,12 +36,16 @@ function ChannelChat() {
     if (nuovoTesto.trim() === "") return;
     if (!user) return;
     let id = activeChannel ? activeChannel.id : null;
-    let message = new Message(nuovoTesto, user, new Date());
+    let message = new Message(-1, nuovoTesto, user, new Date());
     let type = "channel";
     socket.emit("sendMessage", { id, type, message });
 
     setNuovoTesto("");
   };
+
+  const removeMessageById = (id: number) => {
+    setMessages(prevMessages => prevMessages.filter(msg => msg.id !== id));
+  }
 
   useEffect(() => {
     setCallActive(activeChannel?.type === ChannelType.VOICE);
@@ -53,8 +58,15 @@ function ChannelChat() {
     };
     socket.on("newMessage", handleNewMessage);
 
+    const handleDeletedMessage = (data: any) => {
+      console.log("messaggio eliminato", data)
+      removeMessageById(data.messageId);
+    }
+    socket.on("deletedMessage", handleDeletedMessage);
+
     return () => {
       socket.off("newMessage", handleNewMessage);
+      socket.off("deletedMessage", handleDeletedMessage);
     };
   }, [socket]);
 
@@ -81,64 +93,6 @@ function ChannelChat() {
     }
   };
 
-  const render = () => {
-    return (
-      <>
-       <div className="flex flex-col w-full">
-  <div className="bg-[#1e1e2e] w-full pl-3 p-4 text-center">
-    {header}
-  </div>
-
-  <div className="flex relative">
-    {/* CHAT */}
-    <div className="flex flex-col flex-1 min-h-0 overflow-hidden box-border relative">
-      {/* MESSAGGI */}
-      <div className="flex-1 overflow-y-auto" ref={messagesRef}>
-        {[...messages].reverse().map((msg: Message, index: number) => (
-          <div
-            key={index}
-            className="rounded-r-md px-4 mr-4 hover:bg-white/10 flex items-center"
-          >
-            <div className="gap-2 flex p-1 text-[15px]">
-              <p className="text-[10px] m-auto font-extralight">
-                {(msg.time.getHours() <= 9 ? "0" : "") +
-                  msg.time.getHours() +
-                  ":" +
-                  (msg.time.getMinutes() <= 9 ? "0" : "") +
-                  msg.time.getMinutes()}
-              </p>
-              <b className="text-red-400">{msg.sender.username}</b>
-              <p>{msg.text}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* INPUT */}
-      <div className="p-2 bg-[#1e1e2e]">
-        <div className="flex items-center gap-3 bg-[#313244] rounded-md px-3 py-2 text-white shadow-lg">
-          <Plus className="w-6 h-6 text-white" />
-          <input
-            value={nuovoTesto || ""}
-            className="flex-1 bg-transparent text-[14px] focus:outline-none"
-            onChange={(e) => setNuovoTesto(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") aggiungiMessaggio();
-            }}
-            placeholder="Scrivi qui..."
-          />
-        </div>
-      </div>
-    </div>
-
-    {/* SPAZIO DESTRO */}
-    <div className="w-20"></div>
-  </div>
-</div>
-
-      </>
-    );
-  };
 
   useEffect(() => {
     if (!activeChannel) return;
@@ -161,6 +115,54 @@ function ChannelChat() {
     setActiveChannel(activeServer.sections[0].channels[0]);
     return () => setActiveChannel(null);
   }, []);
+
+
+
+  if(!activeChannel) return;
+
+
+  const render = () => {
+    return (
+      <>
+
+        <div
+          className="flex relative w-full flex-col min-h-0">
+
+          <div className="border-white/10 border-b w-full pl-3 p-4 text-center">
+            {header}
+          </div>
+        
+          <div
+            className="flex-1  mb-3 overflow-y-auto flex flex-col justify-end"
+            ref={messagesRef}
+          >
+            {[...messages].map((msg: Message, index: number) => (
+              <Messaggio messageType={"channel"} id={activeChannel.id} msg={msg} key={index} style={selectedMsgIndex === index ? "bg-white/10" : ""} onCloseMenu={() => { setSelectedMsgIndex(null) }} onTrigger={() => { console.log(index); setSelectedMsgIndex(index) }}></Messaggio>
+            ))}
+          </div>
+
+          <div className="mt-1/2 p-1.5">
+            <div className="flex items-center gap-3 bg-[#313244] rounded-md px-3 p-3 text-white shadow-lg">
+              <Plus className="hover:bg-white/10 rounded-md transition-all duration-300 p-1/2 w-6 h-6 text-white" />
+              <input
+                value={nuovoTesto || ""}
+                className="flex-1 bg-transparent text-[14px] focus:outline-none"
+                onChange={(e) => setNuovoTesto(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") aggiungiMessaggio();
+                }}
+                placeholder="Scrivi qui..."
+              />
+            </div>
+          </div>
+
+
+
+        </div>
+       
+      </>
+    );
+  };
 
   return render();
 }

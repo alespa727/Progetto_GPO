@@ -1,6 +1,6 @@
 import { useActiveServerContext } from "../../context/ActiveServerProvider";
 import { useServerContext } from "../../context/ServerContext";
-import { ClientMode, ModeProvider, useMode } from "../../context/ModeProvider";
+import { ClientMode, useMode } from "../../context/ModeProvider";
 import placeholder from '../../assets/placeholder.png';
 
 export function ServerPicture({ style, alt=""}: { style: string, alt: string}) {

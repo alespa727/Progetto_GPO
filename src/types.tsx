@@ -22,18 +22,20 @@ export class User {
 
 // ================= Message =================
 export class Message {
+  id: number;
   text: string;
   sender: User;
   time: Date;
 
-  constructor(text: string, sender: User, time?: Date) {
+  constructor(id:number, text: string, sender: User, time?: Date) {
+    this.id = id;
     this.text = text;
     this.sender = sender;
     this.time = time ?? new Date();
   }
 
   static fromJSON(json: any): Message {
-    return new Message(json.text, User.fromJSON(json.sender), new Date(json.time));
+    return new Message(json.id, json.text, User.fromJSON(json.sender), new Date(json.time));
   }
 }
 
