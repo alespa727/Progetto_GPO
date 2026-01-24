@@ -36,7 +36,7 @@ CREATE TABLE communities (
 	id INT AUTO_INCREMENT,
 	fkUserOwner INT NOT NULL,
 	inviteCode VARCHAR(20) NOT NULL,
-	isInviteCodeValid TINYINT(1) DEFAULT 1,
+	isInviteCodeValid SET('true', 'false') DEFAULT 'false',
 	name VARCHAR(100) NOT NULL,
 	description TEXT,
 	createdAt DATE DEFAULT CURDATE(),

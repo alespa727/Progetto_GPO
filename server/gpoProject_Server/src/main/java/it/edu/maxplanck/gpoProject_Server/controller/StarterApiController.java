@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
-import it.edu.maxplanck.gpoProject_Server.cache.Cache;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccessDTO;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
@@ -117,11 +116,6 @@ public class StarterApiController extends BasicApiRestController {
 		
 		response.addCookie(access);
 		response.addCookie(refresh);
-		
-		/*
-		 * Aggiunta in cache
-		 */
-		Cache.getSetuseronline().add(id);
 
 		return ResponseEntity.ok().build();
 	}
@@ -178,14 +172,6 @@ public class StarterApiController extends BasicApiRestController {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 		
-		/*
-		 * Aggiunta/eliminazione da cache
-		*/
-		if(time != null) {
-			Cache.getSetuseronline().remove(id);
-		}
-		else Cache.getSetuseronline().add(id);
-		
 		return ResponseEntity.ok().body(time);
 	}
 
@@ -232,11 +218,6 @@ public class StarterApiController extends BasicApiRestController {
 		}
 		
 		/*
-		 * Controllo cache
-		 */
-		if(!Cache.getSetuseronline().contains(id)) return ResponseEntity.badRequest().build();
-		
-		/*
 		 * Update database
 		*/
 		try {
@@ -250,11 +231,6 @@ public class StarterApiController extends BasicApiRestController {
 		 */
 		response.addCookie(this.authenticationService.getCookieService().generateCookie(UtilServer.accessCookieName, "", true, false, "/api/", 0));
 		response.addCookie(this.authenticationService.getCookieService().generateCookie(UtilServer.refreshCookieName, "", true, false, "/api/", 0));
-		
-		/*
-		 * Rimozione da cache
-		*/
-		Cache.getSetuseronline().remove(id);
 		
 		return ResponseEntity.ok().build();
 	}

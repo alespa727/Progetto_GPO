@@ -1,11 +1,15 @@
 package it.edu.maxplanck.gpoProject_Server.database.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
+import it.edu.maxplanck.gpoProject_Server.database.model.Community;
+import it.edu.maxplanck.gpoProject_Server.database.model.Friendship;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.repositories.*;
 
@@ -128,6 +132,28 @@ public class DatabaseService {
 		
 		return u.getPkID();
 	}
+	
+	public User findUser(String username) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		if(username == null) throw new IllegalArgumentException("Dati non validi");
+		
+		User u = this.getUsersRepo().findUserByUsername(username);
+		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		
+		return u;
+	}
+	
+	public User findUser(Integer id) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		if(id == null) throw new IllegalArgumentException("Dati non validi");
+		
+		User u = this.getUsersRepo().findById(id).orElse(null);
+		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		
+		return u;
+	}
 
 	public LocalDateTime updateStatusUser(int id) throws IllegalArgumentException {
 		// TODO Auto-generated method stub
@@ -141,5 +167,79 @@ public class DatabaseService {
 		return u.getTimeLastAccess();
 	}
 
+	public void updateUserAccount(int id, String username, String password) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		if(username != null) {
+			
+			if(this.usersRepo.existsUserByUsername(username)) throw new IllegalArgumentException("Username gia' in uso");
+			u.setUsername(username);
+		}
+		
+		if(password != null) {
+			password = this.passwordEncoder.encode(password);
+			while(this.passwordEncoder.upgradeEncoding(password)) password = this.passwordEncoder.encode(password);
+			u.setPassword(password);
+		}
+	}
+
+	public void updateUserProfile(int id, String imagePath) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		
+		if(imagePath != null) u.setImagePath(imagePath);
+	}
+	
+	public void createFriendship(int id, String username) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		User u1 = this.findUser(id);
+		User u2 = this.findUser(username);
+
+		Friendship f = new Friendship(u1, u2);
+		this.friendshipsRepo.save(f);
+	}
+	
+	public List<User> findFriendsOfUser(int id) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		this.findUser(id);
+		
+		List<User> friends = null;
+		friends = this.friendshipsRepo.findFriendsByUserId(id);
+		if(friends == null) throw new IllegalArgumentException("Nessun amico trovato");
+		
+		return friends;
+	}
+
+	public void createChat(int id, String username) {
+		// TODO Auto-generated method stub
+		
+		this.findUser(id);
+		this.findUser(username);
+		
+		Friendship f = this.friendshipsRepo.findFriendByUser1IdUser2Username(id, username);
+		
+		Chat c = new Chat(f);
+		this.chatsRepo.save(c);
+	}
+	
+	public void createCommunity(int id, boolean isInviteCodeValid, String name, String description) {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		
+		String inviteCode = "";
+		
+		do {
+			
+		}while(this.communitiesRepo.existsCommunityByInviteCode(inviteCode));
+		
+		Community c = new Community(u, inviteCode, isInviteCodeValid, name, description);
+		this.communitiesRepo.save(c);
+	}
+	
 	// ------------------------------------------------------------------------------------
 }

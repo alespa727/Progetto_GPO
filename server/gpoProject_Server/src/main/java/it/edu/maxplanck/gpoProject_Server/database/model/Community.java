@@ -31,8 +31,8 @@ public final class Community {
 	@Column(name = CommunityData.columnNameInviteCode, length = CommunityData.inviteCodeLenght, nullable = false, unique = true)
 	private String inviteCode;
 	
-	@Column(name = CommunityData.columnNameIsInviteCodeValid, columnDefinition = "isInviteCodeValid TINYINT(1) DEFAULT 1")
-	private boolean isInviteCodeValid;
+	@Column(name = CommunityData.columnNameIsInviteCodeValid, columnDefinition = "isInviteCodeValid SET('true', 'false') DEFAULT 'false'")
+	private Boolean isInviteCodeValid;
 	
 	@Column(name = CommunityData.columnNameName, length = CommunityData.nameLenght, nullable = false)
 	private String name;
@@ -45,6 +45,17 @@ public final class Community {
 
 	public Community(){
 		super();
+	}
+	
+	public Community(User fkUserOwner, String inviteCode, boolean isInviteCodeValid, String name, String description) {
+		super();
+		this.pkID = null;
+		this.fkUserOwner = fkUserOwner;
+		this.inviteCode = inviteCode;
+		this.isInviteCodeValid = isInviteCodeValid;
+		this.name = name;
+		this.description = description;
+		this.createdAt = LocalDate.now();
 	}
 	
 	public Community(Integer pkID, User fkUserOwner, String inviteCode, boolean isInviteCodeValid, String name, String description, LocalDate createdAt) {

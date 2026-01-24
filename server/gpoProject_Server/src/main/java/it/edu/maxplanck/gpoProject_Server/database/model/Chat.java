@@ -39,6 +39,14 @@ public final class Chat {
 		super();
 	}
 	
+	public Chat(Friendship fkFriendship) {
+		super();
+		this.pkID = null;
+		this.fkFriendship = fkFriendship;
+		this.timeLastMessage = null;
+		this.createdAt = LocalDate.now();
+	}
+	
 	public Chat(Integer pkID, Friendship fkFriendship, LocalDateTime timeLastMessage, LocalDate createdAt) {
 		super();
 		this.pkID = pkID;

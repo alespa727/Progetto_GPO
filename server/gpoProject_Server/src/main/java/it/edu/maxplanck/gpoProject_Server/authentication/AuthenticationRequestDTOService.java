@@ -36,7 +36,11 @@ public class AuthenticationRequestDTOService {
 	public void authCommunityDTO(RequestCommunityDTO dto) throws IllegalArgumentException {
 		
 	}
-
+	
+	public void authFriendDTO(RequestFriendDTO body) throws IllegalArgumentException {
+		
+	}
+	
 	public void authMessageChatDTO(RequestMessageChatDTO dto) throws IllegalArgumentException {
 		
 	}

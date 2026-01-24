@@ -13,6 +13,9 @@ import it.edu.maxplanck.gpoProject_Server.database.model.User;
 @Repository
 public interface FriendshipsRepo extends JpaRepository<Friendship, Integer> {
 	
-	@Query("SELECT CASE WHEN f.fkUser1.id = :userId THEN f.fkUser2 ELSE f.fkUser1 END FROM Friendship f WHERE f.fkUser1.id = :userId OR f.fkUser2.id = :userId")
+	@Query("SELECT u FROM Friendship f JOIN User u ON (u.id = f.fkUser1.id AND f.fkUser2.id = :userId) OR (u.id = f.fkUser2.id AND f.fkUser1.id = :userId)")
 	List<User> findFriendsByUserId(@Param("userId") Integer userId);
+	
+	@Query("SELECT f FROM Friendship f WHERE (f.fkUser1.id = :userId AND f.fkUser2.username = :userUsername) OR (f.fkUser2.id = :userId AND f.fkUser1.username = :userUsername)")
+	Friendship findFriendByUser1IdUser2Username(@Param("userId") Integer userId, @Param("userUsername") String username);
 }

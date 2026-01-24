@@ -39,6 +39,14 @@ public final class Friendship {
 		super();
 	}
 	
+	public Friendship(User fkUser1, User fkUser2) {
+		super();
+		this.pkID = null;
+		this.fkUser1 = fkUser1;
+		this.fkUser2 = fkUser2;
+		this.createdAt = LocalDate.now();
+	}
+	
 	public Friendship(Integer pkID, User fkUser1, User fkUser2, LocalDate createdAt) {
 		super();
 		this.pkID = pkID;

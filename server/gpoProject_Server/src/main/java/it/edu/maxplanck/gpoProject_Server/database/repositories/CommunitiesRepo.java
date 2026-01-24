@@ -9,4 +9,6 @@ import it.edu.maxplanck.gpoProject_Server.database.model.Community;
 public interface CommunitiesRepo extends JpaRepository<Community, Integer> {
 
     Community getCommunityByInviteCode(String inviteCode);
+    
+    boolean existsCommunityByInviteCode(String inviteCode);
 }
