@@ -38,21 +38,6 @@ public class AuthenticationService {
         return authenticationRequestDTOService;
     }
     
-    public boolean shouldRefreshCookie(Cookie access, Cookie refresh) throws IllegalArgumentException {
-    	
-    	if(access == null || refresh == null) throw new IllegalArgumentException("Cookie non esistenti");
-    	
-    	if(access != null && this.cookieService.isCookieValid(access)) {
-    		return false;
-    	}
-    	
-    	if(refresh != null && this.cookieService.isCookieValid(refresh) && this.tokenService.isTokenRefreshValid(refresh.getValue())) {
-    		return true;
-    	}
-    	
-    	throw new IllegalArgumentException("Errore cookies");
-    }
-    
     public Cookie refreshCookieAccess(Cookie refresh) throws IllegalArgumentException {
     	
     	if(refresh == null) throw new IllegalArgumentException("Cookie refresh non esistente");

@@ -17,19 +17,13 @@ import jakarta.persistence.Table;
 public final class Registration {
 
 	// Primary Keys
-	@Id
-	@Column(name = RegistrationData.columnNamePrimaryKeyCommunity)
-	private Integer idCommunity;
-	
-	@Id
-	@Column(name = RegistrationData.columnNamePrimaryKeyUser)
-	private Integer idUser;
-	
 	// Foreign Keys
+	@Id
 	@ManyToOne
 	@JoinColumn(name = RegistrationData.columnNameFkCommunity, nullable = false)
     private Community fkCommunity;
 
+	@Id
 	@ManyToOne
 	@JoinColumn(name = RegistrationData.columnNameFkUser, nullable = false)
     private User fkUser;

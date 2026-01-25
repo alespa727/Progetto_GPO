@@ -1,7 +1,6 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccessDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAuth;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -130,34 +130,17 @@ public class StarterApiController extends BasicApiRestController {
 	public ResponseEntity<?> postOpen(HttpServletRequest request, HttpServletResponse response){
 		
 		/*
-		 * Controllo se ha cookies/ cookies non validi:
-		 * 		- No -> Errore
-		 */
-		ArrayList<String> cookiesNames = new ArrayList<String>();
-		cookiesNames.add(UtilServer.accessCookieName);
-		cookiesNames.add(UtilServer.refreshCookieName);
-		HashMap<String, Cookie> cookies;
-		
-		try {
-			cookies = this.authenticationService.getCookieService().findCookies(request, cookiesNames);
-			if(cookies == null) throw new IllegalArgumentException("Cookies non trovati");
-			if(!cookies.containsKey(UtilServer.refreshCookieName)) throw new IllegalArgumentException("Cookie non presente");
-			
-			if(this.authenticationService.shouldRefreshCookie(cookies.get(UtilServer.accessCookieName), cookies.get(UtilServer.refreshCookieName))) {
-				Cookie access =  this.authenticationService.refreshCookieAccess(cookies.get(UtilServer.refreshCookieName));
-				cookies.put(UtilServer.accessCookieName, access);
-				response.addCookie(access);
-			}
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-		
-		/*
-		 * Ottengo l'id dello user
+		 * Autentificazione
 		 */
 		int id;
 		try{
-			id = this.authenticationService.getTokenService().getClaimsAccess(cookies.get(UtilServer.accessCookieName).getValue()).get("id", Integer.class);
+			ResponseAuth r = this.auth(request, response);
+			
+			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
+			id = r.id();
+			
+			// Refresh access se non valido
+			if(r.access() != null) response.addCookie(r.access());
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
@@ -185,34 +168,17 @@ public class StarterApiController extends BasicApiRestController {
 	public ResponseEntity<?> logoutAccount(HttpServletRequest request, HttpServletResponse response) {
 		
 		/*
-		 * Controllo se ha cookies/ cookies non validi:
-		 * 		- No -> Errore
-		 */
-		ArrayList<String> cookiesNames = new ArrayList<String>();
-		cookiesNames.add(UtilServer.accessCookieName);
-		cookiesNames.add(UtilServer.refreshCookieName);
-		HashMap<String, Cookie> cookies;
-		
-		try {
-			cookies = this.authenticationService.getCookieService().findCookies(request, cookiesNames);
-			if(cookies == null) throw new IllegalArgumentException("Cookies non trovati");
-			if(!cookies.containsKey(UtilServer.refreshCookieName)) throw new IllegalArgumentException("Cookie non presente");
-			
-			if(this.authenticationService.shouldRefreshCookie(cookies.get(UtilServer.accessCookieName), cookies.get(UtilServer.refreshCookieName))) {
-				Cookie access =  this.authenticationService.refreshCookieAccess(cookies.get(UtilServer.refreshCookieName));
-				cookies.put(UtilServer.accessCookieName, access);
-				response.addCookie(access);
-			}
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-		
-		/*
-		 * Ottengo l'id dello user
+		 * Autentificazione
 		 */
 		int id;
 		try{
-			id = this.authenticationService.getTokenService().getClaimsAccess(cookies.get(UtilServer.accessCookieName).getValue()).get("id", Integer.class);
+			ResponseAuth r = this.auth(request, response);
+			
+			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
+			id = r.id();
+			
+			// Refresh access se non valido
+			if(r.access() != null) response.addCookie(r.access());
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}

@@ -18,4 +18,6 @@ public interface FriendshipsRepo extends JpaRepository<Friendship, Integer> {
 	
 	@Query("SELECT f FROM Friendship f WHERE (f.fkUser1.id = :userId AND f.fkUser2.username = :userUsername) OR (f.fkUser2.id = :userId AND f.fkUser1.username = :userUsername)")
 	Friendship findFriendByUser1IdUser2Username(@Param("userId") Integer userId, @Param("userUsername") String username);
+	
+	boolean existsByFkUser1AndFkUser2(User user1, User user2);
 }

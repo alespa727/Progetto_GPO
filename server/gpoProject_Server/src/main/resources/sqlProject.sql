@@ -1,4 +1,13 @@
 
+/* SQL */
+
+DROP DATABASE progetto_gpo;
+CREATE DATABASE progetto_gpo;
+use progetto_gpo;
+
+
+/* TABLES */
+
 CREATE TABLE attachments (
 	id INT AUTO_INCREMENT,
 	fkMessage INT NOT NULL,
@@ -31,17 +40,19 @@ CREATE TABLE chats (
 	createdAt DATE DEFAULT CURDATE(),
 	PRIMARY KEY(id)
 );
+ALTER TABLE chats ADD CONSTRAINT uniqueChatFriendship unique(fkFriendship);
 
 CREATE TABLE communities (
 	id INT AUTO_INCREMENT,
 	fkUserOwner INT NOT NULL,
 	inviteCode VARCHAR(20) NOT NULL,
-	isInviteCodeValid SET('true', 'false') DEFAULT 'false',
+	isInviteCodeValid TINYINT(1) DEFAULT 0,
 	name VARCHAR(100) NOT NULL,
 	description TEXT,
 	createdAt DATE DEFAULT CURDATE(),
 	PRIMARY KEY(id)
 );
+ALTER TABLE communities ADD CONSTRAINT uniqueInviteCode unique(inviteCode);
 ALTER TABLE communities ADD CONSTRAINT checkIsInviteCodeValid check(isInviteCodeValid = 0 OR isInviteCodeValid = 1);
 
 CREATE TABLE friendships (
@@ -51,6 +62,7 @@ CREATE TABLE friendships (
 	createdAt DATE DEFAULT CURDATE(),
 	PRIMARY KEY(id)
 );
+ADD CONSTRAINT uniqueFriendship unique(fkUser1, fkUser2);
 
 CREATE TABLE messagesChat (
 	id INT AUTO_INCREMENT,
@@ -71,15 +83,11 @@ CREATE TABLE messagesCommunity (
 );
 
 CREATE TABLE registrations (
-	idCommunity INT,
-	idUser INT,
 	fkCommunity INT,
 	fkUser INT,
 	date DATETIME DEFAULT CURRENT_TIMESTAMP(),
-	PRIMARY KEY(idCommunity, idUser)
+	PRIMARY KEY(fkCommunity, fkUser)
 );
-ALTER TABLE registrations MODIFY idCommunity INT;
-ALTER TABLE registrations MODIFY idUser INT;
 
 CREATE TABLE sections (
 	id INT AUTO_INCREMENT,
@@ -99,12 +107,15 @@ CREATE TABLE users (
 	PRIMARY KEY(id)
 );
 ALTER TABLE users ADD CONSTRAINT checkIsAdmin check(isAdmin = 0 OR isAdmin = 1);
+ALTER TABLE users ADD CONSTRAINT uniqueUsername unique(username);
 
+
+/* Foreign keys */
 
 ALTER TABLE attachments ADD CONSTRAINT fkAttachmentsMessagesChat FOREIGN KEY(fkMessage) REFERENCES messagesChat(id);
 
 ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatUsers FOREIGN KEY(fkUser) REFERENCES users(id);
-ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatChats FOREIGN KEY(fkChat) REFERENCES users(id);
+ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatChats FOREIGN KEY(fkChat) REFERENCES chats(id);
 
 ALTER TABLE chats ADD CONSTRAINT fkChatsFriendships FOREIGN KEY(fkFriendship) REFERENCES friendships(id);
 
@@ -113,13 +124,12 @@ ALTER TABLE friendships ADD CONSTRAINT fkFriendshipsUsers2 FOREIGN KEY(fkUser2) 
 
 ALTER TABLE calls ADD CONSTRAINT fkCallsChats FOREIGN KEY(fkChat) REFERENCES chats(id);
 
-
 ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsUsers FOREIGN KEY(fkUser) REFERENCES users(id);
 ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsCommunities FOREIGN KEY(fkCommunity) REFERENCES communities(id);
 
 ALTER TABLE communities ADD CONSTRAINT fkCommunitiesUsers FOREIGN KEY(fkUserOwner) REFERENCES users(id);
 
-ALTER TABLE sections ADD CONSTRAINT fkSectionsCommunities FOREIGN KEY(fkCommunity) REFERENCES sections(id);
+ALTER TABLE sections ADD CONSTRAINT fkSectionsCommunities FOREIGN KEY(fkCommunity) REFERENCES communities(id);
 
 ALTER TABLE channels ADD CONSTRAINT fkChannelsSections FOREIGN KEY(fkSection) REFERENCES sections(id);
 
@@ -127,12 +137,7 @@ ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityChannels FOREIGN
 ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityUsers FOREIGN KEY(fkUser) REFERENCES users(id);
 
 
-ALTER TABLE communities ADD CONSTRAINT uniqueInviteCode unique(inviteCode);
-
-ALTER TABLE users ADD CONSTRAINT uniqueUsername unique(username);
-
-
-// CONTROLLI;
+/* CONTROLLI */
 
 describe attachments; 
 describe calls; 
@@ -159,3 +164,17 @@ SHOW CREATE TABLE messagesCommunity;
 SHOW CREATE TABLE registrations;
 SHOW CREATE TABLE sections;
 SHOW CREATE TABLE users;
+
+
+
+select * from attachments;
+select * from calls;
+select * from channels;
+select * from chats;
+select * from communities;
+select * from friendships;
+select * from messagesChat;
+select * from messagesCommunity;
+select * from registrations;
+select * from sections;
+select * from users;

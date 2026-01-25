@@ -10,8 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
 import it.edu.maxplanck.gpoProject_Server.database.model.Community;
 import it.edu.maxplanck.gpoProject_Server.database.model.Friendship;
+import it.edu.maxplanck.gpoProject_Server.database.model.MessageChat;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.repositories.*;
+import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase;
 
 @Transactional
 @Service
@@ -198,7 +201,9 @@ public class DatabaseService {
 		User u1 = this.findUser(id);
 		User u2 = this.findUser(username);
 
+		if(this.friendshipsRepo.existsByFkUser1AndFkUser2(u1, u2)) throw new IllegalArgumentException("Friendship gia' creata");
 		Friendship f = new Friendship(u1, u2);
+
 		this.friendshipsRepo.save(f);
 	}
 	
@@ -209,12 +214,11 @@ public class DatabaseService {
 		
 		List<User> friends = null;
 		friends = this.friendshipsRepo.findFriendsByUserId(id);
-		if(friends == null) throw new IllegalArgumentException("Nessun amico trovato");
 		
 		return friends;
 	}
 
-	public void createChat(int id, String username) {
+	public void createChat(int id, String username) throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		
 		this.findUser(id);
@@ -222,23 +226,46 @@ public class DatabaseService {
 		
 		Friendship f = this.friendshipsRepo.findFriendByUser1IdUser2Username(id, username);
 		
+		if(this.chatsRepo.existsByFkFriendship(f)) throw new IllegalArgumentException("Chat gia' creata");
 		Chat c = new Chat(f);
 		this.chatsRepo.save(c);
 	}
 	
-	public void createCommunity(int id, boolean isInviteCodeValid, String name, String description) {
+	public void createCommunity(int id, boolean isInviteCodeValid, String name, String description) throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		
 		User u = this.findUser(id);
 		
 		String inviteCode = "";
-		
 		do {
-			
-		}while(this.communitiesRepo.existsCommunityByInviteCode(inviteCode));
+			inviteCode = GenericUtil.generateString(UtilDatabase.CommunityData.inviteCodeLenght, GenericUtil.CHARSET);
+		}while(this.communitiesRepo.existsCommunityByInviteCode(inviteCode) && inviteCode.length() <= UtilDatabase.CommunityData.inviteCodeLenght);
 		
 		Community c = new Community(u, inviteCode, isInviteCodeValid, name, description);
 		this.communitiesRepo.save(c);
+	}
+
+	public void createMessageChat(int id, Integer chatId, String message) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		Chat c = this.chatsRepo.findChatByPkID(chatId);
+		if(c == null) throw new IllegalArgumentException("Chat inesistente");
+		if(!(c.getFkFriendship().getFkUser1().getPkID() == id) && !(c.getFkFriendship().getFkUser2().getPkID() == id)) throw new IllegalArgumentException("Non fai parte della chat");
+		
+		MessageChat mChat = new MessageChat(c, u, message);
+		this.messagesChatRepo.save(mChat);
+	}
+
+	public List<Chat> findChatsOfUser(int id) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		this.findUser(id);
+		
+		List<Chat> chats = null;
+		chats = this.chatsRepo.findChatByUserId(id);
+		
+		return chats;
 	}
 	
 	// ------------------------------------------------------------------------------------

@@ -132,8 +132,6 @@ public final class UtilDatabase {
 	public static class RegistrationData{
 		
 		public static final String tableName = "registrations";
-		public static final String  columnNamePrimaryKeyUser = "idCommunity";
-		public static final String columnNamePrimaryKeyCommunity = "idUser";
 		
 		public static final String columnNameFkCommunity = "fkCommunity";
 		public static final String columnNameFkUser = "fkUser";

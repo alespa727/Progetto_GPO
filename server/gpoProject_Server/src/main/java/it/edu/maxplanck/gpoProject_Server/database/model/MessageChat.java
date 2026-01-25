@@ -42,6 +42,15 @@ public final class MessageChat {
 		super();
 	}
 	
+	public MessageChat(Chat fkChat, User fkUser, String message) {
+		super();
+		this.pkID = null;
+		this.fkChat = fkChat;
+		this.fkUser = fkUser;
+		this.message = message;
+		this.sentAt = null;
+	}
+	
 	public MessageChat(Integer pkID, Chat fkChat, User fkUser, String message, LocalDateTime sentAt) {
 		super();
 		this.pkID = pkID;

@@ -1,14 +1,19 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,12 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
+import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.*;
 import it.edu.maxplanck.gpoProject_Server.dto.response.*;
-import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
-import jakarta.servlet.http.Cookie;
+import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -30,40 +35,15 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("api/services")
 public class ServiceApiController extends BasicApiRestController {
 	
+	@Value("${app.upload.dir}")
+	private String uploadDir;
+	
 	public ServiceApiController(DatabaseService databaseService, AuthenticationService authenticationService) {
 		super(databaseService, authenticationService);
 		// TODO Auto-generated constructor stub
 	}
 
 	// -----------------------------------------------------------------------
-
-	private ResponseAuth auth(HttpServletRequest request, HttpServletResponse response) throws IllegalArgumentException {
-		/*
-		 * Controllo se ha cookies/ cookies non validi:
-		 * 		- No -> Errore
-		 */
-		ArrayList<String> cookiesNames = new ArrayList<String>();
-		cookiesNames.add(UtilServer.accessCookieName);
-		cookiesNames.add(UtilServer.refreshCookieName);
-		HashMap<String, Cookie> cookies;
-		
-		cookies = this.authenticationService.getCookieService().findCookies(request, cookiesNames);
-		if(cookies == null) throw new IllegalArgumentException("Cookies non trovati");
-		if(!cookies.containsKey(UtilServer.refreshCookieName)) throw new IllegalArgumentException("Cookie non presente");
-		
-		Cookie access = null;
-		if(this.authenticationService.shouldRefreshCookie(cookies.get(UtilServer.accessCookieName), cookies.get(UtilServer.refreshCookieName))) {
-			access =  this.authenticationService.refreshCookieAccess(cookies.get(UtilServer.refreshCookieName));
-		}
-		
-		/*
-		 * Ottengo l'id dello user
-		 */
-		Integer id = this.authenticationService.getTokenService().getClaimsAccess(cookies.get(UtilServer.accessCookieName).getValue()).get("id", Integer.class);
-		
-		ResponseAuth r = new ResponseAuth(access, id);
-		return r;
-	}
 	
 	@GetMapping("account")
 	public ResponseEntity<?> getAccount(HttpServletRequest request, HttpServletResponse response) {
@@ -201,25 +181,19 @@ public class ServiceApiController extends BasicApiRestController {
 		/*
 		 * Ritorna dati
 		 */
-		ResponseProfileDTO r = new ResponseProfileDTO(u.getImagePath());
+		ResponseProfileDTO r = new ResponseProfileDTO((u.getImagePath() != null)? GenericUtil.standardPathImages + u.getImagePath() : null);
 		
 		return ResponseEntity.ok().body(r);
 	}
 
-	@PatchMapping("profile")
-	public ResponseEntity<?> patchProfilo(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestProfileDTO body) {
-		
-		/*
-		 * Controlla se body request valido:
-		 * 		- No -> Errore
-		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authProfileDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
-		
-		/*
+	@PatchMapping("profileImage")
+	public ResponseEntity<String> patchImageProfile(HttpServletRequest request, HttpServletResponse response, @RequestParam("image") MultipartFile file) {
+
+	    if (file.isEmpty()) {
+	        return ResponseEntity.badRequest().body("File vuoto");
+	    }
+
+	    /*
 		 * Autentificazione
 		 */
 		int id;
@@ -234,17 +208,59 @@ public class ServiceApiController extends BasicApiRestController {
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
+	    
+		/*
+		 * Prendi user da database attraverso id
+		 */
+		User u = null;
+		try{
+			u = this.databaseService.findUser(id);
+		}catch(IllegalArgumentException e) {
+			return ResponseEntity.internalServerError().body(e.getMessage());
+		}
 		
 		/*
+		 * Modifica nome immagine
+		 */
+		String originalFilename = file.getOriginalFilename();
+		String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+		
+		if(!extension.equals("jpg") || !extension.equals("png")) return ResponseEntity.badRequest().body("Non un file jpg o png");
+		
+		String fileName = "imageProfile_" + u.getUsername() + extension;
+		Path uploadPath = Paths.get(uploadDir);
+
+	    /*
+	     * Controllo se cartella dove salvare esiste o no -> la crea
+	     */
+	    if (!Files.exists(uploadPath)) {
+	        try{
+	        	Files.createDirectories(uploadPath);
+	        }catch(IOException e) {
+	        	return ResponseEntity.internalServerError().build();
+	        }
+	    }
+
+	    /*
+	     * Prova a salvare l'immagine nella cartella
+	     */
+	    Path filePath = uploadPath.resolve(fileName);
+	    try{
+	    	Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+	    }catch(IOException e) {
+	    	return ResponseEntity.internalServerError().build();
+	    }
+	    
+    	/*
 		 * Update dati in database attraverso id
 		 */
 		try{
-			this.databaseService.updateUserProfile(id, body.imagePath());
+			this.databaseService.updateUserProfile(id, fileName);
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.internalServerError().build();
 		}
 		
-		return ResponseEntity.ok().build();
+	    return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("friend")
@@ -282,7 +298,7 @@ public class ServiceApiController extends BasicApiRestController {
 		try{
 			this.databaseService.createFriendship(id, body.username());
 		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
+			return ResponseEntity.internalServerError().body(e.getMessage());
 		}
 		
 		return ResponseEntity.ok().build();
@@ -362,7 +378,7 @@ public class ServiceApiController extends BasicApiRestController {
 		try{
 			this.databaseService.createChat(id, body.friend().username());
 		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
+			return ResponseEntity.internalServerError().body(e.getMessage());
 		}
 		
 		return ResponseEntity.created(null).build();
@@ -405,12 +421,12 @@ public class ServiceApiController extends BasicApiRestController {
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.internalServerError().build();
 		}
-///////////////////////////////////////////////////////////////////////////////		
+	
 		return ResponseEntity.created(null).build();
 	}
 
-	@PostMapping("messageChat")
-	public ResponseEntity<?> postMessageChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestMessageChatDTO body) {
+	@PostMapping("/{chat}/message")
+	public ResponseEntity<?> postMessageChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId, @RequestBody RequestMessageChatDTO body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -441,6 +457,11 @@ public class ServiceApiController extends BasicApiRestController {
 		/*
 		 * Crea un messaggio in una determinata chat
 		 */
+		try {
+			this.databaseService.createMessageChat(id, chatId, body.message());
+		}catch(IllegalArgumentException e) {
+			return ResponseEntity.internalServerError().build();
+		}
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -589,8 +610,47 @@ public class ServiceApiController extends BasicApiRestController {
 		return ResponseEntity.created(null).build();
 	}
 
+	@GetMapping("chats")
+	public ResponseEntity<?> getChats(HttpServletRequest request, HttpServletResponse response) {
+
+		/*
+		 * Autentificazione
+		 */
+		int id;
+		try{
+			ResponseAuth r = this.auth(request, response);
+			
+			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
+			id = r.id();
+			
+			// Refresh access se non valido
+			if(r.access() != null) response.addCookie(r.access());
+		}catch(IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+		
+		/*
+		 * Ottiene le varie chat dell'utente
+		 */
+		List<Chat> listChats = null;
+		try {
+			listChats = this.databaseService.findChatsOfUser(id);
+		}catch(IllegalArgumentException e) {
+			return ResponseEntity.internalServerError().body(e.getMessage());
+		}
+		
+		List<ResponseChatDTO> c = new ArrayList<ResponseChatDTO>();
+		for(Chat ch : listChats) {
+			User u = (ch.getFkFriendship().getFkUser1().getPkID() == id)? ch.getFkFriendship().getFkUser2() : ch.getFkFriendship().getFkUser1();
+			c.add(new ResponseChatDTO(ch.getPkID(), new ResponseFriendDTO(u.getUsername(), GenericUtil.standardPathImages + u.getImagePath())));
+		}
+		
+		ResponseChatsDTO chats = new ResponseChatsDTO(c);
+		return ResponseEntity.ok().body(chats);
+	}
+	
 	@GetMapping("chat")
-	public ResponseEntity<?> getChat(HttpServletRequest request, HttpServletResponse response) {
+	public ResponseEntity<?> getChatData(HttpServletRequest request, HttpServletResponse response) {
 
 		/*
 		 * Autentificazione
