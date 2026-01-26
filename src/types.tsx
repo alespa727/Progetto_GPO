@@ -1,22 +1,63 @@
+export const portServer = 8080;
+export const endpoint = `http://localhost:${portServer}/api`
+
+
 export enum ChatType {
   FRIEND = "FRIEND",
   CHANNEL = "CHANNEL",
 }
 
-// ================= User =================
-export class User {
-  id: number;
+export class Account {
+  createdAt: Date;
+  isAdmin: boolean;
+  path: string;
   username: string;
-  password: string;
 
-  constructor(id: number, username: string, password: string) {
-    this.id = id;
+  constructor(
+    createdAt: Date,
+    isAdmin: boolean,
+    path: string,
+    username: string
+  ) {
+    this.createdAt = createdAt;
+    this.isAdmin = isAdmin;
+    this.path = path;
     this.username = username;
-    this.password = password;
   }
 
-  static fromJSON(json: any): User {
-    return new User(json.id, json.username, json.password);
+  static fromJSON(json: any): Account {
+    return new Account(json.createdAt, json.isAdmin, json.path, json.username);
+  }
+}
+
+export class Friend {
+  imagePath: string;
+  username: string;
+
+  constructor(
+    path: string,
+    username: string
+  ) {
+    this.imagePath = path;
+    this.username = username;
+  }
+
+  static fromJSON(json: any): Friend {
+    return new Friend(json.imagePath, json.username);
+  }
+}
+
+export class Chat {
+  id: number;
+  friend: Friend
+
+  constructor(id: number, friend: Friend) {
+    this.id = id;
+    this.friend = friend;
+  }
+
+  static fromJSON(json: any): Chat {
+    return new Chat(json.id, json.friend);
   }
 }
 
@@ -24,10 +65,10 @@ export class User {
 export class Message {
   id: number;
   text: string;
-  sender: User;
+  sender: string;
   time: Date;
 
-  constructor(id:number, text: string, sender: User, time?: Date) {
+  constructor(id: number, text: string, sender: string, time?: Date) {
     this.id = id;
     this.text = text;
     this.sender = sender;
@@ -35,57 +76,14 @@ export class Message {
   }
 
   static fromJSON(json: any): Message {
-    return new Message(json.id, json.text, User.fromJSON(json.sender), new Date(json.time));
+    return new Message(json.id, json.text, json.sender, new Date(json.time));
   }
 }
 
-// ================= Friendship =================
-export class Friendship {
-  id: number;
-  user1: User;
-  user2: User;
-
-  constructor(id: number, user1: User, user2: User) {
-    this.id = id;
-    this.user1 = user1;
-    this.user2 = user2;
-  }
-
-  static fromJSON(json: any): Friendship {
-    return new Friendship(User.fromJSON(json.user1).id ? json.id : 0, User.fromJSON(json.user1), User.fromJSON(json.user2));
-  }
-}
-
-// ================= PrivateChat =================
-export class PrivateChat {
-  type: ChatType.FRIEND;
-  messages: Message[];
-  friendship: Friendship;
-  id: number;
-
-  constructor(id: number, friendship: Friendship) {
-    this.type = ChatType.FRIEND;
-    this.friendship = friendship;
-    this.messages = [];
-    this.id = id;
-  }
-
-  public addMessages(messages: Message[]) {
-    this.messages.push(...messages);
-  }
-
-  static fromJSON(json: any): PrivateChat {
-    const chat = new PrivateChat(json.chatId, Friendship.fromJSON(json.friendship));
-    if (json.messages) {
-      chat.addMessages(json.messages.map((m: any) => Message.fromJSON(m)));
-    }
-    return chat;
-  }
-}
 
 // ================= Channel & TextChannel =================
 
-export enum ChannelType{
+export enum ChannelType {
   VOICE, TEXT
 }
 export class Channel {
@@ -195,24 +193,5 @@ export class Server {
       json.description,
       json.createdAt ? new Date(json.createdAt) : undefined
     );
-  }
-}
-
-// ================= PrivateChatResponse =================
-export class PrivateChatResponse {
-  chatId: number;
-  otherUser: User;
-
-  constructor(privateChat: PrivateChat, otherUser: User) {
-    this.chatId = privateChat.id;
-    this.otherUser = otherUser;
-  }
-
-
-  static fromJSON(json: any): PrivateChatResponse {
-    // richiede che json contenga privateChat e requester
-    const chat = new PrivateChat(json.chatId, new Friendship(-1, new User(json.otherUser.id, json.otherUser.username,  json.otherUser.password), new User(-1, "", "")))
-    const otherUser = User.fromJSON(json.otherUser);
-    return new PrivateChatResponse(chat, otherUser);
   }
 }

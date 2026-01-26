@@ -4,12 +4,12 @@ import axios from "axios";
 import { Message, ChannelType } from "../../types.tsx";
 import { useSocket } from "../../context/SocketProvider.tsx";
 import { useActiveServerContext } from "../../context/ActiveServerProvider.tsx";
-import { useUser } from "../../context/UserProvider.tsx";
 import { Plus } from "lucide-react";
 import { Messaggio } from "../common/Messaggio.tsx";
+import { useAccount } from "@/context/UserProvider.tsx";
 
 function ChannelChat() {
-  const user = useUser();
+  const user = useAccount();
   const socket = useSocket();
   const [nuovoTesto, setNuovoTesto] = useState<string>("");
   const messagesRef = useRef<null | HTMLDivElement>(null);
@@ -36,7 +36,7 @@ function ChannelChat() {
     if (nuovoTesto.trim() === "") return;
     if (!user) return;
     let id = activeChannel ? activeChannel.id : null;
-    let message = new Message(-1, nuovoTesto, user, new Date());
+    let message = new Message(-1, nuovoTesto, user.username, new Date());
     let type = "channel";
     socket.emit("sendMessage", { id, type, message });
 

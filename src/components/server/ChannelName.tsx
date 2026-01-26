@@ -7,10 +7,10 @@ import { useActiveRoomContext } from "../../context/CallContext";
 import { Participant, Room } from "livekit-client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useUser } from "../../context/UserProvider";
 import { useSocket } from "../../context/SocketProvider";
 import { ParticipantContext, ParticipantLoop, RoomAudioRenderer, useParticipants, useRoomContext } from "@livekit/components-react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
+import { useAccount } from "@/context/UserProvider";
 
 export function ChannelName() {
   const channel = useChannelContext();
@@ -18,14 +18,12 @@ export function ChannelName() {
 
   const isActive = activeChannel?.id === channel.id;
 
-  const user = useUser();
+  const user = useAccount();
   const { setToken, setTitle, setUrl } = useActiveRoomContext();
   const url = "wss://progettogpo-dfna4rrr.livekit.cloud";  //"wss://alessio-cn4uwebw.livekit.cloud";
   const socket = useSocket();
   const [userList, setUsers] = useState<string[]>([]);
   let [count, setCount] = useState<number>(0);
-  const participants = useParticipants();
-  const room = useRoomContext();
 
   useEffect(() => {
 

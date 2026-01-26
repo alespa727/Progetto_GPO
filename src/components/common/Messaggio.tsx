@@ -8,7 +8,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
     const socket = useSocket();
     const [isBeingModified, setModifying] = useState<boolean>(false);
     const [draft, setDraft] = useState(msg.text);
-    let username = msg.sender.username;
+    let username = msg.sender;
     if (username.length > 9) {
         username = username.slice(0, 9) + "...";
     }

@@ -1,7 +1,7 @@
 import React from "react";
-import { PrivateChatResponse, } from "../types";
+import { Chat } from "../types";
 
-export const ChatContext = React.createContext<PrivateChatResponse | null>(null);
+export const ChatContext = React.createContext<Chat | null>(null);
 
 /**
  * Ensures that a participant is provided via context.

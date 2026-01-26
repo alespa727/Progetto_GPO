@@ -5,7 +5,7 @@ import { FriendProvider } from "./FriendContext";
 import { ActiveServerProvider } from "./ActiveServerProvider";
 import { ServerProvider } from "./ServerListContext";
 import { SocketProvider } from "./SocketProvider";
-import { UserProvider } from "./UserProvider";
+import { AccountProvider } from "./UserProvider";
 import { ModeProvider } from "./ModeProvider";
 import { SettingsStatusProvider } from "./SettingsContext";
 import { RoomContext } from "@livekit/components-react";
@@ -13,7 +13,7 @@ import { ActiveRoomProvider } from "./CallContext";
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
     return (
-        <UserProvider>
+        <AccountProvider>
             <SocketProvider>
                 <ActiveRoomProvider>
                      <ServerProvider>
@@ -33,8 +33,7 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
                         </ActiveServerProvider>
                     </ServerProvider>
                 </ActiveRoomProvider>
-               
             </SocketProvider>
-        </UserProvider>
+        </AccountProvider>
     );
 };

@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { RemoteParticipant, RemoteTrack, RemoteTrackPublication, Room, RoomEvent, Track } from "livekit-client";
-import { Channel } from "../types";
+import { Room, RoomEvent } from "livekit-client";
 import { useSocket } from "./SocketProvider";
-import { LiveKitRoom, RoomContext } from "@livekit/components-react";
+import { RoomContext } from "@livekit/components-react";
 
 interface ActiveRoomContextType {
   url: string;

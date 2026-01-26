@@ -1,10 +1,11 @@
-import { useUser } from "../context/UserProvider";
+
 import { ProfilePicture } from "./chat/ProfilePicture";
 import { Mic, Headphones, Cog } from "lucide-react";
 import { useSettingsStatusContext } from "../context/SettingsContext";
 import CallInterface from "./chiamata/CallInterface";
+import { useAccount } from "@/context/UserProvider";
 function UserProfile() {
-  const user = useUser();
+  const account = useAccount();
   const { setState } = useSettingsStatusContext()
   return (
     <div className="flex-col transition-all duration-150 fixed bottom-0 p-1.5 box-border text-black flex items-center shadow-lg rounded-lg w-66">
@@ -13,9 +14,9 @@ function UserProfile() {
         <CallInterface></CallInterface>
         <div className=" px-1 flex w-full gap-3.5 items-center">
           <div className="flex flex-1 items-center gap-2">
-            <ProfilePicture className="w-7 h-7" />
+            <ProfilePicture src={account ? account.path : ""} className="w-7 h-7" />
 
-            <div className="text-[16px]">{user?.username}</div>
+            <div className="text-[16px]">{account?.username}</div>
 
           </div>
 

@@ -3,23 +3,25 @@ import "../../styles/Chat.css";
 import axios from "axios";
 import { Message } from "../../types.tsx";
 import { useSocket } from "../../context/SocketProvider.tsx";
-import { useUser } from "../../context/UserProvider.tsx";
 import { useChatContext } from "../../context/ChatContext.tsx";
 import { Plus } from "lucide-react";
 import { Messaggio } from "../common/Messaggio.tsx";
-
+import { useAccount } from "@/context/UserProvider.tsx";
+import { endpoint } from "../../types.tsx";
 
 function Chat() {
   const [selectedMsgIndex, setSelectedMsgIndex] = useState<number | null>(null);
 
-  const user = useUser();
+  const account = useAccount();
+
   const socket = useSocket();
   const [nuovoTesto, setNuovoTesto] = useState<string>("");
   const messagesRef = useRef<null | HTMLDivElement>(null)
-  const activeChat = useChatContext();
+  const chat = useChatContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [header, setHeader] = useState<string>("");
-  const [isCallActive, setCallActive] = useState<boolean>(false);
+
+  if (!account) return;
 
   const scrollToBottom = () => {
     if (messagesRef.current) {
@@ -31,12 +33,11 @@ function Chat() {
   };
 
   const aggiungiMessaggio = () => {
-    if(!socket) return;
+    if (!socket) return;
     if (!nuovoTesto) return;
     if (nuovoTesto.trim() === "") return;
-    if (!user) return;
-    let id = activeChat ? activeChat.chatId : null;
-    let message = new Message(-1, nuovoTesto, user);
+    let id = chat ? chat.id : null;
+    let message = new Message(-1, nuovoTesto, account?.username);
     let type = "chat";
     socket.emit("sendMessage", { id, type, message });
 
@@ -71,9 +72,10 @@ function Chat() {
   }, [messages]);
 
   const fetchMessages = async (id: number) => {
+    /*
     let endpoint;
-
-    endpoint = `http://localhost:4000/chat/${id}/messages`;
+    if(!chat) return
+    endpoint = `${endpoint}/api/services/${chat.id}/messages`;
 
     try {
       const res = await axios.get(endpoint);
@@ -86,20 +88,20 @@ function Chat() {
       }, 50);
     } catch (err) {
       console.error("Errore fetch messages:", err);
-    }
+    }*/
   };
 
   useEffect(() => {
-    if (!activeChat) return;
+    if (!chat) return;
     if (!socket) return;
-    const chatId = activeChat.chatId;
-    joinChat(activeChat.chatId, activeChat.otherUser.username);
+    const chatId = chat.id;
+    joinChat(chat.id, chat.friend.username);
 
     return () => { socket.emit("leave_chat", { chatId }); };
-  }, [activeChat, socket]);
+  }, [chat, socket]);
 
 
-  if (!activeChat) return <div className="chat-box"></div>;
+  if (!chat) return <div className="chat-box"></div>;
 
   const render = () => {
     return (
@@ -110,18 +112,25 @@ function Chat() {
           <div className="border-white/10 border-b w-full pl-3 p-4 text-center">
             {header}
           </div>
-        
-          {/* MESSAGGI */}
+
           <div
-            className="flex-1 mb-3 overflow-y-auto flex flex-col justify-end"
+            className="flex-1 mb-3 overflow-y-auto flex flex-col-reverse messages-scrollbar "
             ref={messagesRef}
           >
-            {[...messages].map((msg: Message, index: number) => (
-              <Messaggio messageType={"chat"} id={activeChat.chatId} msg={msg} key={index} style={selectedMsgIndex === index ? "bg-white/10" : ""} onCloseMenu={() => { setSelectedMsgIndex(null) }} onTrigger={() => { console.log(index); setSelectedMsgIndex(index) }}></Messaggio>
+            {[...messages].reverse().map((msg: Message, index: number) => (
+              <Messaggio
+                messageType={"chat"}
+                id={chat.id}
+                msg={msg}
+                key={index}
+                style={selectedMsgIndex === index ? "bg-white/10 mr-4 rounded-md" : ""}
+                onCloseMenu={() => { setSelectedMsgIndex(null) }}
+                onTrigger={() => { console.log(index); setSelectedMsgIndex(index) }}
+              />
             ))}
           </div>
 
-         {/* INPUT */}
+          {/* INPUT */}
           <div className="mt-1/2 p-1.5">
             <div className="flex items-center gap-3 bg-[#313244] rounded-md px-3 p-3 text-white shadow-lg">
               <Plus className="w-6 h-6 text-white" />
@@ -135,10 +144,10 @@ function Chat() {
                 placeholder="Scrivi qui..."
               />
             </div>
-        
+
 
           </div>
-         
+
         </div>
       </>
 
@@ -146,7 +155,7 @@ function Chat() {
   };
 
   const joinChat = (chatId: number, otherUser: string) => {
-     if(!socket) return;
+    if (!socket) return;
     setHeader("Chat con " + otherUser);
     fetchMessages(chatId);
     socket.emit("join_chat", { chatId });

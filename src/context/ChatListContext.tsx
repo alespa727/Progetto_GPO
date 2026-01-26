@@ -1,23 +1,22 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { Chat, endpoint } from "@/types";
 import axios from "axios";
-import { PrivateChatResponse, User } from "../types";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-const ChatContext = createContext<PrivateChatResponse[] | null>(null);
+const ChatContext = createContext<Chat[]>([]);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const [chats, setChats] = useState<PrivateChatResponse[] | null>(null);
+  const [chats, setChats] = useState<Chat[]>([]);
 
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        let list: PrivateChatResponse[] = [];
-        const res = await axios.get("http://localhost:4000/chats")
-        res.data.forEach((element: any) => {
-            list.push(PrivateChatResponse.fromJSON(element));
-        }); 
-        console.log(list)
-        setChats(list);
-      
+       
+        const res = await axios.get(endpoint+"/services/chats", {
+                    withCredentials: true
+                });
+        const chats : Chat[] = res.data.chats.map((c: any)=>Chat.fromJSON(c))
+        console.log(chats)
+        setChats(chats);
       } catch (err) {
         console.error("Errore nel fetch utente:", err);
       }

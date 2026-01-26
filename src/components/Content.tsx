@@ -16,6 +16,7 @@ function Content() {
   const mode = useMode().mode;
   const activeServer = useActiveServerContext().activeServer;
   const activeChat = useActiveChatContext().activeChat;
+  
 
   switch (mode) {
     case ClientMode.Server:

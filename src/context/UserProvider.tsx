@@ -1,35 +1,38 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { Account } from "../types";
+import { ClientMode, useMode } from "./ModeProvider";
 import axios from "axios";
-import { User } from "../types";
+type AccountProps = {
+  account: Account | null,
+  setAccount: (account: Account) => void
+}
 
-const UserContext = createContext<User | null>(null);
+const AccountContext = createContext<AccountProps | null>(null);
 
-export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get("http://localhost:4000/whoami");
-        let user: User = User.fromJSON(res.data);
-        setUser(user);
-        console.log("user: ");
-        console.log(user);
-      } catch (err) {
-        console.error("Errore nel fetch utente:", err);
-      }
-    };
+export const AccountProvider = ({ children }: { children: ReactNode }) => {
+  const [account, setAccount] = useState<Account | null>(null);
 
-    fetchUser();
-  }, []);
+  useEffect(()=>{
+    console.log(account);
+  }, [account]);
 
   return (
-    <UserContext.Provider value={user}>
+    <AccountContext.Provider value={{ account, setAccount }}>
       {children}
-    </UserContext.Provider>
+    </AccountContext.Provider>
   );
 };
 
-export const useUser = () => {
-  return useContext(UserContext);
+export const useAccount = () => {
+  const props = useContext(AccountContext);
+  if (props)
+    return props.account;
 };
+
+export const useSetAccount = () => {
+  const props = useContext(AccountContext);
+  if (props && props !== undefined)
+    return props.setAccount;
+};
+

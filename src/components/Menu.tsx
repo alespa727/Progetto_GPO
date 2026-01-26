@@ -1,24 +1,29 @@
 import Sidebar from "./Sidebar.tsx";
 import Content from "./Content.tsx"
 import "../styles/Menu.css";
-import { PrivateChatResponse } from "../types.tsx";
 import { useEffect } from "react";
 import UserProfile from "./UserProfile.tsx";
 import { ClientMode, useMode } from "../context/ModeProvider.tsx";
 import { useChats } from "../context/ChatListContext.tsx";
 import Settings from "../components/Settings.tsx"
 import { useSettingsStatusContext } from "../context/SettingsContext.tsx";
+import Login from "./common/Login.tsx";
 
 function Menu() {
   const modeContext = useMode();
-  const chats: PrivateChatResponse[] | null = useChats();
   const {state} = useSettingsStatusContext()
-  
-  useEffect(() => {
-    if (modeContext.mode === ClientMode.Chats) {
-      if(!chats) return;
-    }
-  }, [modeContext.mode, chats]);
+
+  if(modeContext.mode === ClientMode.Login){
+     return (
+      <>
+        <div className="app">
+          <Login> 
+
+          </Login>
+        </div>
+      </>
+    );
+  }
 
   if(state){
     return (
