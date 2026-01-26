@@ -1,13 +1,18 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
+import java.awt.PageAttributes.MediaType;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,6 +48,32 @@ public class ServiceApiController extends BasicApiRestController {
 		// TODO Auto-generated constructor stub
 	}
 
+	public void findImage(User u) throws IllegalArgumentException, IOException {
+	    if (u == null || u.getImagePath() == null || u.getImagePath().isBlank()) {
+	        throw new IllegalArgumentException("Errore dati input");
+	    }
+
+	    String imagePath = u.getImagePath();
+	    int dotIndex = imagePath.lastIndexOf(".");
+	    if (dotIndex < 0) {
+	        // path invalido → reset DB
+	        this.databaseService.updateUserProfile(u.getPkID(), null);
+	        throw new IllegalArgumentException("Formato immagine non valido");
+	    }
+
+	    String extension = imagePath.substring(dotIndex);
+	    String fileName = "imageProfile_" + u.getUsername() + extension;
+	    Path uploadPath = Paths.get(uploadDir);
+
+	    if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+	    Path filePath = uploadPath.resolve(fileName);
+	    if (!Files.exists(filePath)) {
+	        this.databaseService.updateUserProfile(u.getPkID(), null);
+	        throw new IllegalArgumentException("Immagine persa...");
+	    }
+	}
+	
 	// -----------------------------------------------------------------------
 	
 	@GetMapping("account")
@@ -178,6 +209,16 @@ public class ServiceApiController extends BasicApiRestController {
 			return ResponseEntity.internalServerError().build();
 		}
 		
+		// Controllo se la immagine esiste o e' stata eliminata/persa
+		try {
+			if(u.getImagePath() != null) this.findImage(u);
+		}catch(IllegalArgumentException e) {
+			return ResponseEntity.internalServerError().body(e.getMessage());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			return ResponseEntity.internalServerError().build();
+		}
+		
 		/*
 		 * Ritorna dati
 		 */
@@ -185,7 +226,7 @@ public class ServiceApiController extends BasicApiRestController {
 		
 		return ResponseEntity.ok().body(r);
 	}
-
+	
 	@PatchMapping("profileImage")
 	public ResponseEntity<String> patchImageProfile(HttpServletRequest request, HttpServletResponse response, @RequestParam("image") MultipartFile file) {
 
@@ -220,36 +261,54 @@ public class ServiceApiController extends BasicApiRestController {
 		}
 		
 		/*
-		 * Modifica nome immagine
+		 * Controllo estensione immagine
 		 */
-		String originalFilename = file.getOriginalFilename();
-		String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-		
-		if(!extension.equals("jpg") || !extension.equals("png")) return ResponseEntity.badRequest().body("Non un file jpg o png");
-		
-		String fileName = "imageProfile_" + u.getUsername() + extension;
-		Path uploadPath = Paths.get(uploadDir);
+		String fileName = "";
+		try {
+			// 1. Verifica con Tika (rimane uguale)
+			Tika tika = new Tika();
+			String detectedType = tika.detect(file.getInputStream());
+			if (!detectedType.startsWith("image/")) {
+			    return ResponseEntity.badRequest().body("Il file caricato non è un'immagine valida.");
+			}
 
-	    /*
-	     * Controllo se cartella dove salvare esiste o no -> la crea
-	     */
-	    if (!Files.exists(uploadPath)) {
-	        try{
-	        	Files.createDirectories(uploadPath);
-	        }catch(IOException e) {
-	        	return ResponseEntity.internalServerError().build();
-	        }
-	    }
+			// 2. Genera l'immagine quadrata
+			byte[] imageBytes = GenericUtil.makeSquare(file.getInputStream());
 
-	    /*
-	     * Prova a salvare l'immagine nella cartella
-	     */
-	    Path filePath = uploadPath.resolve(fileName);
-	    try{
-	    	Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-	    }catch(IOException e) {
-	    	return ResponseEntity.internalServerError().build();
-	    }
+			// 3. Definisci il prefisso del nome (senza estensione)
+			String filePrefix = "imageProfile_" + u.getUsername();
+			Path uploadPath = Paths.get(uploadDir);
+
+			if (!Files.exists(uploadPath)) {
+			    Files.createDirectories(uploadPath);
+			}
+
+			// --- LOGICA DI RIMOZIONE VECCHIE IMMAGINI ---
+			// Cerca nella cartella tutti i file che iniziano con il prefisso dell'utente e li elimina
+			try (var files = Files.list(uploadPath)) {
+			    files.filter(path -> path.getFileName().toString().startsWith(filePrefix))
+			         .forEach(path -> {
+			             try {
+			                 Files.delete(path);
+			             } catch (IOException e) {
+			                 // Logga l'errore se non riesce a cancellare, ma prosegui
+			             }
+			         });
+			}
+			// --------------------------------------------
+
+			// 4. Salva il nuovo file con estensione fissa .jpg
+			// (Visto che makeSquare genera un JPG, salviamo come .jpg per coerenza)
+			Path filePath = uploadPath.resolve(filePrefix + ".jpg");
+			fileName = filePrefix + ".jpg";
+
+			try (InputStream is = new ByteArrayInputStream(imageBytes)) {
+			    Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
+			}
+
+		} catch (Exception e) {
+		    return ResponseEntity.internalServerError().body(e.getMessage());
+		}
 	    
     	/*
 		 * Update dati in database attraverso id
@@ -337,7 +396,15 @@ public class ServiceApiController extends BasicApiRestController {
 		 * Ritorna dati
 		 */
 		List<ResponseFriendDTO> f = new ArrayList<ResponseFriendDTO>();
-		for(User u : listFriends) f.add(new ResponseFriendDTO(u.getUsername(), u.getImagePath()));
+		for(User u : listFriends) {
+			String imagePath = u.getImagePath();
+			try{
+				this.findImage(u);
+			}catch(Exception e) {
+				imagePath = null;
+			}
+			f.add(new ResponseFriendDTO(u.getUsername(), imagePath));
+		}
 		
 		ResponseFriendsDTO friends = new ResponseFriendsDTO(f);
 		return ResponseEntity.ok().body(friends);
