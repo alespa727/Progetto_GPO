@@ -58,7 +58,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	        return;
 	    }
 
-	    Path imagePath = Paths.get(GenericUtil.getUploadDir()).resolve(u.getImagePath());
+	    Path imagePath = Paths.get(this.uploadDir).resolve(u.getImagePath());
 
 	    if (!Files.exists(imagePath)) {
 	        // immagine persa → reset DB
@@ -321,7 +321,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 
 	    /* Nome file deterministico */
 	    String fileName = "imageProfile_" + u.getUsername() + GenericUtil.generateString(30, GenericUtil.CHARSET) + ".jpg";
-	    Path uploadPath = Paths.get(GenericUtil.getUploadDir());
+	    Path uploadPath = Paths.get(this.uploadDir);
 
 	    try {
 	        createDirectory(uploadPath);
@@ -385,7 +385,6 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		}catch(IllegalArgumentException e) {
 			return ResponseEntity.internalServerError().body(e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			return ResponseEntity.internalServerError().build();
 		}
 		

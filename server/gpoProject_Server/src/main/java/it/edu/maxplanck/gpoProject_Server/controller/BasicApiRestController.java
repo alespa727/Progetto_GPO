@@ -17,6 +17,9 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("api")
 public abstract class BasicApiRestController {
 	
+	@Value("${app.upload.dir}")
+	protected String uploadDir;
+	
 	protected final DatabaseService databaseService;
 	protected final AuthenticationService authenticationService;
 	

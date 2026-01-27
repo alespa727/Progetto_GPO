@@ -15,19 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class GenericUtil {
-	
-	@Value("${app.upload.dir}")
-	private static String uploadDir;
 
 	public static final String standardPathImages = "http://localhost:8080/images/";
 
 	public static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 	
 	public static final String CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	
-	public static String getUploadDir() {
-		return uploadDir;
-	}
 	
 	public static String generateString(int length, String pattern) {
 	    SecureRandom random = new SecureRandom();
