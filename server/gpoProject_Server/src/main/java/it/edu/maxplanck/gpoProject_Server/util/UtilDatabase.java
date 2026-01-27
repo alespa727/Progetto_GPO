@@ -2,6 +2,8 @@ package it.edu.maxplanck.gpoProject_Server.util;
 
 public final class UtilDatabase {
 
+	public static int maxMessagesRead = 10;
+	
 	// Model Attached -----------------------------------------------------
 	public static class AttachedData{
 		

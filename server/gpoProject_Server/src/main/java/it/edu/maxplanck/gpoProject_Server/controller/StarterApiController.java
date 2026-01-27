@@ -127,7 +127,7 @@ public class StarterApiController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("status")
-	public ResponseEntity<?> postOpen(HttpServletRequest request, HttpServletResponse response){
+	public ResponseEntity<?> status(HttpServletRequest request, HttpServletResponse response){
 		
 		/*
 		 * Autentificazione
@@ -165,7 +165,7 @@ public class StarterApiController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("logout")
-	public ResponseEntity<?> logoutAccount(HttpServletRequest request, HttpServletResponse response) {
+	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
 		
 		/*
 		 * Autentificazione

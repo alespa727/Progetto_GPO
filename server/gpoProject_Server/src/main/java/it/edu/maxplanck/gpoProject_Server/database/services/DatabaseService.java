@@ -3,7 +3,6 @@ package it.edu.maxplanck.gpoProject_Server.database.services;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,8 +30,6 @@ public class DatabaseService {
 	private final RegistrationsRepo registrationsRepo;
 	private final SectionsRepo sectionsRepo;
 	private final UsersRepo usersRepo;
-
-	private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 	public DatabaseService(
 			AttachmentsRepo attachmentsRepo, 
@@ -105,10 +102,6 @@ public class DatabaseService {
 		return usersRepo;
 	}
 
-	public BCryptPasswordEncoder getPasswordEncoder() {
-		return passwordEncoder;
-	}
-
 	public void createUser(String username, String password) throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		
@@ -116,8 +109,8 @@ public class DatabaseService {
 		
 		if(this.usersRepo.existsUserByUsername(username)) throw new IllegalArgumentException("Username gia' in uso");
 		
-		password = this.passwordEncoder.encode(password);
-		while(this.passwordEncoder.upgradeEncoding(password)) password = this.passwordEncoder.encode(password);
+		password = GenericUtil.passwordEncoder.encode(password);
+		while(GenericUtil.passwordEncoder.upgradeEncoding(password)) password = GenericUtil.passwordEncoder.encode(password);
 		
 		User u = new User(username, password);
 		this.usersRepo.save(u);
@@ -131,7 +124,7 @@ public class DatabaseService {
 		User u = this.usersRepo.findUserByUsername(username);
 		if(u == null) throw new IllegalArgumentException("Utente non trovato");
 		
-		if(!u.getUsername().equals(username) || !this.passwordEncoder.matches(password, u.getPassword())) throw new IllegalArgumentException("Credenziali errate");
+		if(!u.getUsername().equals(username) || !GenericUtil.passwordEncoder.matches(password, u.getPassword())) throw new IllegalArgumentException("Credenziali errate");
 		
 		return u.getPkID();
 	}
@@ -181,8 +174,8 @@ public class DatabaseService {
 		}
 		
 		if(password != null) {
-			password = this.passwordEncoder.encode(password);
-			while(this.passwordEncoder.upgradeEncoding(password)) password = this.passwordEncoder.encode(password);
+			password = GenericUtil.passwordEncoder.encode(password);
+			while(GenericUtil.passwordEncoder.upgradeEncoding(password)) password = GenericUtil.passwordEncoder.encode(password);
 			u.setPassword(password);
 		}
 	}
@@ -245,14 +238,18 @@ public class DatabaseService {
 		this.communitiesRepo.save(c);
 	}
 
+	public void checkChat(int id, Chat c) throws IllegalArgumentException {
+		if(c == null) throw new IllegalArgumentException("Chat inesistente");
+		if(!(c.getFkFriendship().getFkUser1().getPkID() == id) && !(c.getFkFriendship().getFkUser2().getPkID() == id)) throw new IllegalArgumentException("Non fai parte della chat");
+	}
+	
 	public void createMessageChat(int id, Integer chatId, String message) throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		
 		User u = this.findUser(id);
-		Chat c = this.chatsRepo.findChatByPkID(chatId);
-		if(c == null) throw new IllegalArgumentException("Chat inesistente");
-		if(!(c.getFkFriendship().getFkUser1().getPkID() == id) && !(c.getFkFriendship().getFkUser2().getPkID() == id)) throw new IllegalArgumentException("Non fai parte della chat");
-		
+		Chat c = this.chatsRepo.findById(chatId).orElse(null);
+		this.checkChat(id, c);
+				
 		MessageChat mChat = new MessageChat(c, u, message);
 		this.messagesChatRepo.save(mChat);
 	}
@@ -266,6 +263,39 @@ public class DatabaseService {
 		chats = this.chatsRepo.findChatByUserId(id);
 		
 		return chats;
+	}
+
+	public Chat findChat(int id, Integer chatId) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		this.findUser(id);
+		
+		Chat c = this.chatsRepo.findById(id).orElse(null);
+		this.checkChat(id, c);
+		
+		return c;
+	}
+
+	public void deleteChat(int id, Integer chatId) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		
+		this.findUser(id);
+		
+		Chat c = this.chatsRepo.findById(id).orElse(null);
+		this.checkChat(id, c);
+		
+		this.chatsRepo.deleteById(c.getPkID());
+	}
+
+	public List<MessageChat> getMessagesChat(int id, Integer chatId, Integer messageId) {
+		// TODO Auto-generated method stub
+		
+		this.findChat(id, chatId);
+		if(messageId == null) messageId = 0;
+		
+		List<MessageChat> messages = this.messagesChatRepo.findByFkChatIDAndIDGreaterThanOrderByPkIDAsc(chatId, messageId, UtilDatabase.maxMessagesRead);
+		
+		return messages;
 	}
 	
 	// ------------------------------------------------------------------------------------

@@ -15,8 +15,6 @@ public interface ChatsRepo extends JpaRepository<Chat, Integer> {
 	
 	@Query("SELECT c FROM Chat c WHERE (c.fkFriendship.fkUser1.id = :userId) OR (c.fkFriendship.fkUser2.id = :userId)")
 	List<Chat> findChatByUserId(@Param("userId") Integer userId);
-	
-    Chat findChatByPkID(Integer chatId);
     
     boolean existsByFkFriendship(Friendship f);
 }

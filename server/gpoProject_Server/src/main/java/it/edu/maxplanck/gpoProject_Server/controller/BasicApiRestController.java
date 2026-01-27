@@ -3,7 +3,7 @@ package it.edu.maxplanck.gpoProject_Server.controller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
@@ -66,9 +66,10 @@ public abstract class BasicApiRestController {
 		ResponseAuth r = new ResponseAuth((cookies.get(UtilServer.accessCookieName) == null)? access: null, id);
 		return r;
 	}
-	
+	/*
 	@GetMapping("")
 	public String HelloWorld() {
 		return "Hello world form api!";
 	}
+	*/
 }
