@@ -227,6 +227,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 	 * @param chatId
 	 * @return
 	 */
+	// GET /chats/{chat}/messages -> default = 0
 	// GET /chats/{chat}/messages?message=123
 	@GetMapping("chats/{chat}/messages")
 	public ResponseEntity<?> getMessagesChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId, @RequestParam(value = "message", required = false, defaultValue = "0") Integer messageId) {
