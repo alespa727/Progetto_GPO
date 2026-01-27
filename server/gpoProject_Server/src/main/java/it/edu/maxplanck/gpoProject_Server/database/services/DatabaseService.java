@@ -305,6 +305,7 @@ public class DatabaseService {
 		// TODO Auto-generated method stub
 		
 		Chat chat = this.findChat(id, chatId);
+		if(this.getCallsRepo().hasCallsOpen(id)) throw new DatabaseException(DatabaseExceptions.DB_CALL_STILL_OPEN);
 		
 		Call c = new Call(chat);
 		this.callsRepo.save(c);
@@ -317,5 +318,17 @@ public class DatabaseService {
 		
 		List<Call> calls = this.callsRepo.getCallsByFkChat(chatId);
 		return calls;
+	}
+
+	public void updateCall(int id) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		this.findUser(id);
+		
+		Call c = this.callsRepo.getCallOfUser(id);
+		if(c != null) {
+			c.setEndTime(LocalDateTime.now());
+			System.out.println("END TIME" + c.getEndTime());
+		}
 	}
 }

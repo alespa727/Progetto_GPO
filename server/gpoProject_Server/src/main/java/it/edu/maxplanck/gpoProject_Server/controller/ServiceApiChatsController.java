@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,8 +29,6 @@ import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChatsDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChatDTO;
-import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
-import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseExceptions;
 import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -206,11 +205,6 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		this.databaseService.findChat(id, chatId);
 		
 		/*
-		 * Controlla se c'e' gia' una chiamata attiva
-		 */
-		if(this.databaseService.getCallsRepo().existsById(chatId)) throw new DatabaseException(DatabaseExceptions.DB_CALL_STILL_OPEN);
-		
-		/*
 		 * Crea una nuova chiamata nel database nella chat
 		 */
 		this.databaseService.createCall(id, chatId);
@@ -244,5 +238,28 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		ResponseCallsChatDTO c = new ResponseCallsChatDTO(chatId, call);
 		
 		return ResponseEntity.ok().body(c);
+	}
+	
+	/**
+	 * Modifica l'endtime della call che e' attiva (al massimo 1 attiva)
+	 * @param request
+	 * @param response
+	 * @param chatId
+	 * @return
+	 */
+	@PutMapping("chats/callEnd")
+	public ResponseEntity<?> patchCallChat(HttpServletRequest request, HttpServletResponse response) {
+
+		/*
+		 * Autentificazione
+		 */
+		int id = this.authenticate(request, response);
+		
+		/*
+		 * Ottiene le chiamate di una chat
+		 */
+		this.databaseService.updateCall(id);
+		
+		return ResponseEntity.ok().build();
 	}
 }
