@@ -38,6 +38,14 @@ public final class Call {
 		super();
 	}
 	
+	public Call(Chat fkChat) {
+		super();
+		this.pkID = null;
+		this.fkChat = fkChat;
+		this.startTime = null;
+		this.endTime = null;
+	}
+	
 	public Call(Integer pkID, Chat fkChat, LocalDateTime startTime, LocalDateTime endTime) {
 		super();
 		this.pkID = pkID;

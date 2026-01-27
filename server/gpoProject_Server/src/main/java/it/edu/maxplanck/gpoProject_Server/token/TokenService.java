@@ -3,6 +3,8 @@ package it.edu.maxplanck.gpoProject_Server.token;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
+import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.TokenExceptions;
 import it.edu.maxplanck.gpoProject_Server.util.UtilToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,30 +27,30 @@ public class TokenService extends TokenManager {
     }
 
     // Genera token di accesso
-    public String generateTokenAccess(Map<String, Object> claims, String subject) throws IllegalArgumentException {
+    public String generateTokenAccess(Map<String, Object> claims, String subject) throws TokenException {
         return generateTokenSafe(claims, subject, keyAccess, UtilToken.timeExpirationDateAccessToken);
     }
 
     // Genera token di refresh
-    public String generateTokenRefresh(Map<String, Object> claims, String subject) throws IllegalArgumentException {
+    public String generateTokenRefresh(Map<String, Object> claims, String subject) throws TokenException {
         return generateTokenSafe(claims, subject, keyRefresh, UtilToken.timeExpirationDateRefreshToken);
     }
 
     // Recupera claims access
-    public Claims getClaimsAccess(String token) throws IllegalArgumentException {
+    public Claims getClaimsAccess(String token) throws TokenException {
         try {
             return obtainTokenClaims(token, keyAccess);
         } catch (JwtException e) {
-            throw new IllegalArgumentException("Access token non valido", e);
+            throw new TokenException(TokenExceptions.TOKENS_TOKEN_NOT_VALID);
         }
     }
 
     // Recupera claims refresh
-    public Claims getClaimsRefresh(String token) throws IllegalArgumentException {
+    public Claims getClaimsRefresh(String token) throws TokenException {
         try {
             return obtainTokenClaims(token, keyRefresh);
         } catch (JwtException e) {
-            throw new IllegalArgumentException("Refresh token non valido", e);
+            throw new TokenException(TokenExceptions.TOKENS_TOKEN_NOT_VALID);
         }
     }
 
@@ -63,11 +65,11 @@ public class TokenService extends TokenManager {
     }
 
     // Generatore token
-    private String generateTokenSafe(Map<String, Object> claims, String subject, Key key, long expiration) throws IllegalArgumentException {
+    private String generateTokenSafe(Map<String, Object> claims, String subject, Key key, long expiration) throws TokenException {
         try {
             return generateToken(claims, subject, key, expiration, UtilToken.algorithm);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Errore nella generazione del token", e);
+            throw new TokenException(TokenExceptions.TOKENS_GENERATION_TOKEN_FAILED);
         }
     }
 }

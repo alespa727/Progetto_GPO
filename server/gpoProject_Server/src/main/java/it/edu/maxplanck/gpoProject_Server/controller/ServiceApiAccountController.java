@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.tika.Tika;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +28,12 @@ import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccountDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestFriendDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestProfileDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAuth;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendsDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseProfileDTO;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DataException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DataExceptions;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
 import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,8 +53,9 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	 * Cerca una immagine
 	 * @param u
 	 * @throws IOException
+	 * @throws DatabaseException 
 	 */
-	private void findImage(User u) throws IOException {
+	private void findImage(User u) throws IOException, DatabaseException {
 	    if (u == null || u.getImagePath() == null || u.getImagePath().isBlank()) {
 	        return;
 	    }
@@ -63,7 +65,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	    if (!Files.exists(imagePath)) {
 	        // immagine persa → reset DB
 	        this.databaseService.updateUserProfile(u.getPkID(), null);
-	        throw new IllegalArgumentException("Immagine non trovata");
+	        throw new DataException(DataExceptions.DATA_IMAGE_NOT_FOUND);
 	    }
 	}
 
@@ -129,28 +131,12 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Prendi user da database attraverso id
 		 */
-		User u = null;
-		try{
-			u = this.databaseService.findUser(id);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
-		}
+		User u = this.databaseService.findUser(id);
 		
 		/*
 		 * Ritorna dati
@@ -173,36 +159,17 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authAccountDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authAccountDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Update dati in database attraverso id
 		 */
-		try{
-			this.databaseService.updateUserAccount(id, body.username(), body.password());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		this.databaseService.updateUserAccount(id, body.username(), body.password());
 		
 		return ResponseEntity.ok().build();
 	}
@@ -219,18 +186,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Elimina dati in database attraverso id
@@ -253,18 +209,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		return ResponseEntity.ok().build();
 	}
@@ -284,25 +229,10 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	    }
 
 	    /* Autenticazione */
-	    int id;
-	    try {
-	        ResponseAuth r = this.auth(request, response);
-	        
-	        if (r == null || r.id() == null) throw new IllegalArgumentException();
-	        id = r.id();
-	        
-	        if (r.access() != null) response.addCookie(r.access());
-	    } catch (Exception e) {
-	        return ResponseEntity.badRequest().build();
-	    }
+	    int id = this.authenticate(request, response);
 
 	    /* User */
-	    User u;
-	    try {
-	        u = this.databaseService.findUser(id);
-	    } catch (Exception e) {
-	        return ResponseEntity.internalServerError().build();
-	    }
+	    User u = this.databaseService.findUser(id);
 
 	    /* Verifica immagine */
 	    try {
@@ -335,11 +265,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	        return ResponseEntity.internalServerError().build();
 	    }
 	    
-	    try {
-	    	this.databaseService.updateUserProfile(id, fileName);
-	    }catch(IllegalArgumentException e) {
-	    	return ResponseEntity.internalServerError().build();
-	    }
+	    this.databaseService.updateUserProfile(id, fileName);
 
 	    return ResponseEntity.ok().build();
 	}
@@ -356,34 +282,16 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Prendi user da database attraverso id
 		 */
-		User u;
-		try {
-			u = this.databaseService.findUser(id);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		User u = this.databaseService.findUser(id);
 		
 		// Controllo se la immagine esiste o e' stata eliminata/persa
 		try {
 			if(u.getImagePath() != null) this.findImage(u);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
 		} catch (IOException e) {
 			return ResponseEntity.internalServerError().build();
 		}
@@ -410,36 +318,17 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authFriendDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authFriendDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene dati da database attraverso id
 		 */
-		try{
-			this.databaseService.createFriendship(id, body.username());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
-		}
+		this.databaseService.createFriendship(id, body.username());
 		
 		return ResponseEntity.ok().build();
 	}
@@ -456,28 +345,12 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene dati da database attraverso id
 		 */
-		List<User> listFriends;
-		try{
-			listFriends = this.databaseService.findFriendsOfUser(id);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		List<User> listFriends = this.databaseService.findFriendsOfUser(id);
 		
 		/*
 		 * Ritorna dati

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import it.edu.maxplanck.gpoProject_Server.cookies.CookieService;
+import it.edu.maxplanck.gpoProject_Server.exceptions.*;
 import it.edu.maxplanck.gpoProject_Server.token.TokenService;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.Cookie;
@@ -38,11 +39,11 @@ public class AuthenticationService {
         return authenticationRequestDTOService;
     }
     
-    public Cookie refreshCookieAccess(Cookie refresh) throws IllegalArgumentException {
+    public Cookie refreshCookieAccess(Cookie refresh) throws CookieException, TokenException {
     	
-    	if(refresh == null) throw new IllegalArgumentException("Cookie refresh non esistente");
-    	if(!this.cookieService.isCookieValid(refresh)) throw new IllegalArgumentException("Cookie refresh non valido");
-    	if(!this.tokenService.isTokenRefreshValid(refresh.getValue())) throw new IllegalArgumentException("Token cookie refresh non valido");
+    	if(refresh == null) throw new CookieException(CookieExceptions.COOKIES_COOKIE_NOT_FOUND);
+    	if(!this.cookieService.isCookieValid(refresh)) throw new CookieException(CookieExceptions.COOKIES_COOKIE_NOT_FOUND);
+    	if(!this.tokenService.isTokenRefreshValid(refresh.getValue())) throw new TokenException(TokenExceptions.TOKENS_TOKEN_NOT_VALID);
     	
     	Claims claims = this.tokenService.getClaimsRefresh(refresh.getValue());
     	String token = this.tokenService.generateTokenAccess(claims, UtilServer.accessTokenSubject);

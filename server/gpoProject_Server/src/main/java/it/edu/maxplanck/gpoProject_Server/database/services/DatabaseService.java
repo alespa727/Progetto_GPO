@@ -6,12 +6,15 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.edu.maxplanck.gpoProject_Server.database.model.Call;
 import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
 import it.edu.maxplanck.gpoProject_Server.database.model.Community;
 import it.edu.maxplanck.gpoProject_Server.database.model.Friendship;
 import it.edu.maxplanck.gpoProject_Server.database.model.MessageChat;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.repositories.*;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseExceptions;
 import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase;
 
@@ -102,12 +105,12 @@ public class DatabaseService {
 		return usersRepo;
 	}
 
-	public void createUser(String username, String password) throws IllegalArgumentException {
+	public void createUser(String username, String password) throws DatabaseException  {
 		// TODO Auto-generated method stub
 		
-		if(username == null || password == null) throw new IllegalArgumentException("Dati non validi");
+		if(username == null || password == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
 		
-		if(this.usersRepo.existsUserByUsername(username)) throw new IllegalArgumentException("Username gia' in uso");
+		if(this.usersRepo.existsUserByUsername(username)) throw new DatabaseException(DatabaseExceptions.DB_USERNAME_IS_ALREADY_IN_USE);
 		
 		password = GenericUtil.passwordEncoder.encode(password);
 		while(GenericUtil.passwordEncoder.upgradeEncoding(password)) password = GenericUtil.passwordEncoder.encode(password);
@@ -116,46 +119,46 @@ public class DatabaseService {
 		this.usersRepo.save(u);
 	}
 
-	public int findUser(String username, String password) throws IllegalArgumentException {
+	public int findUser(String username, String password) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
-		if(username == null || password == null) throw new IllegalArgumentException("Dati non validi");
+		if(username == null || password == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
 		
 		User u = this.usersRepo.findUserByUsername(username);
-		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
 		
-		if(!u.getUsername().equals(username) || !GenericUtil.passwordEncoder.matches(password, u.getPassword())) throw new IllegalArgumentException("Credenziali errate");
+		if(!u.getUsername().equals(username) || !GenericUtil.passwordEncoder.matches(password, u.getPassword())) throw new DatabaseException(DatabaseExceptions.DB_CREDENTIALS_ARE_INCORRECT);
 		
 		return u.getPkID();
 	}
 	
-	public User findUser(String username) throws IllegalArgumentException {
+	public User findUser(String username) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
-		if(username == null) throw new IllegalArgumentException("Dati non validi");
+		if(username == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
 		
 		User u = this.getUsersRepo().findUserByUsername(username);
-		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
 		
 		return u;
 	}
 	
-	public User findUser(Integer id) throws IllegalArgumentException {
+	public User findUser(Integer id) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
-		if(id == null) throw new IllegalArgumentException("Dati non validi");
+		if(id == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
 		
 		User u = this.getUsersRepo().findById(id).orElse(null);
-		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
 		
 		return u;
 	}
 
-	public LocalDateTime updateStatusUser(int id) throws IllegalArgumentException {
+	public LocalDateTime updateStatusUser(int id) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		User u = this.usersRepo.findById(id).orElse(null);
-		if(u == null) throw new IllegalArgumentException("Utente non trovato");
+		if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
 		
 		if(u.getTimeLastAccess() == null) u.setTimeLastAccess(LocalDateTime.now());
 		else u.setTimeLastAccess(null);
@@ -163,13 +166,13 @@ public class DatabaseService {
 		return u.getTimeLastAccess();
 	}
 
-	public void updateUserAccount(int id, String username, String password) throws IllegalArgumentException {
+	public void updateUserAccount(int id, String username, String password) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		User u = this.findUser(id);
 		if(username != null) {
 			
-			if(this.usersRepo.existsUserByUsername(username)) throw new IllegalArgumentException("Username gia' in uso");
+			if(this.usersRepo.existsUserByUsername(username)) throw new DatabaseException(DatabaseExceptions.DB_USERNAME_IS_ALREADY_IN_USE);
 			u.setUsername(username);
 		}
 		
@@ -180,7 +183,7 @@ public class DatabaseService {
 		}
 	}
 
-	public void updateUserProfile(int id, String imagePath) throws IllegalArgumentException {
+	public void updateUserProfile(int id, String imagePath) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		User u = this.findUser(id);
@@ -188,19 +191,19 @@ public class DatabaseService {
 		if(imagePath != null) u.setImagePath(imagePath);
 	}
 	
-	public void createFriendship(int id, String username) throws IllegalArgumentException {
+	public void createFriendship(int id, String username) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		User u1 = this.findUser(id);
 		User u2 = this.findUser(username);
 
-		if(this.friendshipsRepo.existsByFkUser1AndFkUser2(u1, u2)) throw new IllegalArgumentException("Friendship gia' creata");
+		if(this.friendshipsRepo.existsByFkUser1AndFkUser2(u1, u2)) throw new DatabaseException(DatabaseExceptions.DB_FRIENDSHIP_ALREADY_CREATED);
 		Friendship f = new Friendship(u1, u2);
 
 		this.friendshipsRepo.save(f);
 	}
 	
-	public List<User> findFriendsOfUser(int id) throws IllegalArgumentException {
+	public List<User> findFriendsOfUser(int id) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		this.findUser(id);
@@ -211,7 +214,7 @@ public class DatabaseService {
 		return friends;
 	}
 
-	public void createChat(int id, String username) throws IllegalArgumentException {
+	public void createChat(int id, String username) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		this.findUser(id);
@@ -219,12 +222,12 @@ public class DatabaseService {
 		
 		Friendship f = this.friendshipsRepo.findFriendByUser1IdUser2Username(id, username);
 		
-		if(this.chatsRepo.existsByFkFriendship(f)) throw new IllegalArgumentException("Chat gia' creata");
+		if(this.chatsRepo.existsByFkFriendship(f)) throw new DatabaseException(DatabaseExceptions.DB_CHAT_ALREADY_CREATED);
 		Chat c = new Chat(f);
 		this.chatsRepo.save(c);
 	}
 	
-	public void createCommunity(int id, boolean isInviteCodeValid, String name, String description) throws IllegalArgumentException {
+	public void createCommunity(int id, boolean isInviteCodeValid, String name, String description) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		User u = this.findUser(id);
@@ -238,12 +241,12 @@ public class DatabaseService {
 		this.communitiesRepo.save(c);
 	}
 
-	public void checkChat(int id, Chat c) throws IllegalArgumentException {
-		if(c == null) throw new IllegalArgumentException("Chat inesistente");
-		if(!(c.getFkFriendship().getFkUser1().getPkID() == id) && !(c.getFkFriendship().getFkUser2().getPkID() == id)) throw new IllegalArgumentException("Non fai parte della chat");
+	public void checkChat(int id, Chat c) throws DatabaseException {
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_CHAT_NOT_FOUND);
+		if(!(c.getFkFriendship().getFkUser1().getPkID() == id) && !(c.getFkFriendship().getFkUser2().getPkID() == id)) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_CHAT);
 	}
 	
-	public void createMessageChat(int id, Integer chatId, String message) throws IllegalArgumentException {
+	public void createMessageChat(int id, Integer chatId, String message) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		User u = this.findUser(id);
@@ -254,7 +257,7 @@ public class DatabaseService {
 		this.messagesChatRepo.save(mChat);
 	}
 
-	public List<Chat> findChatsOfUser(int id) throws IllegalArgumentException {
+	public List<Chat> findChatsOfUser(int id) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		this.findUser(id);
@@ -265,7 +268,7 @@ public class DatabaseService {
 		return chats;
 	}
 
-	public Chat findChat(int id, Integer chatId) throws IllegalArgumentException {
+	public Chat findChat(int id, Integer chatId) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		this.findUser(id);
@@ -276,7 +279,7 @@ public class DatabaseService {
 		return c;
 	}
 
-	public void deleteChat(int id, Integer chatId) throws IllegalArgumentException {
+	public void deleteChat(int id, Integer chatId) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		this.findUser(id);
@@ -287,7 +290,7 @@ public class DatabaseService {
 		this.chatsRepo.deleteById(c.getPkID());
 	}
 
-	public List<MessageChat> getMessagesChat(int id, Integer chatId, Integer messageId) {
+	public List<MessageChat> getMessagesChat(int id, Integer chatId, Integer messageId) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		this.findChat(id, chatId);
@@ -297,6 +300,22 @@ public class DatabaseService {
 		
 		return messages;
 	}
-	
-	// ------------------------------------------------------------------------------------
+
+	public void createCall(int id, Integer chatId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		Chat chat = this.findChat(id, chatId);
+		
+		Call c = new Call(chat);
+		this.callsRepo.save(c);
+	}
+
+	public List<Call> getCalls(int id, Integer chatId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		this.findChat(id, chatId);
+		
+		List<Call> calls = this.callsRepo.getCallsByFkChat(chatId);
+		return calls;
+	}
 }

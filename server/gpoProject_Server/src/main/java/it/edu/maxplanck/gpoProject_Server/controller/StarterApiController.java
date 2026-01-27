@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccessDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAuth;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,21 +41,14 @@ public class StarterApiController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
 		
 		/*
 		 * Prova a creare un nuovo utente:
 		 * 		- Creazione fallisce -> Errore database / dati inseriti non validi
 		*/
-		try{
-			this.databaseService.createUser(body.username(), body.password());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.databaseService.createUser(body.username(), body.password());
+
 		return ResponseEntity.ok().build();
 	}
 
@@ -74,22 +66,13 @@ public class StarterApiController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
 		
 		/*
 		 * Prova a recuperare l'utente:
 		 * 		- Creazione fallisce -> Errore database / dati inseriti non corretti
 		*/
-		int id;
-		try {
-			id = this.databaseService.findUser(body.username(), body.password());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id  = this.databaseService.findUser(body.username(), body.password());
 			
 		/*
 		 * Creazione risposta con token e cookies:
@@ -98,21 +81,18 @@ public class StarterApiController extends BasicApiRestController {
 		Cookie access = null;
 		Cookie refresh = null;
 	
-		try {
-			Map<String, Object> claims = new HashMap<String, Object>();
-			claims.put("id", id);
-			claims.put("username", body.username());
-			
-			String token = null;
-			token = this.authenticationService.getTokenService().generateTokenAccess(claims, UtilServer.accessTokenSubject);
-			access = this.authenticationService.getCookieService().generateCookie(UtilServer.accessCookieName, token, true, false, "/api/", UtilServer.timeExpirationDateAccessCookie);
 		
-			token = null;
-			token = this.authenticationService.getTokenService().generateTokenRefresh(claims, UtilServer.refreshTokenSubject);
-			refresh = this.authenticationService.getCookieService().generateCookie(UtilServer.refreshCookieName, token, true, false, "/api/", UtilServer.timeExpirationDateRefreshCookie);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		Map<String, Object> claims = new HashMap<String, Object>();
+		claims.put("id", id);
+		claims.put("username", body.username());
+		
+		String token = null;
+		token = this.authenticationService.getTokenService().generateTokenAccess(claims, UtilServer.accessTokenSubject);
+		access = this.authenticationService.getCookieService().generateCookie(UtilServer.accessCookieName, token, true, false, "/api/", UtilServer.timeExpirationDateAccessCookie);
+	
+		token = null;
+		token = this.authenticationService.getTokenService().generateTokenRefresh(claims, UtilServer.refreshTokenSubject);
+		refresh = this.authenticationService.getCookieService().generateCookie(UtilServer.refreshCookieName, token, true, false, "/api/", UtilServer.timeExpirationDateRefreshCookie);
 		
 		response.addCookie(access);
 		response.addCookie(refresh);
@@ -132,28 +112,12 @@ public class StarterApiController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Update database
 		*/
-		LocalDateTime time;
-		try {
-			time = this.databaseService.updateStatusUser(id);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		LocalDateTime time = this.databaseService.updateStatusUser(id);
 		
 		return ResponseEntity.ok().body(time);
 	}
@@ -170,27 +134,12 @@ public class StarterApiController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Update database
 		*/
-		try {
-			this.databaseService.updateStatusUser(id);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.databaseService.updateStatusUser(id);
 		
 		/*
 		 * Rimozione cookies

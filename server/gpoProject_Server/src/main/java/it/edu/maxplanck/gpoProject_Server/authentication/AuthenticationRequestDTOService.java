@@ -2,18 +2,20 @@ package it.edu.maxplanck.gpoProject_Server.authentication;
 
 import org.springframework.stereotype.Service;
 import it.edu.maxplanck.gpoProject_Server.dto.request.*;
+import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationExceptions;
 import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase.UserData;
 
 @Service
 public class AuthenticationRequestDTOService {
 
-	public void authAccessDTO(RequestAccessDTO dto) throws IllegalArgumentException {
+	public void authAccessDTO(RequestAccessDTO dto) throws AuthentificationException {
 		
 		if(
 			dto == null 
 			|| dto.username() == null || dto.username().length() > UserData.usernameLength 
 			|| dto.password() == null || dto.password().length() > UserData.passwordLength
-		) throw new IllegalArgumentException("Dati inseriti non validi");
+		) throw new AuthentificationException(AuthentificationExceptions.AUTH_INSERTED_DTO_DATA_IS_NOT_VALID);
 	}
 
 	public void authAccountDTO(RequestAccountDTO dto) throws IllegalArgumentException {

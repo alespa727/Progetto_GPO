@@ -14,19 +14,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
+import it.edu.maxplanck.gpoProject_Server.database.model.Call;
 import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
 import it.edu.maxplanck.gpoProject_Server.database.model.MessageChat;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCallDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAuth;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCallChatDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCallsChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChatsDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChatDTO;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseExceptions;
 import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,36 +57,17 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authChatDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authChatDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Crea una nuova chat in database
 		 */
-		try{
-			this.databaseService.createChat(id, body.friend().username());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
-		}
+		this.databaseService.createChat(id, body.friend().username());
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -100,28 +84,12 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene le varie chat dell'utente
 		 */
-		List<Chat> listChats = null;
-		try {
-			listChats = this.databaseService.findChatsOfUser(id);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().body(e.getMessage());
-		}
+		List<Chat> listChats = this.databaseService.findChatsOfUser(id);
 		
 		List<ResponseChatDTO> c = new ArrayList<ResponseChatDTO>();
 		for(Chat ch : listChats) {
@@ -146,27 +114,12 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Elimina una chat
 		 */
-		try {
-			this.databaseService.deleteChat(id, chatId);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		this.databaseService.deleteChat(id, chatId);
 		
 		return ResponseEntity.ok().build();
 	}
@@ -186,36 +139,17 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authMessageChatDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authMessageChatDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Crea un messaggio in una determinata chat
 		 */
-		try {
-			this.databaseService.createMessageChat(id, chatId, body.message());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		this.databaseService.createMessageChat(id, chatId, body.message());
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -235,29 +169,12 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene i messaggi di una chat
 		 */
-		List<MessageChat> messages = null;
-		try{
-			messages = this.databaseService.getMessagesChat(id, chatId, messageId);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
-		
+		List<MessageChat> messages = this.databaseService.getMessagesChat(id, chatId, messageId);
 		
 		List<ResponseMessageChatDTO> mess = new ArrayList<ResponseMessageChatDTO>();
 		for(MessageChat m : messages) mess.add(new ResponseMessageChatDTO(m.getPkID(), m.getFkUser().getUsername(), m.getMessage(), m.getSentAt()));
@@ -276,37 +193,27 @@ public class ServiceApiChatsController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("chats/{chat}/call")
-	public ResponseEntity<?> postCallChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId, @RequestBody RequestCallDTO body) {
-
-		/*
-		 * Controlla se body request valido:
-		 * 		- No -> Errore
-		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authCallDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+	public ResponseEntity<?> postCallChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId) {
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
+		
+		/*
+		 * Controlla se la chat esiste
+		 */
+		this.databaseService.findChat(id, chatId);
+		
+		/*
+		 * Controlla se c'e' gia' una chiamata attiva
+		 */
+		if(this.databaseService.getCallsRepo().existsById(chatId)) throw new DatabaseException(DatabaseExceptions.DB_CALL_STILL_OPEN);
 		
 		/*
 		 * Crea una nuova chiamata nel database nella chat
 		 */
+		this.databaseService.createCall(id, chatId);
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -324,23 +231,18 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene le chiamate di una chat
 		 */
+		List<Call> calls = this.databaseService.getCalls(id, chatId);
 		
-		return ResponseEntity.ok().body(null);
+		List<ResponseCallChatDTO> call = new ArrayList<ResponseCallChatDTO>();
+		for(Call c : calls) call.add(new ResponseCallChatDTO(c.getPkID(), c.getStartTime(), c.getEndTime()));
+		
+		ResponseCallsChatDTO c = new ResponseCallsChatDTO(chatId, call);
+		
+		return ResponseEntity.ok().body(c);
 	}
 }

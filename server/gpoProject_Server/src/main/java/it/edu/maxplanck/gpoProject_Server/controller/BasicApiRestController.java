@@ -8,7 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAuth;
+import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationExceptions;
+import it.edu.maxplanck.gpoProject_Server.exceptions.CookieException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.CookieExceptions;
+import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,9 +32,9 @@ public abstract class BasicApiRestController {
 		this.databaseService = databaseService;
 		this.authenticationService = authenticationService;
 	}
+	
+	public int authenticate(HttpServletRequest request, HttpServletResponse response) throws CookieException, TokenException, AuthentificationException {
 
-	protected ResponseAuth auth(HttpServletRequest request, HttpServletResponse response) throws IllegalArgumentException {
-		
 		/*
 		 * Controllo se ha cookies/ cookies non validi:
 		 * 		- No -> Errore
@@ -44,7 +48,7 @@ public abstract class BasicApiRestController {
 		 * Ottengo i cookies e controllo se esistono quelli necessari
 		 */
 		cookies = this.authenticationService.getCookieService().findCookies(request, cookiesNames);
-		if(cookies == null) throw new IllegalArgumentException("Cookies non trovati");
+		if(cookies == null) throw new CookieException(CookieExceptions.COOKIES_COOKIES_NOT_FOUND);
 		
 		Cookie access = cookies.get(UtilServer.accessCookieName);
 		Cookie refresh = cookies.get(UtilServer.refreshCookieName);
@@ -55,7 +59,7 @@ public abstract class BasicApiRestController {
 		if(access == null || !this.authenticationService.getCookieService().isCookieValid(access) || !this.authenticationService.getTokenService().isTokenAccessValid(access.getValue())) {
 			
 			if (refresh == null || !this.authenticationService.getCookieService().isCookieValid(refresh) || !this.authenticationService.getTokenService().isTokenRefreshValid(refresh.getValue())) {
-	            throw new IllegalArgumentException("Cookie di refresh non valido");
+	            throw new CookieException(CookieExceptions.COOKIES_COOKIE_NOT_FOUND);
 	        }
 			
 			access =  this.authenticationService.refreshCookieAccess(cookies.get(UtilServer.refreshCookieName));
@@ -66,13 +70,11 @@ public abstract class BasicApiRestController {
 		 */
 		Integer id = this.authenticationService.getTokenService().getClaimsAccess(access.getValue()).get("id", Integer.class);
 		
-		ResponseAuth r = new ResponseAuth((cookies.get(UtilServer.accessCookieName) == null)? access: null, id);
-		return r;
+		if(id == null) throw new AuthentificationException(AuthentificationExceptions.AUTH_DATA_IS_NOT_VALID);
+		
+		// Refresh access se non valido
+		if (cookies.get(UtilServer.accessCookieName) == null) response.addCookie(access);
+		
+		return id;
 	}
-	/*
-	@GetMapping("")
-	public String HelloWorld() {
-		return "Hello world form api!";
-	}
-	*/
 }

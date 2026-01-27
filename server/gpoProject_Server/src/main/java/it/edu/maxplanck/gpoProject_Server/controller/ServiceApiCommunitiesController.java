@@ -16,7 +16,6 @@ import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChannelDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSectionDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAuth;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -24,8 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("api/services")
 public class ServiceApiCommunitiesController extends BasicApiRestController {
 
-	public ServiceApiCommunitiesController(DatabaseService databaseService,
-			AuthenticationService authenticationService) {
+	public ServiceApiCommunitiesController(DatabaseService databaseService, AuthenticationService authenticationService) {
 		super(databaseService, authenticationService);
 		// TODO Auto-generated constructor stub
 	}
@@ -44,36 +42,17 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authCommunityDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authCommunityDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Crea una nuova community in database
 		 */
-		try{
-			this.databaseService.createCommunity(id, body.isInviteCodeValid(), body.name(), body.description());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		this.databaseService.createCommunity(id, body.isInviteCodeValid(), body.name(), body.description());
 	
 		return ResponseEntity.created(null).build();
 	}
@@ -91,18 +70,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene i dati di una community
@@ -124,18 +92,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene gli user della community
@@ -152,7 +109,17 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 	 */
 	@GetMapping("communities")
 	public ResponseEntity<?> getCommunities(HttpServletRequest request, HttpServletResponse response){
-		return null;
+		
+		/*
+		 * Autentificazione
+		 */
+		int id = this.authenticate(request, response);
+		
+		/*
+		 * Ottiene le community a cui un utente e' iscritto
+		 */
+		
+		return ResponseEntity.ok().body(null);
 	}
 
 	/**
@@ -168,18 +135,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Elimina una community
@@ -203,27 +159,12 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authSectionDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authSectionDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Crea una nuova sezione in una community in database
@@ -245,18 +186,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene tutte le sezioni della community
@@ -281,27 +211,12 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authChannelDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authChannelDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Crea un nuovo canale in una sezione di una community in database
@@ -324,18 +239,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene tutte i canali della sezione
@@ -361,27 +265,12 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Controlla se body request valido:
 		 * 		- No -> Errore
 		 */
-		try {
-			this.authenticationService.getAuthenticationRequestDTOService().authMessageCommunityDTO(body);
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		this.authenticationService.getAuthenticationRequestDTOService().authMessageCommunityDTO(body);
 		
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Crea un messaggio in una determinata community
@@ -406,18 +295,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id;
-		try{
-			ResponseAuth r = this.auth(request, response);
-			
-			if(r == null || r.id() == null) throw new IllegalArgumentException("Errore");			
-			id = r.id();
-			
-			// Refresh access se non valido
-			if(r.access() != null) response.addCookie(r.access());
-		}catch(IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		int id = this.authenticate(request, response);
 		
 		/*
 		 * Ottiene tutti i messaggi della community
