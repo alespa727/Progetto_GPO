@@ -1,15 +1,12 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.tika.Tika;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,119 +28,25 @@ import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendsDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseProfileDTO;
-import it.edu.maxplanck.gpoProject_Server.exceptions.DataException;
-import it.edu.maxplanck.gpoProject_Server.exceptions.DataExceptions;
-import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
 import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase;
+import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Rest Controller che contiene gli endpoint per i servizi forniti dall'account
+ */
 @RestController
 @RequestMapping("api/services/")
 public class ServiceApiAccountController extends BasicApiRestController {
-
+	
 	public ServiceApiAccountController(DatabaseService databaseService, AuthenticationService authenticationService) {
 		super(databaseService, authenticationService);
 		// TODO Auto-generated constructor stub
 	}
 	
 	//--------------------------------------------------------------------------------------------------------------
-	
-	/**
-	 * Cerca una immagine
-	 * @param u
-	 * @throws IOException
-	 * @throws DatabaseException 
-	 */
-	private void findImage(User u) throws IOException, DatabaseException {
-	    if (u == null || u.getImagePath() == null || u.getImagePath().isBlank()) {
-	        return;
-	    }
-
-	    Path imagePath = Paths.get(this.uploadDir).resolve(u.getImagePath());
-
-	    if (!Files.exists(imagePath)) {
-	        // immagine persa → reset DB
-	        this.databaseService.updateUserProfile(u.getPkID(), null);
-	        throw new DataException(DataExceptions.DATA_IMAGE_NOT_FOUND);
-	    }
-	}
-
-	/**
-	 * Controlla se il file e' una immagine
-	 * @param file
-	 * @return
-	 * @throws IOException
-	 */
-	private boolean isFileValidImage(MultipartFile file) throws IOException {
-	    Tika tika = new Tika();
-	    String detectedType = tika.detect(file.getInputStream());
-	    return detectedType.startsWith("image/");
-	}
-	
-	/**
-	 * Crea una cartella nel path
-	 * @param uploadPath
-	 * @throws IOException
-	 */
-	private void createDirectory(Path uploadPath) throws IOException {
-	    Files.createDirectories(uploadPath);
-	}
-	
-	/**
-	 * Salva il file
-	 * @param uploadPath
-	 * @param imageBytes
-	 * @param fileName
-	 * @throws IOException
-	 */
-	private void saveFile(Path uploadPath, byte[] imageBytes, String fileName) throws IOException {
-	    Path filePath = uploadPath.resolve(fileName);
-
-	    Files.copy(
-	        new ByteArrayInputStream(imageBytes),
-	        filePath,
-	        StandardCopyOption.REPLACE_EXISTING
-	    );
-	}
-	
-	/**
-	 * Elimina il file se esiste
-	 * @param uploadPath
-	 * @param fileName
-	 * @throws IOException
-	 */
-	private void removeFile(Path uploadPath, String fileName) throws IOException {
-	    Files.deleteIfExists(uploadPath.resolve(fileName));
-	}
-	
-	//--------------------------------------------------------------------------------------------------------------
-	
-	/**
-	 * Ottiene i dati dell'account usando i dati salvati nel cookie
-	 * @param request
-	 * @param response
-	 * @return
-	 */
-	@GetMapping("account")
-	public ResponseEntity<?> getAccount(HttpServletRequest request, HttpServletResponse response) {
-		
-		/*
-		 * Autentificazione
-		 */
-		int id = this.authenticate(request, response);
-		
-		/*
-		 * Prendi user da database attraverso id
-		 */
-		User u = this.databaseService.findUser(id);
-		
-		/*
-		 * Ritorna dati
-		 */
-		ResponseAccountDTO responseDTO = new ResponseAccountDTO(u.getUsername(), u.isAdmin(), u.getCreatedAt(), u.getImagePath());
-		return ResponseEntity.ok().body(responseDTO);
-	}
 	
 	/**
 	 * Modifica i dati dell'account in uso
@@ -164,7 +67,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Update dati in database attraverso id
@@ -172,6 +75,33 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		this.databaseService.updateUserAccount(id, body.username(), body.password());
 		
 		return ResponseEntity.ok().build();
+	}
+	
+	/**
+	 * Ottiene i dati dell'account usando i dati salvati nel cookie
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@GetMapping("account")
+	public ResponseEntity<?> getAccount(HttpServletRequest request, HttpServletResponse response) {
+		
+		/*
+		 * Autentificazione
+		 */
+		int id = this.authenticationService.authenticate(request, response);
+		
+		/*
+		 * Prendi user da database attraverso id
+		 */
+		User u = this.databaseService.findUser(id);
+		
+		String image = (u.getImagePath() == null)? null : GenericUtil.standardPathImages + u.getImagePath();
+		/*
+		 * Ritorna dati
+		 */
+		ResponseAccountDTO responseDTO = new ResponseAccountDTO(u.getUsername(), u.isAdmin(), u.getCreatedAt(), image);
+		return ResponseEntity.ok().body(responseDTO);
 	}
 
 	/**
@@ -186,12 +116,18 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Elimina dati in database attraverso id
 		 */
 		this.databaseService.getUsersRepo().deleteById(id);
+		
+		/*
+		 * Rimozione cookies
+		 */
+		response.addCookie(this.authenticationService.getCookieService().generateCookie(UtilServer.accessCookieName, "", true, false, "/api/", 0));
+		response.addCookie(this.authenticationService.getCookieService().generateCookie(UtilServer.refreshCookieName, "", true, false, "/api/", 0));
 		
 		return ResponseEntity.ok().build();
 	}
@@ -209,7 +145,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		this.authenticationService.authenticate(request, response);
 		
 		return ResponseEntity.ok().build();
 	}
@@ -224,24 +160,26 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	@PatchMapping("profileImage")
 	public ResponseEntity<?> patchImageProfileImage(HttpServletRequest request, HttpServletResponse response, @RequestParam("image") MultipartFile file) {
 
-	    if (file.isEmpty()) {
-	        return ResponseEntity.badRequest().body("File vuoto");
-	    }
+	    if (file.isEmpty()) return ResponseEntity.badRequest().body("File vuoto");
 
-	    /* Autenticazione */
-	    int id = this.authenticate(request, response);
-
-	    /* User */
+	    /*
+	     * Autenticazione
+	     */
+	    int id = this.authenticationService.authenticate(request, response);
 	    User u = this.databaseService.findUser(id);
 
-	    /* Verifica immagine */
+	    /*
+	     * Verifica immagine
+	     */
 	    try {
-	        if (!isFileValidImage(file)) return ResponseEntity.badRequest().body("File non immagine");
+	        if (!GenericUtil.isFileValidImage(file)) return ResponseEntity.badRequest().body("File non immagine");
 	    } catch (IOException e) {
 	        return ResponseEntity.internalServerError().build();
 	    }
 
-	    /* Genera JPG quadrato */
+	    /* 
+	     * Genera JPG quadrato
+	     */
 	    byte[] imageBytes;
 	    try {
 	        imageBytes = GenericUtil.makeSquare(file.getInputStream());
@@ -249,17 +187,24 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	        return ResponseEntity.internalServerError().build();
 	    }
 
-	    /* Nome file deterministico */
-	    String fileName = "imageProfile_" + u.getUsername() + GenericUtil.generateString(30, GenericUtil.CHARSET) + ".jpg";
-	    Path uploadPath = Paths.get(this.uploadDir);
-
+	    /* 
+	     * Nome file da salvare
+	     */
+	    String fileName = null;
+	    Path uploadPath = Paths.get(this.uploadDirImages);
+	    
 	    try {
-	        createDirectory(uploadPath);
+	        GenericUtil.createDirectory(uploadPath);
 
 	        // elimina vecchia immagine
-	        if (u.getImagePath() != null) removeFile(uploadPath, u.getImagePath());
-
-	        saveFile(uploadPath, imageBytes, fileName);
+	        if (u.getImagePath() != null) GenericUtil.removeFile(uploadPath, u.getImagePath());
+	        
+	        do {
+		    	fileName = GenericUtil.generateString(((int) UtilDatabase.UserData.imagePathLenght / 2), GenericUtil.CHARSET) + ".jpg";
+		    }while(Files.exists(uploadPath.resolve(fileName)));
+	        
+	        // Salva nuova immagine
+	        GenericUtil.saveFile(uploadPath, imageBytes, fileName);
 
 	    } catch (IOException e) {
 	        return ResponseEntity.internalServerError().build();
@@ -277,29 +222,24 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	 * @return
 	 */
 	@GetMapping("profile")
-	public ResponseEntity<?> getProfilo(HttpServletRequest request, HttpServletResponse response) {
+	public ResponseEntity<?> getProfile(HttpServletRequest request, HttpServletResponse response) {
 
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Prendi user da database attraverso id
 		 */
 		User u = this.databaseService.findUser(id);
 		
-		// Controllo se la immagine esiste o e' stata eliminata/persa
-		try {
-			if(u.getImagePath() != null) this.findImage(u);
-		} catch (IOException e) {
-			return ResponseEntity.internalServerError().build();
-		}
+		String image = this.findImage(u);
 		
 		/*
 		 * Ritorna dati
 		 */
-		ResponseProfileDTO r = new ResponseProfileDTO((u.getImagePath() != null)? GenericUtil.standardPathImages + u.getImagePath() : null);
+		ResponseProfileDTO r = new ResponseProfileDTO(image);
 		
 		return ResponseEntity.ok().body(r);
 	}
@@ -323,7 +263,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene dati da database attraverso id
@@ -345,25 +285,22 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene dati da database attraverso id
 		 */
 		List<User> listFriends = this.databaseService.findFriendsOfUser(id);
+		if(listFriends == null || listFriends.isEmpty()) return ResponseEntity.ok().body(new ResponseFriendsDTO(null));
 		
 		/*
 		 * Ritorna dati
 		 */
 		List<ResponseFriendDTO> f = new ArrayList<ResponseFriendDTO>();
 		for(User u : listFriends) {
-			String imagePath = u.getImagePath();
-			try{
-				this.findImage(u);
-			}catch(Exception e) {
-				imagePath = null;
-			}
-			f.add(new ResponseFriendDTO(u.getUsername(), imagePath));
+			
+			String image = this.findImage(u);
+			f.add(new ResponseFriendDTO(u.getUsername(), image));
 		}
 		
 		ResponseFriendsDTO friends = new ResponseFriendsDTO(f);

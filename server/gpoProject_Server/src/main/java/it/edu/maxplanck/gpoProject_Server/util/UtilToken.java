@@ -5,6 +5,9 @@ import java.nio.charset.StandardCharsets;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 
+/**
+ * Classe di utilita' per i Token
+ */
 public final class UtilToken {
 	
 	// Path per ottenere il valore per generare la password per criptare il token di accesso

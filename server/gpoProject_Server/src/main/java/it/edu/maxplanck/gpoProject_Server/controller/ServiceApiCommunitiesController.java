@@ -19,6 +19,9 @@ import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSectionDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Rest Controller che contiene gli endpoint per i servizi delle communities
+ */
 @RestController
 @RequestMapping("api/services")
 public class ServiceApiCommunitiesController extends BasicApiRestController {
@@ -47,7 +50,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Crea una nuova community in database
@@ -70,7 +73,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene i dati di una community
@@ -92,7 +95,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene gli user della community
@@ -113,7 +116,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene le community a cui un utente e' iscritto
@@ -135,7 +138,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Elimina una community
@@ -164,7 +167,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Crea una nuova sezione in una community in database
@@ -186,7 +189,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene tutte le sezioni della community
@@ -216,7 +219,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Crea un nuovo canale in una sezione di una community in database
@@ -239,7 +242,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene tutte i canali della sezione
@@ -270,7 +273,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Crea un messaggio in una determinata community
@@ -295,7 +298,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Ottiene tutti i messaggi della community

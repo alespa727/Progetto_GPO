@@ -5,6 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import it.edu.maxplanck.gpoProject_Server.database.model.Community;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database delle community
+ */
 @Repository
 public interface CommunitiesRepo extends JpaRepository<Community, Integer> {
 

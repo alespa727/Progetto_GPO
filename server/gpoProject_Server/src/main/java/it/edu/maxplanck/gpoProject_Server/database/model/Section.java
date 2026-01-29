@@ -10,6 +10,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database delle sezioni
+ */
 @Entity
 @Table(name = SectionData.tableName)
 public final class Section {

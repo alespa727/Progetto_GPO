@@ -6,9 +6,15 @@ import java.util.HashMap;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Manager di cookies
+ */
 public class CookieManager implements CookieFunc {
 
-	// Generatore di cookie
+	
+	/**
+	 * Genera un cookie
+	 */
 	@Override
 	public Cookie generateCookie(String name, String value, boolean isHttpOnly, boolean isSecure, String path, int maxAge) {
 		// TODO Auto-generated method stub
@@ -22,7 +28,10 @@ public class CookieManager implements CookieFunc {
 		return cookie;
 	}
 
-	// Mappa di cookies richiesti
+	
+	/**
+	 * Ricerca i cookies dati
+	 */
 	@Override
 	public HashMap<String, Cookie> findCookies(HttpServletRequest request, ArrayList<String> cookiesName) {
 		// TODO Auto-generated method stub
@@ -47,7 +56,10 @@ public class CookieManager implements CookieFunc {
 		return mapCookies;
 	}
 
-	// Aggiorna i dati di un cookie
+	
+	/**
+	 * Aggiorna i dati di un cookie
+	 */
 	@Override
 	public void updateCookie(Cookie cookie, String value, Boolean httpOnly, Boolean secure, String path, Integer maxAge) {
 		// TODO Auto-generated method stub
@@ -62,14 +74,20 @@ public class CookieManager implements CookieFunc {
 		
 	}
 	
-	// Controlla se un cookie e' valido (cookie rimandato al server con maxAge sempre = -1)
+	
+	/**
+	 * Controlla se il cookie e' valido o no
+	 */
 	@Override
 	public boolean isCookieValid(Cookie cookie) {
 		// TODO Auto-generated method stub
 	    return cookie != null && cookie.getValue() != null && !cookie.getValue().isBlank();
 	}
 	
-	// Elimina un cookie
+	
+	/**
+	 * Elimina il cookie
+	 */
 	@Override
 	public void removeCookie(Cookie cookie, String path) {
 		// TODO Auto-generated method stub

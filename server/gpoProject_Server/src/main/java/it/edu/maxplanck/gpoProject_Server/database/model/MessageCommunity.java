@@ -12,6 +12,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database dei messaggi di un canale di una community
+ */
 @Entity
 @Table(name = MessageCommunityData.tableName)
 public final class MessageCommunity {

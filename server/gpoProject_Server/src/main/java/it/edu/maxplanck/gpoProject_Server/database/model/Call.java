@@ -12,6 +12,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database delle chiamate
+ */
 @Entity
 @Table(name = CallData.tableName)
 public final class Call {

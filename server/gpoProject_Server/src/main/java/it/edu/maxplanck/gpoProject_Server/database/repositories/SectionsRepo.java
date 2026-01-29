@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import it.edu.maxplanck.gpoProject_Server.database.model.Section;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database delle sezioni
+ */
 @Repository
 public interface SectionsRepo extends JpaRepository<Section, Integer> {
 

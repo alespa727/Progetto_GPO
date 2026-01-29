@@ -10,6 +10,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database degli allegati
+ */
 @Entity
 @Table(name = AttachedData.tableName)
 public final class Attached {
@@ -26,13 +29,20 @@ public final class Attached {
 	private MessageChat fkMessage;
 	
 	// Entity Fields
-	@Column(name = AttachedData.columnNamePath, nullable = false, length = AttachedData.pathLenght)
+	@Column(name = AttachedData.columnNamePath, length = AttachedData.pathLenght)
 	private String path;
 
 	public Attached() {
 		super();
 	}
 
+	public Attached(MessageChat fkMessage, String path) {
+		super();
+		this.pkID = null;
+		this.fkMessage = fkMessage;
+		this.path = path;
+	}
+	
 	public Attached(Integer pkID, MessageChat fkMessage, String path) {
 		super();
 		this.pkID = pkID;

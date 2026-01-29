@@ -11,7 +11,7 @@ use progetto_gpo;
 CREATE TABLE attachments (
 	id INT AUTO_INCREMENT,
 	fkMessage INT NOT NULL,
-	path VARCHAR(255) NOT NULL,
+	path VARCHAR(255),
 	PRIMARY KEY(id)
 );
 
@@ -112,28 +112,28 @@ ALTER TABLE users ADD CONSTRAINT uniqueUsername unique(username);
 
 /* Foreign keys */
 
-ALTER TABLE attachments ADD CONSTRAINT fkAttachmentsMessagesChat FOREIGN KEY(fkMessage) REFERENCES messagesChat(id);
+ALTER TABLE attachments ADD CONSTRAINT fkAttachmentsMessagesChat FOREIGN KEY(fkMessage) REFERENCES messagesChat(id) ON DELETE CASCADE;
 
 ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatUsers FOREIGN KEY(fkUser) REFERENCES users(id);
-ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatChats FOREIGN KEY(fkChat) REFERENCES chats(id);
+ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatChats FOREIGN KEY(fkChat) REFERENCES chats(id) ON DELETE CASCADE;
 
-ALTER TABLE chats ADD CONSTRAINT fkChatsFriendships FOREIGN KEY(fkFriendship) REFERENCES friendships(id);
+ALTER TABLE chats ADD CONSTRAINT fkChatsFriendships FOREIGN KEY(fkFriendship) REFERENCES friendships(id) ON DELETE CASCADE;
 
 ALTER TABLE friendships ADD CONSTRAINT fkFriendshipsUsers1 FOREIGN KEY(fkUser1) REFERENCES users(id);
 ALTER TABLE friendships ADD CONSTRAINT fkFriendshipsUsers2 FOREIGN KEY(fkUser2) REFERENCES users(id);
 
-ALTER TABLE calls ADD CONSTRAINT fkCallsChats FOREIGN KEY(fkChat) REFERENCES chats(id);
+ALTER TABLE calls ADD CONSTRAINT fkCallsChats FOREIGN KEY(fkChat) REFERENCES chats(id) ON DELETE CASCADE;
 
-ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsUsers FOREIGN KEY(fkUser) REFERENCES users(id);
-ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsCommunities FOREIGN KEY(fkCommunity) REFERENCES communities(id);
+ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsUsers FOREIGN KEY(fkUser) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsCommunities FOREIGN KEY(fkCommunity) REFERENCES communities(id) ON DELETE CASCADE;
 
 ALTER TABLE communities ADD CONSTRAINT fkCommunitiesUsers FOREIGN KEY(fkUserOwner) REFERENCES users(id);
 
-ALTER TABLE sections ADD CONSTRAINT fkSectionsCommunities FOREIGN KEY(fkCommunity) REFERENCES communities(id);
+ALTER TABLE sections ADD CONSTRAINT fkSectionsCommunities FOREIGN KEY(fkCommunity) REFERENCES communities(id) ON DELETE CASCADE;
 
-ALTER TABLE channels ADD CONSTRAINT fkChannelsSections FOREIGN KEY(fkSection) REFERENCES sections(id);
+ALTER TABLE channels ADD CONSTRAINT fkChannelsSections FOREIGN KEY(fkSection) REFERENCES sections(id) ON DELETE CASCADE;
 
-ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityChannels FOREIGN KEY(fkChannel) REFERENCES channels(id);
+ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityChannels FOREIGN KEY(fkChannel) REFERENCES channels(id) ON DELETE CASCADE;
 ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityUsers FOREIGN KEY(fkUser) REFERENCES users(id);
 
 

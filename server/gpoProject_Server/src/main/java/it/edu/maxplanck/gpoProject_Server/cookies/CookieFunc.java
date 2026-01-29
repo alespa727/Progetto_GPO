@@ -6,6 +6,9 @@ import java.util.HashMap;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Interface per i cookies
+ */
 public interface CookieFunc {
 
 	// Genera un cookie

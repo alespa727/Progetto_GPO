@@ -10,6 +10,9 @@ import it.edu.maxplanck.gpoProject_Server.exceptions.DataException;
 import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
 import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
 
+/**
+ * Classe che gestisce le eccezioni indicate
+ */
 @RestControllerAdvice
 public class ControllerExceptions {
 

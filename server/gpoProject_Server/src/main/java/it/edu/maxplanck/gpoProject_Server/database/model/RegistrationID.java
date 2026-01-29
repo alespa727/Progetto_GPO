@@ -3,6 +3,9 @@ package it.edu.maxplanck.gpoProject_Server.database.model;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Classe che rappresenta la primary key multipla dell'entita' nel database dell'iscrizione ad una community
+ */
 // Deve implementare Serializable
 public class RegistrationID implements Serializable {
     /**

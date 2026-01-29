@@ -1,6 +1,5 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +17,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Rest Controller che contiene gli endpoint per i servizi di start
+ */
 @RestController
 @RequestMapping("/api")
 public class StarterApiController extends BasicApiRestController {
@@ -81,7 +83,6 @@ public class StarterApiController extends BasicApiRestController {
 		Cookie access = null;
 		Cookie refresh = null;
 	
-		
 		Map<String, Object> claims = new HashMap<String, Object>();
 		claims.put("id", id);
 		claims.put("username", body.username());
@@ -101,7 +102,7 @@ public class StarterApiController extends BasicApiRestController {
 	}
 	
 	/**
-	 * Aggiorna i dati se l'app viene chiusa
+	 * Aggiorna i dati dello status
 	 * @param request
 	 * @param response
 	 * @return
@@ -112,14 +113,14 @@ public class StarterApiController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
+		int id = this.authenticationService.authenticate(request, response);
 		
 		/*
 		 * Update database
 		*/
-		LocalDateTime time = this.databaseService.updateStatusUser(id);
+		this.databaseService.updateStatusUser(id);
 		
-		return ResponseEntity.ok().body(time);
+		return ResponseEntity.ok().build();
 	}
 
 	/**
@@ -134,12 +135,8 @@ public class StarterApiController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticate(request, response);
-		
-		/*
-		 * Update database
-		*/
-		this.databaseService.updateStatusUser(id);
+		int id = this.authenticationService.authenticate(request, response);
+		this.databaseService.findUser(id);
 		
 		/*
 		 * Rimozione cookies

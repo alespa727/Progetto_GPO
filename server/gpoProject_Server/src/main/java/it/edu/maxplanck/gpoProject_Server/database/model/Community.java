@@ -12,6 +12,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database delle community
+ */
 @Entity
 @Table(name = CommunityData.tableName)
 public final class Community {
@@ -31,7 +34,7 @@ public final class Community {
 	@Column(name = CommunityData.columnNameInviteCode, length = CommunityData.inviteCodeLenght, nullable = false, unique = true)
 	private String inviteCode;
 	
-	@Column(name = CommunityData.columnNameIsInviteCodeValid, columnDefinition = "isInviteCodeValid SET('true', 'false') DEFAULT 'false'")
+	@Column(name = CommunityData.columnNameIsInviteCodeValid, columnDefinition = "isInviteCodeValid TINYINT(1) DEFAULT 0")
 	private Boolean isInviteCodeValid;
 	
 	@Column(name = CommunityData.columnNameName, length = CommunityData.nameLenght, nullable = false)

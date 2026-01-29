@@ -12,7 +12,9 @@ public enum DatabaseExceptions {
 	DB_USERNAME_IS_ALREADY_IN_USE("Username gia' in uso", HttpStatus.CONFLICT),
 	DB_FRIENDSHIP_ALREADY_CREATED("Amicizia gia' creata", HttpStatus.CONFLICT),
 	DB_CHAT_ALREADY_CREATED("Chat gia' creata", HttpStatus.CONFLICT),
-	DB_CALL_STILL_OPEN("Una altra chiamata ancora attiva", HttpStatus.CONFLICT);
+	DB_CALL_STILL_OPEN("Una altra chiamata ancora attiva", HttpStatus.CONFLICT), 
+	DB_FRIENDSHIP_NOT_CREATED("Amicizia non trovata", HttpStatus.NOT_FOUND),
+	DB_ATTACHED_NOT_FOUND("Allegato non trovato", HttpStatus.NOT_FOUND);
 	
 	private final String message;
 	private final HttpStatus responseStatus;

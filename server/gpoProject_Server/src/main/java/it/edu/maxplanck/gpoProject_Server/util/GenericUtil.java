@@ -4,24 +4,98 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.tika.Tika;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Classe di utilita' Generica
+ */
 public class GenericUtil {
 
 	public static final String standardPathImages = "http://localhost:8080/images/";
+	public static final String standardPathFiles = "http://localhost:8080/files/";
 
 	public static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 	
 	public static final String CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	
+	public static final Set<String> DENIED_MIME_TYPES = Set.of(
+		    "application/x-msdownload",          					// .exe
+		    "application/x-msdos-program",        					// .exe (variante)
+		    "application/x-ms-installer",         					// .msi
+		    "application/vnd.microsoft.portable-executable", 		// exe/dll
+		    "application/x-sh",                   					// .sh
+		    "application/x-bat",                  					// .bat
+		    "application/x-cmd",                  					// .cmd
+		    "application/x-powershell",           					// .ps1
+		    "application/java-archive",           					// .jar
+		    "application/x-elf",                  					// Linux ELF
+		    "application/x-mach-binary"          				 	// macOS binary
+	);
+	
+	/**
+	 * Crea una cartella nel path
+	 * @param uploadPath
+	 * @throws IOException
+	 */
+	public static void createDirectory(Path uploadPath) throws IOException {
+	    Files.createDirectories(uploadPath);
+	}
+	
+	/**
+	 * Salva il file
+	 * @param uploadPath
+	 * @param imageBytes
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public static void saveFile(Path uploadPath, byte[] fileBytes, String fileName) throws IOException {
+	    Path filePath = uploadPath.resolve(fileName);
+
+	    Files.copy(new ByteArrayInputStream(fileBytes), filePath, StandardCopyOption.REPLACE_EXISTING);
+	}
+	
+	/**
+	 * Elimina il file se esiste
+	 * @param uploadPath
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public static void removeFile(Path uploadPath, String fileName) throws IOException {
+	    Files.deleteIfExists(uploadPath.resolve(fileName));
+	}
+	
+	/**
+	 * Controlla se il file e' una immagine
+	 * @param file
+	 * @return
+	 * @throws IOException
+	 */
+	public static boolean isFileValidImage(MultipartFile file) throws IOException {
+	    Tika tika = new Tika();
+	    String detectedType = tika.detect(file.getInputStream());
+	    return detectedType.startsWith("image/");
+	}
+	
+	/**
+	 * Genera una stringa randomica con una misura definita e un pattern dato
+	 * @param length
+	 * @param pattern
+	 * @return
+	 */
 	public static String generateString(int length, String pattern) {
 	    SecureRandom random = new SecureRandom();
 	    StringBuilder sb = new StringBuilder(length);
@@ -32,6 +106,13 @@ public class GenericUtil {
 	    return sb.toString();
 	}
 	
+	
+	/**
+	 * Trasforma un inputstream in un array di byte trasformandolo in una immagine quadrata (una immagine squadrata in un quadrato)
+	 * @param inputStream
+	 * @return
+	 * @throws IOException
+	 */
 	public static byte[] makeSquare(InputStream inputStream) throws IOException {
 	    // Carica l'immagine originale
 	    BufferedImage original = ImageIO.read(inputStream);

@@ -5,6 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database degli utenti
+ */
 @Repository
 public interface UsersRepo extends JpaRepository<User, Integer> {
 	

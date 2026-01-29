@@ -9,6 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import it.edu.maxplanck.gpoProject_Server.database.model.Call;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database delle chiamate
+ */
 @Repository
 public interface CallsRepo extends JpaRepository<Call, Integer> {
 

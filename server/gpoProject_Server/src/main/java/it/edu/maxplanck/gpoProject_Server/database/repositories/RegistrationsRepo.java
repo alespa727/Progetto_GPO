@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 import it.edu.maxplanck.gpoProject_Server.database.model.Registration;
 import it.edu.maxplanck.gpoProject_Server.database.model.RegistrationID;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database dell'iscrizione alle community
+ */
 @Repository
 public interface RegistrationsRepo extends JpaRepository<Registration, RegistrationID> {
 

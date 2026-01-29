@@ -1,5 +1,8 @@
 package it.edu.maxplanck.gpoProject_Server.exceptions;
 
+/**
+ * Classe che permette di far scattare una eccezione runtime di tipo Database
+ */
 public class DatabaseException extends RuntimeException {
 
 	/**

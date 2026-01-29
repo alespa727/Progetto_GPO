@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import it.edu.maxplanck.gpoProject_Server.database.model.MessageCommunity;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database dei messaggi delle community
+ */
 @Repository
 public interface MessagesCommunityRepo extends JpaRepository<MessageCommunity, Integer> {
 

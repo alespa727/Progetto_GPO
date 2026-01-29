@@ -13,6 +13,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database delle chat
+ */
 @Entity
 @Table(name = ChatData.tableName)
 public final class Chat {

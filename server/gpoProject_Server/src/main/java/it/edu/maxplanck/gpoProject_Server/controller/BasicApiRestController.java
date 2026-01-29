@@ -1,28 +1,30 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
+import it.edu.maxplanck.gpoProject_Server.database.model.Attached;
+import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationException;
-import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationExceptions;
-import it.edu.maxplanck.gpoProject_Server.exceptions.CookieException;
-import it.edu.maxplanck.gpoProject_Server.exceptions.CookieExceptions;
-import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
-import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 
+/**
+ * Classe astratta che ogni rest controller dovra' ereditare.
+ * <br>Questa classe e' la base di tutte le API
+ */
 @RequestMapping("api")
 public abstract class BasicApiRestController {
 	
-	@Value("${app.upload.dir}")
-	protected String uploadDir;
+	@Value("${app.upload.dir.images}")
+	protected String uploadDirImages;
+	
+	@Value("${app.upload.dir.files}")
+	protected String uploadDirFiles;
 	
 	protected final DatabaseService databaseService;
 	protected final AuthenticationService authenticationService;
@@ -33,48 +35,49 @@ public abstract class BasicApiRestController {
 		this.authenticationService = authenticationService;
 	}
 	
-	public int authenticate(HttpServletRequest request, HttpServletResponse response) throws CookieException, TokenException, AuthentificationException {
-
-		/*
-		 * Controllo se ha cookies/ cookies non validi:
-		 * 		- No -> Errore
-		 */
-		ArrayList<String> cookiesNames = new ArrayList<String>();
-		cookiesNames.add(UtilServer.accessCookieName);
-		cookiesNames.add(UtilServer.refreshCookieName);
-		HashMap<String, Cookie> cookies;
-		
-		/*
-		 * Ottengo i cookies e controllo se esistono quelli necessari
-		 */
-		cookies = this.authenticationService.getCookieService().findCookies(request, cookiesNames);
-		if(cookies == null) throw new CookieException(CookieExceptions.COOKIES_COOKIES_NOT_FOUND);
-		
-		Cookie access = cookies.get(UtilServer.accessCookieName);
-		Cookie refresh = cookies.get(UtilServer.refreshCookieName);
-		
-		/*
-		 * Controllo se il cookie di accesso deve essere rigenerato
-		 */
-		if(access == null || !this.authenticationService.getCookieService().isCookieValid(access) || !this.authenticationService.getTokenService().isTokenAccessValid(access.getValue())) {
+	/**
+	 * Controlla se esiste una immagine profilo dell'utente
+	 * @param u
+	 * @return
+	 */
+	protected String findImage(User u) {
+		String image = null;
+		if(u.getImagePath() != null) {
 			
-			if (refresh == null || !this.authenticationService.getCookieService().isCookieValid(refresh) || !this.authenticationService.getTokenService().isTokenRefreshValid(refresh.getValue())) {
-	            throw new CookieException(CookieExceptions.COOKIES_COOKIE_NOT_FOUND);
-	        }
+			// Controllo se la immagine esiste o e' stata eliminata/persa
+			Path imagePath = Paths.get(this.uploadDirImages).resolve(u.getImagePath());
 			
-			access =  this.authenticationService.refreshCookieAccess(cookies.get(UtilServer.refreshCookieName));
+			if (!Files.exists(imagePath)) {
+				// immagine persa → reset DB
+				this.databaseService.updateUserProfile(u.getPkID(), null);
+			}else {
+				image = GenericUtil.standardPathImages + u.getImagePath();
+			}
 		}
 		
-		/*
-		 * Ottengo l'id dello user
-		 */
-		Integer id = this.authenticationService.getTokenService().getClaimsAccess(access.getValue()).get("id", Integer.class);
+		return image;
+	}
+	
+	/**
+	 * Controlla se esiste il file dell'allegato
+	 * @param a
+	 * @return
+	 */
+	protected String findAttachment(Attached a) {
+		String path = null;
+		if(a.getPath() != null) {
+			
+			// Controllo se la immagine esiste o e' stata eliminata/persa
+			Path imagePath = Paths.get(this.uploadDirFiles).resolve(a.getPath());
+			
+			if (!Files.exists(imagePath)) {
+				// immagine persa → reset DB
+				this.databaseService.deleteAttached(a.getPkID());
+			}else {
+				path = GenericUtil.standardPathFiles + a.getPath();
+			}
+		}
 		
-		if(id == null) throw new AuthentificationException(AuthentificationExceptions.AUTH_DATA_IS_NOT_VALID);
-		
-		// Refresh access se non valido
-		if (cookies.get(UtilServer.accessCookieName) == null) response.addCookie(access);
-		
-		return id;
+		return path;
 	}
 }

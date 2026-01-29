@@ -11,6 +11,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database degli utenti
+ */
 @Entity
 @Table(name = UserData.tableName)
 public final class User {

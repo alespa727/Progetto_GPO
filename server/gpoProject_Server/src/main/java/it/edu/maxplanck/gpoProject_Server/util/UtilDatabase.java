@@ -1,8 +1,11 @@
 package it.edu.maxplanck.gpoProject_Server.util;
 
+/**
+ * Classe di utilita' per il Database
+ */
 public final class UtilDatabase {
 
-	public static int maxMessagesRead = 10;
+	public static int maxMessagesRead = 100;
 	
 	// Model Attached -----------------------------------------------------
 	public static class AttachedData{
@@ -41,9 +44,23 @@ public final class UtilDatabase {
 		
 		
 		public static final String columnNameName = "name";
+		public static final int nameLenght = 100;
 		
 		public static final String columnNameType = "type";
-		public static final int nameLenght = 100;
+		public static enum TypeType {
+			
+			TYPE_VOCALE("vocale"),
+			TYPE_TESTO("testo");
+			
+			private final String type;
+			private TypeType(String type) {
+				this.type = type;
+			}
+			
+			public String getType() {
+				return type;
+			}
+		}
 		
 		public static final String columnNameDescription = "description";
 		
@@ -111,6 +128,7 @@ public final class UtilDatabase {
 		public static final String columnNameFkUser = "fkUser";
 		
 		public static final String columnNameMessage = "message";
+		public static final int messageLength = 2147483647;
 		
 		public static final String columnNameSentAt = "sentAt";
 	}
@@ -126,6 +144,7 @@ public final class UtilDatabase {
 		
 		
 		public static final String columnNameMessage = "message";
+		public static final int messageLength = 2147483647;
 		
 		public static final String columnNameSentAt = "sentAt";
 	}

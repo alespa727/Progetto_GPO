@@ -10,6 +10,9 @@ import org.springframework.stereotype.Repository;
 import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
 import it.edu.maxplanck.gpoProject_Server.database.model.Friendship;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database delle chat
+ */
 @Repository
 public interface ChatsRepo extends JpaRepository<Chat, Integer> {
 	

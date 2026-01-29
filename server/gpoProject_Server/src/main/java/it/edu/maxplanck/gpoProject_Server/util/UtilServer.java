@@ -1,5 +1,8 @@
 package it.edu.maxplanck.gpoProject_Server.util;
 
+/**
+ * Classe di utilita' per il Server
+ */
 public final class UtilServer {
 	
 	// Subject del token di accesso

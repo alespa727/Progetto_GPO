@@ -11,6 +11,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Classe che rappresenta l'entita' nel database la iscrizione ad una community
+ */
 @Entity
 @Table(name = RegistrationData.tableName)
 @IdClass(RegistrationID.class)

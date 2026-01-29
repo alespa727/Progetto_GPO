@@ -9,24 +9,30 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Gestisce impostazioni di configurazione come il cors
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.upload.dir}")
-    private String uploadDir;
+    @Value("${app.upload.dir.images}")
+    private String uploadDirImages;
+    
+    @Value("${app.upload.dir.files}")
+	private String uploadDirFiles;
     
     private List<String> allowedOrigins = new ArrayList<String>();
     
-    public WebConfig(
-    		@Value("${client.port}") String clientPort
-    	) {
+    public WebConfig(@Value("${client.port}") String clientPort) {
     	this.allowedOrigins.add(clientPort);
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:" + uploadDir + "/");
+                .addResourceLocations("file:" + uploadDirImages + "/");
+        registry.addResourceHandler("/files/**")
+        		.addResourceLocations("file:" + uploadDirFiles + "/");
     }
     
     @Override

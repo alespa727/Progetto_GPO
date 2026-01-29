@@ -6,6 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 
+/**
+ * Rest Controller che contiene gli endpoint per i servizi di test
+ */
 @RestController
 @RequestMapping("api/test")
 public class TestAPI extends BasicApiRestController {

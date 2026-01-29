@@ -9,6 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import it.edu.maxplanck.gpoProject_Server.database.model.MessageChat;
 
+/**
+ * Interfaccia che rappresenta le query da fare nel database dei messaggi delle chat
+ */
 @Repository
 public interface MessagesChatRepo extends JpaRepository<MessageChat, Integer> {
 
