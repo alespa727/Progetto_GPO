@@ -1,15 +1,15 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { PrivateChatResponse } from "../types";
+import { Chat } from "../types";
 
 interface ActiveChatContextType {
-  activeChat: PrivateChatResponse | null;
-  setActiveChat: (Chat: PrivateChatResponse | null) => void;
+  activeChat: Chat | null;
+  setActiveChat: (Chat: Chat | null) => void;
 }
 
 const ActiveChatContext = createContext<ActiveChatContextType | null>(null);
 
 export const ActiveChatProvider = ({ children }: { children: ReactNode }) => {
-  const [activeChat, setActiveChat] = useState<PrivateChatResponse | null>(null);
+  const [activeChat, setActiveChat] = useState<Chat | null>(null);
 
   return (
     <ActiveChatContext.Provider value={{ activeChat, setActiveChat }}>

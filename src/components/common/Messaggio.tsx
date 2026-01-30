@@ -4,11 +4,24 @@ import { Message } from "../../types";
 import { useSocket } from "../../context/SocketProvider";
 import { useState } from "react";
 
-export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger }: { msg: Message, messageType: string, id: number, style: string, onCloseMenu: () => void, onTrigger: () => void }) {
+type MessaggioProps = {
+    msg: Message,
+    messageType: string,
+    id: number,
+    style: string,
+    onCloseMenu: () => void,
+    onTrigger: () => void
+}
+
+export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger }: MessaggioProps) {
     const socket = useSocket();
     const [isBeingModified, setModifying] = useState<boolean>(false);
-    const [draft, setDraft] = useState(msg.text);
-    let username = msg.sender;
+    const [draft, setDraft] = useState(msg.message);
+    let username = msg.username;
+    let message = msg;
+
+    if (!message) return;
+
     if (username.length > 9) {
         username = username.slice(0, 9) + "...";
     }
@@ -20,9 +33,9 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
             <div className="gap-2 flex flex-col p-1 text-[15px]">
                 <div className="pt-1/2 gap-2 flex">
                     <span>
-                        {msg.time
+                        {msg.sentAt
                             ? (() => {
-                                const date = new Date(msg.time);
+                                const date = new Date(msg.sentAt);
                                 return (date.getHours() <= 9 ? "0" : "") + date.getHours() + ":" +
                                     (date.getMinutes() <= 9 ? "0" : "") + date.getMinutes();
                             })()
@@ -37,13 +50,12 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                         onChange={(e) => setDraft(e.target.value)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
-                               setModifying(false)
+                                setModifying(false)
                             }
                         }}
                     />
                 </div>
 
-                {/*(<img src="https://placehold.co/600x400/png" alt="img" className="mb-2" />)*/}
             </div>
         </div>
     );
@@ -55,25 +67,41 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                     className={"rounded-r-md px-4 mr-4 hover:bg-white/10 flex items-center"}
                 >
                     <div className="gap-2 flex flex-col p-1 text-[15px]">
-                        <div className="pt-1/2 gap-2 flex">
+                        <div className={`pt-1/2 gap-2 flex  ${!message.sent ? "text-gray-400" : "text-white"}`}>
                             <span>
-                                {msg.time
+                                {msg.sentAt
                                     ? (() => {
-                                        const date = new Date(msg.time);
+                                        const date = new Date(msg.sentAt);
                                         return (date.getHours() <= 9 ? "0" : "") + date.getHours() + ":" +
                                             (date.getMinutes() <= 9 ? "0" : "") + date.getMinutes();
                                     })()
                                     : ""}
                             </span>
-                            <span className="hover:font-bold hover:underline">
+                            <span className={"hover:font-bold hover:underline"}>
                                 {username}
                             </span>
-                            <span className="break-all">
-                                {msg.text}
+                            <span
+                                className={`break-all`}
+                            >
+                                {msg.message}
                             </span>
+
+                            {
+                                !message.sent && (
+                                    <span className=" bg-black/50 p-1 text-white px-2 rounded">
+                                        Messaggio non inviato
+                                    </span>
+                                )
+                            }
                         </div>
 
-                        {/*(<img src="https://placehold.co/600x400/png" alt="img" className="mb-2" />)*/}
+                        {
+                            message.attachments.map(a => {
+                                return (
+                                    <img src={a.attachedPath} alt="img" className="mb-2 h-80 aspect-square" />
+                                );
+                            })
+                        }
                     </div>
                 </div>
             </ContextMenu.Trigger>
@@ -82,7 +110,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                 onPointerDownOutside={onCloseMenu}>
                 <ContextMenu.Item
                     onSelect={() => {
-                        let messageId = msg.id;
+                        let messageId = msg.messageId;
 
                         let type: string = messageType;
                         socket?.emit("deleteMessage", { id: id, type, messageId })
@@ -107,7 +135,6 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
 
                 <ContextMenu.Item
                     onSelect={() => {
-                        console.log("profilo")
                         onCloseMenu();
                     }}
                     className="p-2 hover:bg-white/10 rounded flex items-center gap-2 text-white"

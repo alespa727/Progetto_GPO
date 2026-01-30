@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useAccount, useSetAccount } from "./UserProvider";
 import axios from "axios";
-import { Account } from "@/types";
+import { Account, endpoint } from "@/types";
 
 export enum ClientMode {
   Server,
@@ -23,8 +23,8 @@ export const ModeProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const execute = async () => {
 
-      const account = await axios.get(
-        "http://localhost:8080/api/services/account"
+      const account = await axios.get(endpoint+
+        "/services/account"
         ,
         {
           withCredentials: true

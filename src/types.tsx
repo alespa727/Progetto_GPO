@@ -1,6 +1,7 @@
-export const portServer = 8080;
-export const endpoint = `http://localhost:${portServer}/api`
-
+export const portServer = 5000;
+export const websocket = "wss://weightlessly-tres-dagmar.ngrok-free.dev"
+export const endpoint = ` https://weightlessly-tres-dagmar.ngrok-free.dev/server2/api`
+export const endpoint2 = `https://weightlessly-tres-dagmar.ngrok-free.dev/server1`
 
 export enum ChatType {
   FRIEND = "FRIEND",
@@ -61,24 +62,57 @@ export class Chat {
   }
 }
 
+export class Attachment{
+  id: number;
+  attachedPath: string;
+
+  constructor(id: number, attachedPath: string){
+    this.id = id;
+    this.attachedPath = attachedPath;
+  }
+
+  static fromJSON(json: any): Attachment {
+   
+    let attachment = new Attachment(json.id, json.attachedPath);
+    return attachment
+  }
+}
 // ================= Message =================
 export class Message {
-  id: number;
-  text: string;
-  sender: string;
-  time: Date;
+  messageId: number;
+  username: string;
+  message: string;
+  sentAt: Date;
+  sent: boolean;
+  attachments: Attachment[]
 
-  constructor(id: number, text: string, sender: string, time?: Date) {
-    this.id = id;
-    this.text = text;
-    this.sender = sender;
-    this.time = time ?? new Date();
+  constructor(messageId: number, username: string, message: string, attachments?: Attachment[], sentAt?: Date, sent?: boolean) {
+    this.messageId = messageId;
+    this.username = username;
+    this.message = message;
+    this.sentAt = sentAt ?? new Date();
+    this.sent = sent ? sent : false;
+    this.attachments = attachments ? attachments : [];
   }
 
   static fromJSON(json: any): Message {
-    return new Message(json.id, json.text, json.sender, new Date(json.time));
+    let arr = [];
+    if(json.attachments){
+      arr = json.attachments.map(
+        (item: any) => Attachment.fromJSON(item)
+      );
+    }
+    
+
+    let message = new Message(json.messageId, json.username, json.message, arr, new Date(json.sentAt), true);
+    return message
   }
 }
+
+
+
+
+
 
 
 // ================= Channel & TextChannel =================

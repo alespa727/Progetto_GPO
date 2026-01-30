@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Room, RoomEvent } from "livekit-client";
+import { Room, RoomEvent, TrackType } from "livekit-client";
 import { useSocket } from "./SocketProvider";
-import { RoomContext } from "@livekit/components-react";
+import { RoomAudioRenderer, RoomContext, useTracks } from "@livekit/components-react";
+import { useActiveChatContext } from "./ActiveChatProvider";
 
 interface ActiveRoomContextType {
   url: string;
@@ -38,14 +39,13 @@ export const ActiveRoomProvider = ({ children }: { children: ReactNode }) => {
       const onConnected = () => {
         console.log("Connesso alla stanza:", room.name);
         const result = room.name.replace(/^channel_/, "");
-        socket?.emit("join_channel", { channelId: result });
-        socket?.on("users", (arr)=>{
-          console.log(arr)
-        });
+        //socket?.emit("join_channel", { channelId: result });
+      
       };
 
       const onDisconnected = () => {
         console.log("Disconnesso da:", room.name);
+        //socket?.emit("leave_call", {chatId: chat.activeChat?.id});
       };
 
       room.on(RoomEvent.Connected, onConnected);
@@ -108,8 +108,8 @@ export const ActiveRoomProvider = ({ children }: { children: ReactNode }) => {
     <ActiveRoomContext.Provider value={{ title, url, token, room, setTitle, setUrl, setToken }}>
       <RoomContext value={room}>
           {children}
+        <RoomAudioRenderer></RoomAudioRenderer>
       </RoomContext>
-    
     </ActiveRoomContext.Provider>
   );
 };
@@ -119,4 +119,12 @@ export const useActiveRoomContext = () => {
   if (!ctx)
     throw new Error("useActiveRoomContext deve essere usato dentro ActiveRoomProvider");
   return ctx;
+};
+
+
+export const useRoomStatus = () => {
+  const ctx = useContext(ActiveRoomContext);
+  if (!ctx)
+    throw new Error("useActiveRoomContext deve essere usato dentro ActiveRoomProvider");
+  return ctx.room.state==="connected";
 };

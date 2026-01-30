@@ -8,7 +8,6 @@ import { ChannelType } from "../../types";
 
 export interface ChatTitleProps {
   style: string;
-  /** The template component to be used in the loop. */
   children: React.ReactNode;
 }
 

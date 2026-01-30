@@ -44,7 +44,7 @@ function ChannelChat() {
   };
 
   const removeMessageById = (id: number) => {
-    setMessages(prevMessages => prevMessages.filter(msg => msg.id !== id));
+    setMessages(prevMessages => prevMessages.filter(msg => msg.messageId !== id));
   }
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
-import { Server } from "../types";
+import { endpoint, endpoint2, Server } from "../types";
 
 const ServerContext = createContext<Server[] | null>(null);
 
@@ -12,7 +12,8 @@ export const ServerProvider = ({ children }: { children: ReactNode }) => {
       try {
         
         let list: Server[] = [];
-        const res = await axios.get("http://localhost:4000/servers")
+        const res = await axios.get(endpoint2+"/servers")
+        console.log(res)
         res.data.forEach((element: any) => {
             list.push(Server.fromJSON(element));
         }); 

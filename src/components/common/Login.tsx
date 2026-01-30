@@ -1,3 +1,4 @@
+import { endpoint } from "@/types";
 import axios from "axios";
 import { useRef, useState } from "react";
 
@@ -16,7 +17,7 @@ function Login() {
     const login = () => {
         const execute = async () => {
             const res = await axios.post(
-                "http://localhost:8080/api/login",
+               endpoint+"/login",
                 { username, password },
                 {
                     withCredentials: true,
