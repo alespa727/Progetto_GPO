@@ -1,6 +1,7 @@
 import { endpoint } from "@/types";
 import axios from "axios";
 import { useRef, useState } from "react";
+import { Button } from "../animate-ui/primitives/buttons/button";
 
 function Login() {
     const [username, setUsername] = useState<string>("");
@@ -43,6 +44,7 @@ function Login() {
                 <input className="border" type="password" value={password} onChange={updatePassword} />
                 <p className="text-white">Username: {username}</p>
                 <p className="text-white">Password: {password}</p>
+                <Button className="bg-white text-black"  onClick={login} >Login</Button>
             </div>
 
 

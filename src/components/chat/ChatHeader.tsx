@@ -2,6 +2,7 @@ import { useActiveChatContext } from "@/context/ActiveChatProvider";
 import { useActiveRoomContext, useRoomStatus } from "@/context/CallContext";
 import { useSocket } from "@/context/SocketProvider";
 import { useAccount } from "@/context/UserProvider";
+import { endpoint, endpoint2 } from "@/types";
 import { useRoomContext } from "@livekit/components-react";
 import axios from "axios";
 import { RoomEvent } from "livekit-client";
@@ -36,11 +37,12 @@ export function Header({ value }: { value: string }) {
     
 
     const handleClick = async () => {
-
-        const res = await axios.post("http://localhost:4000/token", {
+        console.log(endpoint2+"/token")
+        const res = await axios.post(endpoint2+"/token", {
             identity: account?.username,
             roomName: "chat_" + chat.id
         });
+        
         setUrl(url)
         setToken(res.data.token);
         setTitle(chat.friend.username);

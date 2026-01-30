@@ -32,7 +32,15 @@ function Chat() {
   useEffect(() => {
     if (!socket) return;
     const handleNewMessage = (data: any) => {
-      setMessages((prevMessages) => [...prevMessages, Message.fromJSON(data)]);
+      const newMessage = Message.fromJSON(data);
+
+      setMessages((prevMessages) => {
+        const exists = prevMessages.some(m => m.messageId === newMessage.messageId);
+        if (exists) {
+          return prevMessages;
+        }
+        return [...prevMessages, newMessage]; 
+      });
     };
     socket.on("newMessage", handleNewMessage);
 

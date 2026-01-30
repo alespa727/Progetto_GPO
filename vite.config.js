@@ -9,5 +9,12 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "src")
     }
+  },
+  server: {
+    host: true, 
+    hmr: {
+      protocol: "wss",               // secure WebSocket
+      host: "https://weightlessly-tres-dagmar.ngrok-free.dev/",       // your ngrok URL                     // usually ngrok forwards HTTPS on 443
+    },
   }
 });

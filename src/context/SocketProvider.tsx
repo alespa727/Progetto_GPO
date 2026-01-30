@@ -12,8 +12,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let newSocket: Socket;
     try {
-      newSocket = io(websocket+"/socket.io");
-      console.log("Connesso al socket!!!!!!!!")
+      newSocket = io(websocket, {
+        transports: ["websocket"]
+      });
 
       newSocket.on("connect", () => {
         console.log("Socket connesso con ID:", newSocket.id);

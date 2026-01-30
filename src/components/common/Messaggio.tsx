@@ -83,7 +83,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                             <span
                                 className={`break-all`}
                             >
-                                {msg.message}
+                                {msg.message+" "+message.messageId}
                             </span>
 
                             {
@@ -98,7 +98,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                         {
                             message.attachments.map(a => {
                                 return (
-                                    <img src={a.attachedPath} alt="img" className="mb-2 h-80 aspect-square" />
+                                    <img key={a.id} src={a.attachedPath} alt="img" className="mb-2 h-80 aspect-square" />
                                 );
                             })
                         }

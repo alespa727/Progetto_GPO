@@ -84,10 +84,10 @@ function ChatCall() {
                 <div className="flex p-3 justify-center items-center gap-3 h-100">
                     {participants.map((p) => {
                         const tracks = participantMap[p.sid];
-                        return tracks ? (
+                        return p.isCameraEnabled && tracks ? (
                             <TrackRefContext.Provider key={p.sid} value={tracks.video ?? tracks.audio}>
                                 <ParticipantContext.Provider value={p}>
-                                    <ParticipantTileCustom videoTrack={tracks.video} />
+                                    <ParticipantTileCustom audioTrack={tracks.audio} videoTrack={tracks.video} />
                                 </ParticipantContext.Provider>
                             </TrackRefContext.Provider>
                         ) : <ParticipantContext.Provider value={p}>

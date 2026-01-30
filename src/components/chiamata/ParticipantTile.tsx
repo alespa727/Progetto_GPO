@@ -1,5 +1,6 @@
 import { endpoint } from "@/types";
 import {
+    AudioTrack,
     ParticipantName,
     TrackRefContext,
     TrackReference,
@@ -17,7 +18,7 @@ import * as motion from "motion/react-client"
 import { useEffect, useState } from "react";
 
 
-export function ParticipantTileCustom({ videoTrack }: { videoTrack?: TrackReference }) {
+export function ParticipantTileCustom({ videoTrack, audioTrack }: { videoTrack?: TrackReference, audioTrack?: TrackReference }) {
     const { audioLevel } = useParticipantContext();
     const room = useRoomContext();
     const participant = useParticipantContext();
@@ -61,6 +62,10 @@ export function ParticipantTileCustom({ videoTrack }: { videoTrack?: TrackRefere
 
                     <div className="relative w-full h-full">
                         <VideoTrack trackRef={videoTrack} className="w-full h-full" />
+                        {
+                            audioTrack ? 
+                            <AudioTrack trackRef={audioTrack} className="w-full h-full" /> : <></>
+                        }
                         <div className="absolute w-full h-full px-4 p-3 top-0 left-0 text-gray-200">
                             <h3 className="text-xl font-medium">
                                 {participant.identity}

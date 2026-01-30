@@ -1,7 +1,8 @@
 export const portServer = 5000;
-export const websocket = "wss://weightlessly-tres-dagmar.ngrok-free.dev"
-export const endpoint = ` https://weightlessly-tres-dagmar.ngrok-free.dev/server2/api`
-export const endpoint2 = `https://weightlessly-tres-dagmar.ngrok-free.dev/server1`
+export const base ="https://weightlessly-tres-dagmar.ngrok-free.dev"
+export const websocket = base;
+export const endpoint =base+"/server2/api";
+export const endpoint2 = base+"/server1"
 
 export enum ChatType {
   FRIEND = "FRIEND",

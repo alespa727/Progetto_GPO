@@ -21,6 +21,7 @@ export function MessageInput({ addMessage, lastMessage }: { addMessage: (message
         if (nuovoTesto.trim() === "") return;
 
         const username: string = account.username;
+        
         let id = chat ? chat.id : null;
         
         let message = new Message(lastMessage ? lastMessage.messageId+1: 0, username, nuovoTesto);
