@@ -1,55 +1,85 @@
+export const portServer = 8080;
+export const endpoint = `http://localhost:${portServer}/api`
+
+
 export enum ChatType {
   FRIEND = "FRIEND",
   CHANNEL = "CHANNEL",
 }
 
-// Classe User
-export class User {
-  id: number;
+export class Account {
+  createdAt: Date;
+  isAdmin: boolean;
+  path: string;
   username: string;
-  password: string;
 
-  constructor(id: number, username: string, password: string) {
-    this.id = id;
+  constructor(
+    createdAt: Date,
+    isAdmin: boolean,
+    path: string,
+    username: string
+  ) {
+    this.createdAt = createdAt;
+    this.isAdmin = isAdmin;
+    this.path = path;
     this.username = username;
-    this.password = password;
+  }
+
+  static fromJSON(json: any): Account {
+    return new Account(json.createdAt, json.isAdmin, json.path, json.username);
   }
 }
 
-// Classe Friendship
-export class Friendship {
-  id: number;
-  user1: User;
-  user2: User;
+export class Friend {
+  imagePath: string;
+  username: string;
 
-  constructor(id: number, user1: User, user2: User) {
-    this.id = id;
-    this.user1 = user1;
-    this.user2 = user2;
+  constructor(
+    path: string,
+    username: string
+  ) {
+    this.imagePath = path;
+    this.username = username;
+  }
+
+  static fromJSON(json: any): Friend {
+    return new Friend(json.imagePath, json.username);
   }
 }
 
-// Classe PrivateChat
-export class PrivateChat{
-  type: ChatType.FRIEND;
-  messages: Message[];
-  friendship: Friendship;
+export class Chat {
   id: number;
+  friend: Friend
 
-  constructor(id: number, friendship: Friendship) {
-    this.type = ChatType.FRIEND;
-    this.friendship = friendship;
-    this.messages = [];
+  constructor(id: number, friend: Friend) {
     this.id = id;
+    this.friend = friend;
   }
 
-    /**
-   * addMessages
-   */
-  public addMessages(messages: Message[]) {
-    messages.forEach((message)=>{
-      this.messages.push(message);
-    })
+  static fromJSON(json: any): Chat {
+    return new Chat(json.id, json.friend);
+  }
+}
+
+// ================= Message =================
+export class Message {
+  messageId: number;
+  username: string;
+  message: string;
+  sentAt: Date;
+
+  constructor(messageId: number, username: string, message: string, sentAt?: Date) {
+    this.messageId = messageId;
+    this.username = username;
+    this.message = message;
+    this.sentAt = sentAt ?? new Date();
+   
+  }
+
+  static fromJSON(json: any): Message {
+    let message = new Message(json.messageId, json.username, json.message, new Date(json.sentAt));
+     console.log(json, message)
+    return message
   }
 }
 
@@ -87,6 +117,13 @@ export class TextChannel extends Channel {
   addMessages(messages: Message[]) {
     this.messages.push(...messages);
   }
+  removeMessage(id: number) {
+    const index = this.messages.findIndex(m => m.messageId === id);
+    if (index !== -1) {
+      this.messages.splice(index, 1);
+    }
+  }
+
 }
 
 export class VoiceChannel extends Channel {
@@ -139,36 +176,5 @@ export class Server {
 
   addSection(section: Section) {
     this.sections.push(section);
-  }
-}
-
-// Classe Message
-export class Message {
-  text: string;
-  sender: User;
-  time: Date;
-
-  constructor(text: string, sender: User, time?: Date) {
-    this.text = text;
-    this.sender = sender;
-    this.time = time ?? new Date();
-  }
-}
-
-
-export class PrivateChatResponse {
-  chatId: number;
-  otherUser: User;
-
-  constructor(privateChat: PrivateChat, requester: User) {
-    this.chatId = privateChat.id;
-
-    if (privateChat.friendship.user1.id === requester.id) {
-      this.otherUser = privateChat.friendship.user2;
-    } else if (privateChat.friendship.user2.id === requester.id) {
-      this.otherUser = privateChat.friendship.user1;
-    } else {
-      throw new Error("Requester non fa parte di questa chat");
-    }
   }
 }
