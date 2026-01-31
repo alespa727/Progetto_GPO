@@ -25,4 +25,7 @@ public interface RegistrationsRepo extends JpaRepository<Registration, Registrat
 	List<User> findUsersOfCommunty(@Param("communityId") Integer communityId);
 	
 	boolean existsRegistrationByFkUserAndFkCommunity(User u, Community c);
+
+	@Query("SELECT r FROM Registration r WHERE (r.fkCommunity = :community AND r.fkUser = :user)")
+	Registration findByFkCommunityAndFkUser(@Param("community") Community c, @Param("user") User u);
 }

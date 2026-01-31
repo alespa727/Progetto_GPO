@@ -15,6 +15,7 @@ import it.edu.maxplanck.gpoProject_Server.database.model.Community;
 import it.edu.maxplanck.gpoProject_Server.database.model.Friendship;
 import it.edu.maxplanck.gpoProject_Server.database.model.MessageChat;
 import it.edu.maxplanck.gpoProject_Server.database.model.MessageCommunity;
+import it.edu.maxplanck.gpoProject_Server.database.model.Registration;
 import it.edu.maxplanck.gpoProject_Server.database.model.Section;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.repositories.*;
@@ -539,8 +540,6 @@ public class DatabaseService {
 	public Community findCommunity(Integer id, Integer commmunityId) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
-		this.findUser(id);
-		
 		Community c = this.communitiesRepo.findById(commmunityId).orElse(null);
 		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
 		if(!this.isUserPartOfCommunity(id, c)) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_COMMUNITY);
@@ -728,5 +727,34 @@ public class DatabaseService {
 		Channel ch = this.findChannel(channelId);
 		
 		this.channelsRepo.delete(ch);
+	}
+
+	public void createRegistration(Integer id, Integer communityId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		Community c = this.communitiesRepo.findById(communityId).orElse(null);
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
+		
+		if(this.registrationsRepo.existsRegistrationByFkUserAndFkCommunity(u, c)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_ALREADY_CREATED);
+		if(c.getFkUserOwner().getPkID() == id) return;
+		
+		Registration r = new Registration(c, u);
+		
+		this.registrationsRepo.save(r);
+	}
+
+	public void deleteRegistration(int id, Integer communityId) {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		Community c = this.communitiesRepo.findById(communityId).orElse(null);
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
+		
+		if(!this.registrationsRepo.existsRegistrationByFkUserAndFkCommunity(u, c)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_NOT_FOUND);
+		
+		Registration r = this.registrationsRepo.findByFkCommunityAndFkUser(c, u);
+		
+		this.registrationsRepo.delete(r);
 	}
 }

@@ -39,6 +39,13 @@ public final class Registration {
 		super();
 	}
 	
+	public Registration(Community fkCommunity, User fkUser) {
+		super();
+		this.fkCommunity = fkCommunity;
+		this.fkUser = fkUser;
+		this.date = null;
+	}
+	
 	public Registration(Community fkCommunity, User fkUser, LocalDateTime date) {
 		super();
 		this.fkCommunity = fkCommunity;

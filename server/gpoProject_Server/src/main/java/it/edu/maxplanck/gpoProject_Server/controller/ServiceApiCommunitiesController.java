@@ -77,6 +77,38 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		return ResponseEntity.created(null).build();
 	}
 
+	@PostMapping("communities/{community}/subscription")
+	public ResponseEntity<?> postSubscriptionCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId) {
+		
+		/*
+		 * Autentificazione
+		 */
+		int id = this.authenticationService.authenticate(request, response);
+		
+		/*
+		 * Fa la iscrizione alla community
+		 */
+		this.databaseService.createRegistration(id, communityId);
+		
+		return ResponseEntity.ok().build();
+	}
+	
+	@DeleteMapping("communities/{community}/deleteSubscription")
+	public ResponseEntity<?> deleteSubscriptionCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId) {
+		
+		/*
+		 * Autentificazione
+		 */
+		int id = this.authenticationService.authenticate(request, response);
+		
+		/*
+		 * Fa la iscrizione alla community
+		 */
+		this.databaseService.deleteRegistration(id, communityId);
+		
+		return ResponseEntity.ok().build();
+	}
+	
 	/**
 	 * Ottiene i dati di una community
 	 * @param request

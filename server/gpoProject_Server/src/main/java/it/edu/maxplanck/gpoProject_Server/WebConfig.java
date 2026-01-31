@@ -1,8 +1,5 @@
 package it.edu.maxplanck.gpoProject_Server;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -21,10 +18,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.upload.dir.files}")
 	private String uploadDirFiles;
     
-    private List<String> allowedOrigins = new ArrayList<String>();
+    private String[] allowedOrigins;
     
     public WebConfig(@Value("${client.port}") String clientPort) {
-    	this.allowedOrigins.add(clientPort);
+    	this.allowedOrigins = new String[] {
+    			clientPort
+    	};
     }
 
     @Override
@@ -38,7 +37,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins((String[]) this.allowedOrigins.toArray())
+                .allowedOrigins((String[]) this.allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
