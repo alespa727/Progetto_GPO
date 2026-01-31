@@ -729,8 +729,10 @@ public class DatabaseService {
 		this.channelsRepo.delete(ch);
 	}
 
-	public void createRegistration(Integer id, Integer communityId) throws DatabaseException {
+	public void createRegistration(Integer id, Integer communityId, String inviteCode) throws DatabaseException {
 		// TODO Auto-generated method stub
+		
+		if(inviteCode == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
 		
 		User u = this.findUser(id);
 		Community c = this.communitiesRepo.findById(communityId).orElse(null);
@@ -738,6 +740,7 @@ public class DatabaseService {
 		
 		if(this.registrationsRepo.existsRegistrationByFkUserAndFkCommunity(u, c)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_ALREADY_CREATED);
 		if(c.getFkUserOwner().getPkID() == id) return;
+		if(!inviteCode.equals(c.getInviteCode()) || !c.isInviteCodeValid()) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_NOT_DONE);
 		
 		Registration r = new Registration(c, u);
 		
@@ -756,5 +759,17 @@ public class DatabaseService {
 		Registration r = this.registrationsRepo.findByFkCommunityAndFkUser(c, u);
 		
 		this.registrationsRepo.delete(r);
+	}
+
+	public void updateCommunity(Integer id, Integer communityId, Boolean inviteCodeValid, String name, String description) {
+		// TODO Auto-generated method stub
+		
+		Community c = this.findCommunity(id,communityId);
+		
+		if(inviteCodeValid != null && ((c.isInviteCodeValid() && !inviteCodeValid) || (!c.isInviteCodeValid() && inviteCodeValid))) c.setInviteCodeValid(inviteCodeValid);
+		
+		if(name != null && !c.getName().equals(name)) c.setName(name);
+		
+		if(description != null && (c.getDescription() == null || !c.getDescription().equals(description))) c.setDescription(description);
 	}
 }

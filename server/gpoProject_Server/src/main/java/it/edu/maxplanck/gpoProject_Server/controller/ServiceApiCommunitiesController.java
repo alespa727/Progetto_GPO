@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +25,7 @@ import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChannelDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSectionDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSubscriptionDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountsDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChannelDTO;
@@ -56,7 +58,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("community")
-	public ResponseEntity<?> postCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunityDTO body) {
+	public ResponseEntity<?> patchCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunityDTO body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -77,8 +79,30 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		return ResponseEntity.created(null).build();
 	}
 
+	@PatchMapping("communities/{community}")
+	public ResponseEntity<?> postCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunityDTO body, @PathVariable("community") Integer communityId) {
+
+		/*
+		 * Controlla se body request valido:
+		 * 		- No -> Errore
+		 */
+		this.authenticationService.getAuthenticationRequestDTOService().authCommunityDTO(body);
+		
+		/*
+		 * Autentificazione
+		 */
+		int id = this.authenticationService.authenticate(request, response);
+		
+		/*
+		 * Crea una nuova community in database
+		 */
+		this.databaseService.updateCommunity(id, communityId, body.isInviteCodeValid(), body.name(), body.description());
+	
+		return ResponseEntity.ok().build();
+	}
+	
 	@PostMapping("communities/{community}/subscription")
-	public ResponseEntity<?> postSubscriptionCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId) {
+	public ResponseEntity<?> postSubscriptionCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @RequestBody RequestSubscriptionDTO body) {
 		
 		/*
 		 * Autentificazione
@@ -88,7 +112,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Fa la iscrizione alla community
 		 */
-		this.databaseService.createRegistration(id, communityId);
+		this.databaseService.createRegistration(id, communityId, body.inviteCode());
 		
 		return ResponseEntity.ok().build();
 	}

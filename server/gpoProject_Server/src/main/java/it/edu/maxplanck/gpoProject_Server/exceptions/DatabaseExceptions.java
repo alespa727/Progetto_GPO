@@ -24,7 +24,8 @@ public enum DatabaseExceptions {
 	DB_CHANNEL_IS_NOT_PART_OF_SECTION("Il canale non fa parte della sezione", HttpStatus.FORBIDDEN),
 	DB_SECTION_IS_NOT_PART_OF_COMMUNITY("La sezione non fa parte della community", HttpStatus.FORBIDDEN),
 	DB_REGISTRATION_ALREADY_CREATED("Iscrizione gia' avvenuta", HttpStatus.CONFLICT),
-	DB_REGISTRATION_NOT_FOUND("Iscrizione non trovata", HttpStatus.NOT_FOUND);
+	DB_REGISTRATION_NOT_FOUND("Iscrizione non trovata", HttpStatus.NOT_FOUND),
+	DB_REGISTRATION_NOT_DONE("Iscrizione non terminata", HttpStatus.FORBIDDEN);
 	
 	private final String message;
 	private final HttpStatus responseStatus;
