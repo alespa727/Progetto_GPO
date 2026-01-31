@@ -11,7 +11,6 @@ import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.model.Attached;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 
 /**
  * Classe astratta che ogni rest controller dovra' ereditare.
@@ -19,6 +18,15 @@ import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
  */
 @RequestMapping("api")
 public abstract class BasicApiRestController {
+	
+	@Value("${standard.server.path}")
+	protected String standardServerPath;
+	
+	@Value("${standard.image.path}")
+	protected String standardPathImages;
+	
+	@Value("${standard.files.path}")
+	protected String standardPathFiles;
 	
 	@Value("${app.upload.dir.images}")
 	protected String uploadDirImages;
@@ -42,17 +50,17 @@ public abstract class BasicApiRestController {
 	 */
 	protected String findImage(User u) {
 		String image = null;
-		if(u.getImagePath() != null) {
-			
-			// Controllo se la immagine esiste o e' stata eliminata/persa
-			Path imagePath = Paths.get(this.uploadDirImages).resolve(u.getImagePath());
-			
-			if (!Files.exists(imagePath)) {
-				// immagine persa → reset DB
-				this.databaseService.updateUserProfile(u.getPkID(), null);
-			}else {
-				image = GenericUtil.standardPathImages + u.getImagePath();
-			}
+		
+		if(u == null || u.getImagePath() == null) return image;
+		
+		// Controllo se la immagine esiste o e' stata eliminata/persa
+		Path imagePath = Paths.get(this.uploadDirImages).resolve(u.getImagePath());
+		
+		if (!Files.exists(imagePath)) {
+			// immagine persa → reset DB
+			this.databaseService.updateUserProfile(u.getPkID(), null);
+		} else {
+			image = this.standardServerPath + this.standardPathImages + u.getImagePath();
 		}
 		
 		return image;
@@ -65,16 +73,16 @@ public abstract class BasicApiRestController {
 	 */
 	protected String findAttachment(Attached a) {
 		String path = null;
-		if(a.getPath() != null) {
+		if(a.getFilename() != null && a.getExtension() != null) {
 			
 			// Controllo se la immagine esiste o e' stata eliminata/persa
-			Path imagePath = Paths.get(this.uploadDirFiles).resolve(a.getPath());
+			Path imagePath = Paths.get(this.uploadDirFiles).resolve(a.getFilename() + a.getExtension());
 			
 			if (!Files.exists(imagePath)) {
 				// immagine persa → reset DB
 				this.databaseService.deleteAttached(a.getPkID());
-			}else {
-				path = GenericUtil.standardPathFiles + a.getPath();
+			} else {
+				path = "";
 			}
 		}
 		

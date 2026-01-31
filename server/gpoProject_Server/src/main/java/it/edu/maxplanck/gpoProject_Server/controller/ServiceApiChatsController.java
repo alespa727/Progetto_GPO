@@ -215,7 +215,8 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		int id = this.authenticationService.authenticate(request, response);
 		this.databaseService.findUser(id);
 		
-		List<String> pathFiles = new ArrayList<String>();
+		List<String> filename = new ArrayList<String>();
+		List<String> extension = new ArrayList<String>();
 		
 		/*
 		 * Permette tutti i file
@@ -226,9 +227,10 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		/*
 		 * Salva il file nel server
 		 */
-		for (MultipartFile file : files) {
-			if(!file.isEmpty()) {
+		for (int i = 0; i < files.length; i++) {
+			if(!files[i].isEmpty()) {
 	            String fileName = null;
+	            String extenc = null;
 	    	    Path uploadPath = Paths.get(this.uploadDirFiles);
 
 	    	    try {
@@ -238,7 +240,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 	    		    	fileName = GenericUtil.generateString(((int)UtilDatabase.AttachedData.pathLenght / 4), GenericUtil.CHARSET);
 	    		    }while(Files.exists(uploadPath.resolve(fileName)));
 	    	        
-	    	        String mimeType = tika.detect(file.getInputStream());
+	    	        String mimeType = tika.detect(files[i].getInputStream());
 	    	        
 	                if (GenericUtil.DENIED_MIME_TYPES.contains(mimeType)) {
 	                	throw new DataException(DataExceptions.DATA_FILES_NOT_VALID);
@@ -253,20 +255,23 @@ public class ServiceApiChatsController extends BasicApiRestController {
 						throw new DataException(DataExceptions.DATA_FILES_NOT_VALID);
 					}
 					
-	               fileName += tikaMime.getExtension();
+					extenc = tikaMime.getExtension();
 	    	        
-	    	        GenericUtil.saveFile(uploadPath, file.getBytes(), fileName);
+	    	        GenericUtil.saveFile(uploadPath, files[i].getBytes(), fileName + extenc);
 	    	    } catch (IOException e) {
 	    	        e.printStackTrace();
 	    	        fileName = null;
 	    	    }
 	    	    
-	            pathFiles.add(fileName);
+	    	    if(fileName != null) {
+	    	    	filename.add(fileName);
+	    	    	extension.add(extenc);
+	    	    }
 			}
         }
 		
 		message = (body == null || body.message() == null)? null : body.message();
-		this.databaseService.createAttachmentChat(id, chatId, pathFiles, message);
+		this.databaseService.createAttachmentChat(id, chatId, filename, extension, message);
 		
 		return ResponseEntity.ok().build();
 	}
@@ -302,7 +307,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 			
 			for(Attached a : attachedMessage) {
 				String path = this.findAttachment(a);
-				if(path != null) attachements.add(new ResponseAttachedChatDTO(a.getPkID(), path));
+				if(path != null) attachements.add(new ResponseAttachedChatDTO(a.getPkID(), this.standardServerPath + this.standardPathFiles, a.getFilename(), a.getExtension()));
 			}
 			
 			mess.add(new ResponseMessageChatDTO(m.getPkID(), m.getFkUser().getUsername(), m.getMessage(), m.getSentAt(), (attachements.isEmpty()? null : attachements)));

@@ -100,28 +100,6 @@ public class StarterApiController extends BasicApiRestController {
 
 		return ResponseEntity.ok().build();
 	}
-	
-	/**
-	 * Aggiorna i dati dello status
-	 * @param request
-	 * @param response
-	 * @return
-	 */
-	@PostMapping("status")
-	public ResponseEntity<?> status(HttpServletRequest request, HttpServletResponse response){
-		
-		/*
-		 * Autentificazione
-		 */
-		int id = this.authenticationService.authenticate(request, response);
-		
-		/*
-		 * Update database
-		*/
-		this.databaseService.updateStatusUser(id);
-		
-		return ResponseEntity.ok().build();
-	}
 
 	/**
 	 * Fa il logout

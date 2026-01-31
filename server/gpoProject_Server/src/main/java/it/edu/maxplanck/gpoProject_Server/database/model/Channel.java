@@ -47,6 +47,16 @@ public final class Channel {
 		super();
 	}
 	
+	public Channel(Section fkSection, String name, String type, String description) {
+		super();
+		this.pkID = null;
+		this.fkSection = fkSection;
+		this.name = name;
+		this.type = type;
+		this.description = description;
+		this.createdAt = null;
+	}
+	
 	public Channel(Integer pkID, Section fkSection, String name, String type, String description, LocalDate createdAt) {
 		super();
 		this.pkID = pkID;

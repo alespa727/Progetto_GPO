@@ -45,6 +45,15 @@ public final class MessageCommunity {
 		super();
 	}
 	
+	public MessageCommunity(Channel fkChannel, User fkUser, String message) {
+		super();
+		this.pkID = null;
+		this.fkChannel = fkChannel;
+		this.fkUser = fkUser;
+		this.message = message;
+		this.sentAt = null;
+	}
+	
 	public MessageCommunity(Integer pkID, Channel fkChannel, User fkUser, String message, LocalDateTime sentAt) {
 		super();
 		this.pkID = pkID;

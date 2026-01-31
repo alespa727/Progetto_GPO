@@ -25,9 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public class GenericUtil {
 
-	public static final String standardPathImages = "http://localhost:8080/images/";
-	public static final String standardPathFiles = "http://localhost:8080/files/";
-
 	public static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 	
 	public static final String CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -121,8 +118,8 @@ public class GenericUtil {
 	    int w = original.getWidth();
 	    int h = original.getHeight();
 
-	    // Determina il lato più corto per creare il quadrato perfetto
-	    int targetSize = Math.min(w, h);
+	    // Determina il lato più lungo per creare il quadrato perfetto
+	    int targetSize = Math.max(w, h);
 
 	    // Crea la tela quadrata
 	    BufferedImage squareImage = new BufferedImage(targetSize, targetSize, BufferedImage.TYPE_INT_RGB);

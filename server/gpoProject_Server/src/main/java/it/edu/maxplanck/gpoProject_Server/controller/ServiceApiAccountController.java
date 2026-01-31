@@ -96,7 +96,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		 */
 		User u = this.databaseService.findUser(id);
 		
-		String image = (u.getImagePath() == null)? null : GenericUtil.standardPathImages + u.getImagePath();
+		String image = (u.getImagePath() == null)? null : this.standardServerPath + this.standardPathImages + u.getImagePath();
 		/*
 		 * Ritorna dati
 		 */

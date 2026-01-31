@@ -11,7 +11,9 @@ use progetto_gpo;
 CREATE TABLE attachments (
 	id INT AUTO_INCREMENT,
 	fkMessage INT NOT NULL,
-	path VARCHAR(255),
+	path VARCHAR(20),
+	filename VARCHAR(255),
+	extension VARCHAR(10),
 	PRIMARY KEY(id)
 );
 
@@ -135,46 +137,3 @@ ALTER TABLE channels ADD CONSTRAINT fkChannelsSections FOREIGN KEY(fkSection) RE
 
 ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityChannels FOREIGN KEY(fkChannel) REFERENCES channels(id) ON DELETE CASCADE;
 ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityUsers FOREIGN KEY(fkUser) REFERENCES users(id);
-
-
-/* CONTROLLI */
-
-describe attachments; 
-describe calls; 
-describe channels; 
-describe chats; 
-describe communities; 
-describe friendships; 
-describe messageschat; 
-describe messagescommunity; 
-describe registrations; 
-describe sections; 
-describe users;
-
-
-
-SHOW CREATE TABLE attachments;
-SHOW CREATE TABLE calls;
-SHOW CREATE TABLE channels;
-SHOW CREATE TABLE chats;
-SHOW CREATE TABLE communities;
-SHOW CREATE TABLE friendships;
-SHOW CREATE TABLE messagesChat;
-SHOW CREATE TABLE messagesCommunity;
-SHOW CREATE TABLE registrations;
-SHOW CREATE TABLE sections;
-SHOW CREATE TABLE users;
-
-
-
-select * from attachments;
-select * from calls;
-select * from channels;
-select * from chats;
-select * from communities;
-select * from friendships;
-select * from messagesChat;
-select * from messagesCommunity;
-select * from registrations;
-select * from sections;
-select * from users;

@@ -17,7 +17,13 @@ public final class UtilDatabase {
 		
 		
 		public static final String columnNamePath = "path";
-		public static final int pathLenght = 255;
+		public static final int pathLenght = 20;
+		
+		public static final String columnNameFilename = "filename";
+		public static final int filenameLenght = 255;
+		
+		public static final String columnNameExtension = "extension";
+		public static final int extensionLenght = 10;
 	}
 	
 	// Model Call -----------------------------------------------------

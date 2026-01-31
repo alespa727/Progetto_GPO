@@ -14,7 +14,15 @@ public enum DatabaseExceptions {
 	DB_CHAT_ALREADY_CREATED("Chat gia' creata", HttpStatus.CONFLICT),
 	DB_CALL_STILL_OPEN("Una altra chiamata ancora attiva", HttpStatus.CONFLICT), 
 	DB_FRIENDSHIP_NOT_CREATED("Amicizia non trovata", HttpStatus.NOT_FOUND),
-	DB_ATTACHED_NOT_FOUND("Allegato non trovato", HttpStatus.NOT_FOUND);
+	DB_ATTACHED_NOT_FOUND("Allegato non trovato", HttpStatus.NOT_FOUND),
+	DB_COMMUNITY_NOT_FOUND("Community non trovata", HttpStatus.NOT_FOUND),
+	DB_USER_IS_NOT_PART_OF_COMMUNITY("L'utente non fa parte della commmunity", HttpStatus.FORBIDDEN),
+	DB_NO_USERS_FOUND_IN_COMMUNITY("Nessun utente fa parte della community a parte dell'owner", HttpStatus.NOT_FOUND),
+	DB_SECTION_NOT_FOUND("Nessuna sezione trovata", HttpStatus.NOT_FOUND),
+	DB_CHANNEL_NOT_FOUND("Nessun canale trovato", HttpStatus.NOT_FOUND),
+	DB_CHANNEL_IS_NOT_FOR_TEXT("Canale non dedicato allo scrivere", HttpStatus.NOT_ACCEPTABLE),
+	DB_CHANNEL_IS_NOT_PART_OF_SECTION("Il canale non fa parte della sezione", HttpStatus.FORBIDDEN),
+	DB_SECTION_IS_NOT_PART_OF_COMMUNITY("La sezione non fa parte della community", HttpStatus.FORBIDDEN);
 	
 	private final String message;
 	private final HttpStatus responseStatus;

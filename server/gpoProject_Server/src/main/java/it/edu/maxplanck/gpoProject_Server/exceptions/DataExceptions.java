@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum DataExceptions {
 	
+	DATA_FORBIDDEN("Non hai i permessi per accedere all'endpoint", HttpStatus.FORBIDDEN),
 	DATA_FILES_NOT_VALID("File non accettati poiche' pericolosi", HttpStatus.BAD_REQUEST),
 	DATA_IMAGE_NOT_FOUND("Immagine non trovata, puo' essere stata persa", HttpStatus.NOT_FOUND);
 	

@@ -35,6 +35,13 @@ public final class Section {
 	public Section(){
 		super();
 	}
+
+	public Section(Community fkCommunity, String name) {
+		super();
+		this.pkID = null;
+		this.fkCommunity = fkCommunity;
+		this.name = name;
+	}
 	
 	public Section(Integer pkID, Community fkCommunity, String name) {
 		super();
