@@ -40,7 +40,7 @@ public final class User {
 	@Column(name = UserData.columnNameTimeLastAccess)
 	private LocalDateTime timeLastAccess;
 	
-	@Column(name = UserData.columnNameCreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(nullable = false)
 	private LocalDate createdAt;
 	
 	@Column(name = UserData.columnNameImagePath, length = UserData.imagePathLenght)
@@ -57,7 +57,7 @@ public final class User {
 		this.password = password;
 		this.isAdmin = null;
 		this.timeLastAccess = null;
-		this.createdAt = null;
+	    this.createdAt = LocalDate.now();
 		this.imagePath = null;
 	}
 	
