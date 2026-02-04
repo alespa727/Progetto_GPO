@@ -35,7 +35,7 @@ public final class Chat {
 	@Column(name = ChatData.columnNameTimeLastMessage)
 	private LocalDateTime timeLastMessage;
 	
-	@Column(name = ChatData.columnNamecreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(nullable = false)
 	private LocalDate createdAt;
 
 	public Chat(){
