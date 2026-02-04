@@ -34,8 +34,7 @@ public final class Friendship {
 	@JoinColumn(name = FriendshipData.columnNameFkUser2, nullable = false)
 	private User fkUser2;
 	
-	// Entity Fields
-	@Column(name = FriendshipData.columnNameCreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(nullable = false)
 	private LocalDate createdAt;
 
 	public Friendship(){
