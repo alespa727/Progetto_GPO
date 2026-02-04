@@ -1,24 +1,60 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
-import { endpoint, endpoint2, Server } from "../types";
+import { Channel, ChannelType, endpoint, endpoint2, Section, Server } from "../types";
 
 const ServerContext = createContext<Server[] | null>(null);
 
 export const ServerProvider = ({ children }: { children: ReactNode }) => {
   const [servers, setServers] = useState<Server[] | null>(null);
+  const example: Server[] = [
+    new Server(
+      1,
+      "Example Server",
+      [
+        new Section(
+          1,
+          "General",
+          [
+            new Channel(
+              1,
+              ChannelType.VOICE,
+              "General Voice",
+              "Canale vocale principale"
+            ),
+            new Channel(
+              2,
+              ChannelType.TEXT,
+              "general-chat",
+              "Chat generale del server"
+            )
+          ]
+        )
+      ],
+      "Server di esempio",
+      new Date()
+    )
+  ];
 
   useEffect(() => {
     const fetchServers = async () => {
       try {
-        
+
         let list: Server[] = [];
-        const res = await axios.get(endpoint2+"/servers")
-        console.log(res)
-        res.data.forEach((element: any) => {
-            list.push(Server.fromJSON(element));
-        }); 
+        const res = await axios.get(endpoint2 + "/services/communities", {
+          withCredentials: true
+        });
+        console.log("SERVER", res.data.communities[0])
+        for (let i = 0; i < res.data.communities.length; i++) {
+          const element = res.data.communities[i]
+          console.log("server",Server.fromJSON(element));
+          list.push(Server.fromJSON(element))
+        }
+      
+        console.log(list)
+
+        setServers(example);
         setServers(list);
-        
+
       } catch (err) {
         console.error("Errore nel fetch utente:", err);
       }

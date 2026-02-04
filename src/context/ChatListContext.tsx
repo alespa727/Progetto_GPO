@@ -1,4 +1,4 @@
-import { Chat, endpoint } from "@/types";
+import { Chat, endpoint2 } from "@/types";
 import axios from "axios";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
@@ -11,7 +11,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const fetchChats = async () => {
       try {
        
-        const res = await axios.get(endpoint+"/services/chats", {
+        const res = await axios.get(endpoint2+"/services/chats", {
                     withCredentials: true
                 });
         const chats : Chat[] = res.data.chats.map((c: any)=>Chat.fromJSON(c))

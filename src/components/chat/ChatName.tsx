@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useChatContext } from "../../context/ChatContext";
 
 export function ChatName() {
@@ -9,8 +10,8 @@ export function ChatName() {
     }
 
     return (
-        <>
+        <motion.div>
             {username}
-        </>
+        </motion.div >
     );
 }

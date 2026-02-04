@@ -20,7 +20,10 @@ export function getImagePath(){
     const chat = useChatContext();
     
     if(chat){
-        console.log("Chat",chat, chat.friend.imagePath)
-        return chat.friend.imagePath;
+        if(chat.friend.imagePath){
+            console.log("Chat",chat, chat.friend.imagePath.replace("http://localhost:8080/images","/pfp"));
+            return chat.friend.imagePath.replace("http://localhost:8080/","");
+        }
+        return "";
     } 
 }

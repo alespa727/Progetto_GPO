@@ -9,7 +9,6 @@ import { useChatContext } from "@/context/ChatContext";
 
 function CallInterface() {
     const room = useActiveRoomContext().room;
-    const title = useActiveRoomContext().title;
     const chat = useChatContext();
     const socket = useSocket();
     const { setToken } = useActiveRoomContext();

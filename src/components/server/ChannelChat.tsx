@@ -1,66 +1,72 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../../styles/Chat.css";
-import axios from "axios";
-import { Message, ChannelType } from "../../types.tsx";
+import { Channel, endpoint2, Message } from "../../types.tsx";
 import { useSocket } from "../../context/SocketProvider.tsx";
-import { useActiveServerContext } from "../../context/ActiveServerProvider.tsx";
-import { Plus } from "lucide-react";
-import { Messaggio } from "../common/Messaggio.tsx";
+import { useChatContext } from "../../context/ChatContext.tsx";
+import { ListaMessaggi } from "../common/ListaMessaggi.tsx";
+import ChatCall from "../chiamata/ChatCall.tsx";
+import axios from "axios";
 import { useAccount } from "@/context/UserProvider.tsx";
+import { useServerContext } from "@/context/ServerContext.tsx";
+import { Header } from "../chat/ChatHeader.tsx";
+import { MessageInput } from "../chat/MessageInput.tsx";
+import { useActiveServerContext } from "@/context/ActiveServerProvider.tsx";
+import { head } from "motion/react-client";
+import { Plus } from "lucide-react";
 
 function ChannelChat() {
-  const user = useAccount();
   const socket = useSocket();
-  const [nuovoTesto, setNuovoTesto] = useState<string>("");
-  const messagesRef = useRef<null | HTMLDivElement>(null);
-  const activeServer = useActiveServerContext().activeServer;
-  const activeChannel = useActiveServerContext().activeChannel;
-  const setActiveChannel = useActiveServerContext().setActiveChannel;
-  const [messages, setMessages] = useState<Message[]>([]);
+  const messagesRef = useRef<Message[]>([]);
+  const [, forceUpdate] = useState(0);
+  const serverContext = useActiveServerContext();
+
+  const account = useAccount();
+  const messages = messagesRef.current;
   const [header, setHeader] = useState<string>("");
-  const [isCallActive, setCallActive] = useState<boolean>(false);
-  const [selectedMsgIndex, setSelectedMsgIndex] = useState<number | null>(null);
-
-  const scrollToBottom = () => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTo({
-        top: messagesRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  const aggiungiMessaggio = () => {
-    if (!socket) return;
-    if (!nuovoTesto) return;
-    if (nuovoTesto.trim() === "") return;
-    if (!user) return;
-    let id = activeChannel ? activeChannel.id : null;
-    let message = new Message(-1, nuovoTesto, user.username, new Date());
-    let type = "channel";
-    socket.emit("sendMessage", { id, type, message });
-
-    setNuovoTesto("");
-  };
-
-  const removeMessageById = (id: number) => {
-    setMessages(prevMessages => prevMessages.filter(msg => msg.messageId !== id));
-  }
-
+  const [channel, setChannel] = useState<Channel | null>(null);
+  const [nuovoTesto, setNuovoTesto] = useState<string>("");
   useEffect(() => {
-    setCallActive(activeChannel?.type === ChannelType.VOICE);
-  }, [activeChannel]);
+    setChannel(serverContext.activeChannel)
+    console.log("Canale attivo", serverContext.activeChannel)
+    joinChannel();
+  }, [serverContext.activeChannel])
+
+  function addMessage(msg: Message) {
+    messagesRef.current.push(msg);
+    forceUpdate(prev => prev + 1);
+  }
+  /*
+  useEffect(() => {
+    if (!channel) return;
+    if (!socket) return;
+    const id = channel.id;
+    joinServer(channel?.id);
+
+    return () => { socket.emit("leave_server", { id }); };
+  }, [channel, socket]);*/
 
   useEffect(() => {
     if (!socket) return;
     const handleNewMessage = (data: any) => {
-      setMessages((prevMessages) => [...prevMessages, Message.fromJSON(data)]);
+      console.log(data)
+      if (!data) {
+        console.warn("Received null message from socket", data);
+        return;
+      }
+      const newMessage = Message.fromJSON(data);
+
+      if (newMessage.username !== account?.username) {
+        addMessage(newMessage)
+      }
     };
     socket.on("newMessage", handleNewMessage);
 
     const handleDeletedMessage = (data: any) => {
-      console.log("messaggio eliminato", data)
       removeMessageById(data.messageId);
+    }
+
+    const removeMessageById = (id: number) => {
+      messagesRef.current = messagesRef.current.filter(msg => msg.messageId !== id);
     }
     socket.on("deletedMessage", handleDeletedMessage);
 
@@ -70,101 +76,69 @@ function ChannelChat() {
     };
   }, [socket]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const fetchMessages = async (id: number) => {
-    let endpoint;
+    /*
+   if (!channel) return
+  
+   let endpointUrl = `${endpoint2}/services/chats/${id}/messages`;
+   console.log(endpointUrl)
+   try {
+     const res = await axios.get(endpointUrl, {
+       withCredentials: true
+     });
 
-    endpoint = `http://localhost:4000/channel/${id}/messages`;
-
-    try {
-      const res = await axios.get(endpoint);
-      if (res.data.message) return;
-      const newMessages = res.data.map((msg: any) => Message.fromJSON(msg));
-      setMessages(newMessages);
-
-      setTimeout(() => {
-        scrollToBottom();
-      }, 50);
-    } catch (err) {
-      console.error("Errore fetch messages:", err);
-    }
+     const newMessages = res.data.messages.map((msg: any) => Message.fromJSON(msg));
+     messagesRef.current = newMessages;
+     forceUpdate(prev => prev + 1);
+   } catch (err) {
+     console.error("Errore fetch messages:", err);
+   }*/
   };
-
-
-  useEffect(() => {
-    if (!activeChannel) return;
-    if (!socket) return;
-
-    const channelId = activeChannel.id;
-    console.log("emit join_channel", channelId);
-    socket.emit("join_channel", { channelId });
-    setHeader("# " + activeChannel.title);
-    fetchMessages(activeChannel.id);
-    console.log(messages);
-
-    return () => {
-      socket.emit("leave_channel", { channelId });
-    };
-  }, [activeChannel, socket]);
-
-  useEffect(() => {
-    if (!activeServer) return;
-    setActiveChannel(activeServer.sections[0].channels[0]);
-    return () => setActiveChannel(null);
-  }, []);
-
-
-
-  if(!activeChannel) return;
 
 
   const render = () => {
     return (
       <>
+        <div className=" bg-red flex flex-col flex-1 min-h-0">
+          <div className={"border-white/10 justify-center  transition-colors duration-300 ease-in border-b items-center flex w-full pl-3 p-4 text-center"}>
+         
+            <p className="w-full h-full ">{channel?.name}</p>
 
-        <div
-          className="flex relative w-full flex-col min-h-0">
-
-          <div className="border-white/10 border-b w-full pl-3 p-4 text-center">
-            {header}
           </div>
-        
-          <div
-            className="flex-1  mb-3 overflow-y-auto flex flex-col justify-end"
-            ref={messagesRef}
-          >
-            {[...messages].map((msg: Message, index: number) => (
-              <Messaggio messageType={"channel"} id={activeChannel.id} msg={msg} key={index} style={selectedMsgIndex === index ? "bg-white/10" : ""} onCloseMenu={() => { setSelectedMsgIndex(null) }} onTrigger={() => { console.log(index); setSelectedMsgIndex(index) }}></Messaggio>
-            ))}
-          </div>
-
-          <div className="mt-1/2 p-1.5">
-            <div className="flex items-center gap-3 bg-[#313244] rounded-md px-3 p-3 text-white shadow-lg">
-              <Plus className="hover:bg-white/10 rounded-md transition-all duration-300 p-1/2 w-6 h-6 text-white" />
-              <input
-                value={nuovoTesto || ""}
-                className="flex-1 bg-transparent text-[14px] focus:outline-none"
-                onChange={(e) => setNuovoTesto(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") aggiungiMessaggio();
-                }}
-                placeholder="Scrivi qui..."
-              />
+          <ListaMessaggi messages={messages} />
+            <div
+            className="flex-1 mb-3 overflow-y-auto flex flex-col-reverse messages-scrollbar"
+          ></div>
+          <div className="pb-1.5 pr-1.5 pl-1.5">
+                <div className="flex items-center gap-3 bg-[#313244] rounded-md px-3 p-3 text-white shadow-lg">
+                    <Plus className="w-6 h-6 text-white" />
+                    <input
+                        value={nuovoTesto || ""}
+                        className="flex-1 bg-transparent text-[14px] focus:outline-none"
+                        onChange={(e) => setNuovoTesto(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") console.log("invia");
+                        }}
+                        placeholder="Scrivi qui..."
+                    />
+                </div>
             </div>
-          </div>
-
-
-
         </div>
-       
       </>
+
     );
   };
+
+  const joinChannel = () => {
+    if (!socket || !channel) return;
+    let id = channel.id;
+    setHeader(channel?.name);
+    //fetchMessages(serverId);
+    //socket.emit("join_channel", { id });
+  }
 
   return render();
 }
 
-export default ChannelChat;
+
+export default ChannelChat

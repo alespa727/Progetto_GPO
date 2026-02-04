@@ -1,6 +1,5 @@
 import React from "react";
-import { ChannelType, Section, TextChannel } from "../../types";
-import { SectionContext, useSectionContext } from "../../context/SezioneContext";
+import { useSectionContext } from "../../context/SezioneContext";
 import { ChannelContext } from "../../context/ChannelContext";
 
 export interface ChannelLoopProps {

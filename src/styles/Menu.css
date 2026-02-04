@@ -1,6 +1,6 @@
 .app {
   display: flex;  
-  height: calc(100vh - 36px);     
+  height: calc(100svh - 36px);     
   width: 100%;
   overflow-x: hidden;
   overflow: hidden;  

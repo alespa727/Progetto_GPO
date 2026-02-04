@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../../styles/Chat.css";
-import { endpoint, Message } from "../../types.tsx";
+import { endpoint2, Message } from "../../types.tsx";
 import { useSocket } from "../../context/SocketProvider.tsx";
 import { useChatContext } from "../../context/ChatContext.tsx";
 import { Header } from "./ChatHeader.tsx";
@@ -8,16 +8,20 @@ import { ListaMessaggi } from "../common/ListaMessaggi.tsx";
 import { MessageInput } from "./MessageInput.tsx";
 import ChatCall from "../chiamata/ChatCall.tsx";
 import axios from "axios";
+import { useAccount } from "@/context/UserProvider.tsx";
 
 function Chat() {
   const socket = useSocket();
-
+  const messagesRef = useRef<Message[]>([]);
+  const [, forceUpdate] = useState(0);
   const chat = useChatContext();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const account = useAccount();
+  const messages = messagesRef.current;
   const [header, setHeader] = useState<string>("");
 
-  const addMessage = (message: Message)=>{
-    setMessages((prevMessages) => [...prevMessages, message]);
+  function addMessage(msg: Message) {
+    messagesRef.current.push(msg);
+    forceUpdate(prev => prev + 1);
   }
 
   useEffect(() => {
@@ -32,15 +36,16 @@ function Chat() {
   useEffect(() => {
     if (!socket) return;
     const handleNewMessage = (data: any) => {
+      console.log(data)
+      if (!data) {
+        console.warn("Received null message from socket", data);
+        return;
+      }
       const newMessage = Message.fromJSON(data);
 
-      setMessages((prevMessages) => {
-        const exists = prevMessages.some(m => m.messageId === newMessage.messageId);
-        if (exists) {
-          return prevMessages;
-        }
-        return [...prevMessages, newMessage]; 
-      });
+      if (newMessage.username !== account?.username) {
+        addMessage(newMessage)
+      }
     };
     socket.on("newMessage", handleNewMessage);
 
@@ -49,7 +54,7 @@ function Chat() {
     }
 
     const removeMessageById = (id: number) => {
-      setMessages(prevMessages => prevMessages.filter(msg => msg.messageId !== id));
+      messagesRef.current = messagesRef.current.filter(msg => msg.messageId !== id);
     }
     socket.on("deletedMessage", handleDeletedMessage);
 
@@ -60,23 +65,24 @@ function Chat() {
   }, [socket]);
 
   const fetchMessages = async (id: number) => {
-  
-    if(!chat) return
-    let endpointUrl = `${endpoint}/services/chats/${id}/messages`;
-    console.log(endpointUrl)
+
+    if (!chat) return
+    let endpointUrl = `/api/services/chats/${id}/messages`;
+   
     try {
-      const res = await axios.get(endpointUrl,{
-                    withCredentials: true
-                });
+      const res = await axios.get(endpointUrl, {
+        withCredentials: true
+      });
 
       const newMessages = res.data.messages.map((msg: any) => Message.fromJSON(msg));
-      setMessages(newMessages);
+      messagesRef.current = newMessages;
+      forceUpdate(prev => prev + 1);
     } catch (err) {
       console.error("Errore fetch messages:", err);
     }
   };
 
-  if (!chat) return <div className="chat-box"></div>;
+  if (!chat) return <div className="hidden"></div>;
 
   const render = () => {
     return (
@@ -86,7 +92,7 @@ function Chat() {
           <Header value={header}></Header>
           <ChatCall></ChatCall>
           <ListaMessaggi messages={messages} />
-          <MessageInput addMessage={addMessage} lastMessage={messages.at(messages.length-1)}></MessageInput>
+          <MessageInput forceUpdate={forceUpdate} addMessage={addMessage}></MessageInput>
 
         </div>
       </>

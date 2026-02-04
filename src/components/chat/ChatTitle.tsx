@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useActiveChatContext } from "../../context/ActiveChatProvider";
 import { useActiveServerContext } from "../../context/ActiveServerProvider";
 import { useChannelContext } from "../../context/ChannelContext";
@@ -16,11 +17,15 @@ export function ChatTitle({style, ...props} : ChatTitleProps) {
     const setActiveChat= useActiveChatContext().setActiveChat;
     return (
       <>
-      <div onClick={()=>setActiveChat(chat)} className={style}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 25 }}
+            whileTap={{ scale: 0.98 }} onClick={()=>setActiveChat(chat)} className={style}>
         {
           props.children
         }
-      </div>
+      </motion.div>
       </>
     );
 }

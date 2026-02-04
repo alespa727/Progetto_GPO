@@ -1,22 +1,21 @@
 import { useActiveChatContext } from "@/context/ActiveChatProvider";
-import { useActiveRoomContext, useRoomStatus } from "@/context/CallContext";
-import { useSocket } from "@/context/SocketProvider";
+import { useActiveRoomContext } from "@/context/CallContext";
 import { useAccount } from "@/context/UserProvider";
-import { endpoint, endpoint2 } from "@/types";
+import { endpoint } from "@/types";
 import { useRoomContext } from "@livekit/components-react";
 import axios from "axios";
 import { RoomEvent } from "livekit-client";
-import { PhoneCallIcon, PhoneOffIcon } from "lucide-react";
+import { ArrowLeft, PhoneCallIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function Header({ value }: { value: string }) {
     const { setUrl,setToken, setTitle } = useActiveRoomContext()
     const account = useAccount();
     const chat = useActiveChatContext().activeChat;
+    const setActiveChat = useActiveChatContext().setActiveChat;
     const url = "wss://progettogpo-dfna4rrr.livekit.cloud"; 
     const room = useRoomContext();
     const [roomStatus, setRoomStatus] = useState(false);
-    const socket = useSocket();
 
     useEffect(()=>{
         console.log(room.state)
@@ -37,8 +36,7 @@ export function Header({ value }: { value: string }) {
     
 
     const handleClick = async () => {
-        console.log(endpoint2+"/token")
-        const res = await axios.post(endpoint2+"/token", {
+        const res = await axios.post(endpoint+"/token", {
             identity: account?.username,
             roomName: "chat_" + chat.id
         });
@@ -54,7 +52,10 @@ export function Header({ value }: { value: string }) {
    
     return (
         <div className={(roomStatus ? "bg-black ": "")+"border-white/10 justify-center  transition-colors duration-300 ease-in border-b items-center flex w-full pl-3 p-4 text-center"}>
+            <ArrowLeft className="md:hidden block cursor-pointer text-white/60" onClick={()=>setActiveChat(null)}></ArrowLeft>
             <p className="w-full h-full ">{roomStatus ? "Chiamata con "+value : "Chat con "+value }</p>
+           
+            
             {
                 !roomStatus ? 
                 (<PhoneCallIcon className="cursor-pointer text-white/60" onClick={handleClick}></PhoneCallIcon>)

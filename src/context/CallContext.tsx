@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Room, RoomEvent, TrackType } from "livekit-client";
+import { Room, RoomEvent } from "livekit-client";
 import { useSocket } from "./SocketProvider";
-import { RoomAudioRenderer, RoomContext, useTracks } from "@livekit/components-react";
-import { useActiveChatContext } from "./ActiveChatProvider";
+import { RoomAudioRenderer, RoomContext } from "@livekit/components-react";
 
 interface ActiveRoomContextType {
   url: string;
@@ -38,7 +37,6 @@ export const ActiveRoomProvider = ({ children }: { children: ReactNode }) => {
     const handleEvents = () => {
       const onConnected = () => {
         console.log("Connesso alla stanza:", room.name);
-        const result = room.name.replace(/^channel_/, "");
         //socket?.emit("join_channel", { channelId: result });
       
       };

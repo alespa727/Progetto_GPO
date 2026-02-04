@@ -1,8 +1,8 @@
 export const portServer = 5000;
-export const base ="https://weightlessly-tres-dagmar.ngrok-free.dev"
-export const websocket = base;
-export const endpoint =base+"/server2/api";
-export const endpoint2 = base+"/server1"
+
+export const endpoint ="/server1";
+export const websocket = endpoint;
+export const endpoint2 = "/api"
 
 export enum ChatType {
   FRIEND = "FRIEND",
@@ -65,16 +65,20 @@ export class Chat {
 
 export class Attachment{
   id: number;
-  attachedPath: string;
+  path: string;
+  filename: string;
+  extension: string;
 
-  constructor(id: number, attachedPath: string){
+  constructor(id: number, path: string, filename: string, extension: string){
     this.id = id;
-    this.attachedPath = attachedPath;
+    this.path = path;
+    this.filename = filename;
+    this.extension = extension;
   }
 
   static fromJSON(json: any): Attachment {
-   
-    let attachment = new Attachment(json.id, json.attachedPath);
+    
+    let attachment = new Attachment(json.id, json.path, json.filename, json.extension.replace(".", ""));
     return attachment
   }
 }
@@ -85,6 +89,7 @@ export class Message {
   message: string;
   sentAt: Date;
   sent: boolean;
+  fail: boolean;
   attachments: Attachment[]
 
   constructor(messageId: number, username: string, message: string, attachments?: Attachment[], sentAt?: Date, sent?: boolean) {
@@ -93,19 +98,28 @@ export class Message {
     this.message = message;
     this.sentAt = sentAt ?? new Date();
     this.sent = sent ? sent : false;
+    this.fail = false;
     this.attachments = attachments ? attachments : [];
   }
 
   static fromJSON(json: any): Message {
-    let arr = [];
+      if (!json) {
+        throw new Error("Message.fromJSON called with null/undefined");
+      }
+      
+    let arr = null;
     if(json.attachments){
+      arr = [];
+      console.log(json.attachments)
+      if(json.attachments.length !== 0)
       arr = json.attachments.map(
         (item: any) => Attachment.fromJSON(item)
       );
     }
-    
+   
 
-    let message = new Message(json.messageId, json.username, json.message, arr, new Date(json.sentAt), true);
+    let message = new Message(json.messageId, json.username, json.message, arr ? arr : null, new Date(json.sentAt), true);
+    console.log(message)
     return message
   }
 }
@@ -119,65 +133,37 @@ export class Message {
 // ================= Channel & TextChannel =================
 
 export enum ChannelType {
-  VOICE, TEXT
+  VOICE = "vocale", TEXT = "testo"
 }
 export class Channel {
   id: number;
   type: ChannelType;
-  title: string;
+  name: string;
   description?: string;
   createdAt?: Date;
 
-  constructor(id: number, type: ChannelType, title: string, description?: string, createdAt?: Date) {
+  constructor(id: number, type: ChannelType, name: string, description?: string, createdAt?: Date) {
     this.id = id;
     this.type = type;
-    this.title = title;
+    this.name = name;
     this.description = description;
     this.createdAt = createdAt;
   }
 
   static fromJSON(json: any): Channel {
-    if (json.messages) {
-      return TextChannel.fromJSON(json);
-    }
-    return new Channel(json.id, json.type, json.title, json.description);
+  
+    return new Channel(json.id, json.type, json.name, json.description);
   }
 }
 
-export class TextChannel extends Channel {
-  messages: Message[];
-
-  constructor(id: number, title: string, description?: string, createdAt?: Date) {
-    super(id, ChannelType.TEXT, title, description, createdAt);
-    this.messages = [];
-  }
-
-  addMessages(messages: Message[]) {
-    this.messages.push(...messages);
-  }
-
-  static fromJSON(json: any): TextChannel {
-    const ch = new TextChannel(
-      json.id,
-      json.title,
-      json.description,
-    );
-    if (json.messages) {
-      ch.addMessages(json.messages.map((m: any) => Message.fromJSON(m)));
-    }
-    return ch;
-  }
-}
-
-// ================= Section =================
 export class Section {
   id: number;
-  title: string;
+  name: string;
   channels: Channel[];
 
-  constructor(id: number, title: string, channels: Channel[] = []) {
+  constructor(id: number, name: string, channels: Channel[] = []) {
     this.id = id;
-    this.title = title;
+    this.name = name;
     this.channels = channels;
   }
 
@@ -186,7 +172,7 @@ export class Section {
   }
 
   static fromJSON(json: any): Section {
-    const section = new Section(json.id, json.title);
+    const section = new Section(json.id, json.name);
     if (json.channels) {
       section.channels = json.channels.map((c: any) => Channel.fromJSON(c));
     }
@@ -199,6 +185,7 @@ export class Server {
   id: number;
   name: string;
   description?: string;
+  owner?: string;
   createdAt?: Date;
   sections: Section[];
 
@@ -221,12 +208,14 @@ export class Server {
   }
 
   static fromJSON(json: any): Server {
-    return new Server(
+    let server = new Server(
       json.id,
       json.name,
       json.sections ? json.sections.map((s: any) => Section.fromJSON(s)) : [],
       json.description,
       json.createdAt ? new Date(json.createdAt) : undefined
     );
+    
+    return server;
   }
 }

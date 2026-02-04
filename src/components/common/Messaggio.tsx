@@ -1,8 +1,15 @@
 import * as ContextMenu from "@radix-ui/react-context-menu";
-import { Trash, Pencil, Eye, Clipboard } from "lucide-react";
+import { Trash, Pencil, Eye, Clipboard, DownloadIcon } from "lucide-react";
 import { Message } from "../../types";
 import { useSocket } from "../../context/SocketProvider";
 import { useState } from "react";
+import { Button } from "../animate-ui/primitives/buttons/button";
+import axios from "axios";
+import { ImageZoom } from "../ui/image-zoom";
+import "../../styles/zoom.css";
+import Zoom, { type ControlledProps, type UncontrolledProps } from "react-medium-image-zoom"
+import MyCustomZoom from "./CustomZoom";
+import { motion } from "framer-motion";
 
 type MessaggioProps = {
     msg: Message,
@@ -17,6 +24,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
     const socket = useSocket();
     const [isBeingModified, setModifying] = useState<boolean>(false);
     const [draft, setDraft] = useState(msg.message);
+    const [hoverButton, setHoverButton] = useState(false);
     let username = msg.username;
     let message = msg;
 
@@ -28,7 +36,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
 
     if (isBeingModified) return (
         <div
-            className={"rounded-r-md px-4 mr-4 hover:bg-white/10 flex items-center"}
+            className={"rounded-r-(--radius) px-4 mr-4 hover:bg-white/10 flex items-center"}
         >
             <div className="gap-2 flex flex-col p-1 text-[15px]">
                 <div className="pt-1/2 gap-2 flex">
@@ -63,10 +71,21 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
     return (
         <ContextMenu.Root >
             <ContextMenu.Trigger onContextMenu={onTrigger} className={style}>
-                <div
-                    className={"rounded-r-md px-4 mr-4 hover:bg-white/10 flex items-center"}
+                <motion.div
+                    className={
+                        "rounded-r-[var(--radius)] px-4 mr-4 flex items-center justify-center " +
+                        (!hoverButton ? "hover:bg-white/10" : "")
+                    }
+                    initial={{ scale: 0.98, opacity: 0.5 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => {
+                        console.log("Div clicked"); // qui metti la funzione che vuoi
+                    }}
                 >
-                    <div className="gap-2 flex flex-col p-1 text-[15px]">
+                    <div className="gap-2 w-full  flex flex-col p-1 text-[15px]">
                         <div className={`pt-1/2 gap-2 flex  ${!message.sent ? "text-gray-400" : "text-white"}`}>
                             <span>
                                 {msg.sentAt
@@ -83,27 +102,91 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                             <span
                                 className={`break-all`}
                             >
-                                {msg.message+" "+message.messageId}
+                                {msg.message + " " + message.messageId}
                             </span>
 
                             {
-                                !message.sent && (
-                                    <span className=" bg-black/50 p-1 text-white px-2 rounded">
+                                message.fail && (
+                                    <span className=" bg-red-500/50 p-1 text-white px-2 rounded">
                                         Messaggio non inviato
                                     </span>
                                 )
                             }
                         </div>
 
-                        {
-                            message.attachments.map(a => {
+                        {message.attachments.map(a => {
+                            if (a.extension === "jpeg" || a.extension === "png" || a.extension === "jpg") {
                                 return (
-                                    <img key={a.id} src={a.attachedPath} alt="img" className="mb-2 h-80 aspect-square" />
+                                    <MyCustomZoom key={a.id} src={`/files/${a.filename}.${a.extension}`} attachment={a}
+                                        alt="img">
+                                    </MyCustomZoom>
+
                                 );
-                            })
-                        }
+                            } else {
+                                return (
+                                    <motion.div
+                                        key={a.id}
+                                        onMouseEnter={() => setHoverButton(true)}
+                                        onMouseLeave={() => setHoverButton(false)}
+                                        className="rounded-[var(--radius)] text-white transition-all duration-100 hover:scale-101 flex relative items-center border bg-white/5 border-transparent hover:bg-white/20 p-6"
+                                        initial={{ scale: 0.9, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.9, opacity: 0 }}
+                                        transition={{ type: "spring", stiffness: 260, damping: 25 }}
+                                        whileTap={{ scale: 0.98}}
+                                        onClick={() => {
+                                            console.log("Card clicked:", a.id);
+                                            
+                                        }}
+                                    >
+
+                                        <span className="text-xl w-full h-full justify-center">
+                                            {a.filename + "." + a.extension}
+                                        </span>
+
+                                        <button
+                                            onClick={async () => {
+                                                const isElectron = !!window.electronAPI?.getSources;
+                                                console.log("file", a.path)
+                                                if (isElectron) {
+
+                                                    const result = await window.electronAPI.downloadRemote(a.path);
+                                                    if (result.success) {
+                                                        console.log("Download completato:", result.path);
+                                                    } else {
+                                                        console.log("Download annullato o fallito");
+                                                    }
+                                                } else {
+                                                    const downloadFile = async (url: string, filename: string) => {
+                                                        const response = await axios.get(url, { responseType: "blob" });
+                                                        const blobUrl = URL.createObjectURL(response.data);
+
+                                                        const a = document.createElement("a");
+                                                        a.href = blobUrl;
+                                                        a.download = filename;
+                                                        a.click();
+
+                                                        URL.revokeObjectURL(blobUrl);
+                                                    };
+                                                    downloadFile(`/files/${a.filename}.${a.extension}`, `${a.filename}.${a.extension}`);
+
+                                                }
+
+                                            }}
+                                            className="active:scale-90 transition-all duration-200"
+                                        >
+                                            <div className="rounded-[var(--radius)] p-2 hover:bg-black/20">
+                                                <DownloadIcon className="w-6 h-6" />
+                                            </div>
+                                        </button>
+
+                                    </motion.div>
+                                );
+                            }
+                        })}
+
                     </div>
-                </div>
+                </motion.div>
             </ContextMenu.Trigger>
 
             <ContextMenu.Content className="bg-[#313244]  text-white rounded-md shadow-lg border border-white/10 p-1 z-100" onEscapeKeyDown={onCloseMenu}

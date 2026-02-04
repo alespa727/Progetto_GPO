@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { useAccount, useSetAccount } from "./UserProvider";
+import { useSetAccount } from "./UserProvider";
 import axios from "axios";
-import { Account, endpoint } from "@/types";
+import { Account, endpoint2 } from "@/types";
 
 export enum ClientMode {
   Server,
@@ -23,7 +23,7 @@ export const ModeProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const execute = async () => {
 
-      const account = await axios.get(endpoint+
+      const account = await axios.get(endpoint2+
         "/services/account"
         ,
         {

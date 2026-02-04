@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
-import { Account, endpoint } from "@/types";
+import { Account, endpoint2 } from "@/types";
 
 const FriendContext = createContext<Account[] | null>(null);
 
@@ -11,7 +11,7 @@ export const FriendProvider = ({ children }: { children: ReactNode }) => {
     const fetchFriends = async () => {
       try {
     
-        const res = await axios.get(endpoint+"/services/friends",
+        const res = await axios.get(endpoint2+"/services/friends",
                 {
                     withCredentials: true
                 });

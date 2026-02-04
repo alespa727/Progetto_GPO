@@ -12,6 +12,7 @@ export interface SezioneLoopProps {
 
 export function SectionLoop({ serverSections, ...props }: SezioneLoopProps) {
   const sections = serverSections ? serverSections : useServerContext() ? useServerContext()?.sections : null;
+  
   if(!sections) return;
   return (
     <div className="mb-1 flex-1 overflow-y-auto">

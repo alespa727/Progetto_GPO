@@ -1,12 +1,12 @@
-import { endpoint } from "@/types";
+import { endpoint, endpoint2 } from "@/types";
 import axios from "axios";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "../animate-ui/primitives/buttons/button";
 
 function Login() {
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-   
+
     const updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value)
     }
@@ -18,7 +18,7 @@ function Login() {
     const login = () => {
         const execute = async () => {
             const res = await axios.post(
-               endpoint+"/login",
+                endpoint2 + "/login",
                 { username, password },
                 {
                     withCredentials: true,
@@ -28,23 +28,42 @@ function Login() {
                 }
             );
             console.log(res);
+            window.location.reload();
         }
         execute()
     }
 
     return (
         <div onKeyDown={(e) => {
-            if (e.key === "Enter")
+            if (e.key === "Enter") {
                 login();
+
+            }
+
         }}
             className=
-            {'p-3 pt-0 w-full h-full transition-opacity duration-50'}>
-            <div className="rounded-xl bg-black w-full h-full flex items-center justify-center flex-col gap-5">
-                <input className="border" type="text" value={username} onChange={updateUsername} />
-                <input className="border" type="password" value={password} onChange={updatePassword} />
-                <p className="text-white">Username: {username}</p>
-                <p className="text-white">Password: {password}</p>
-                <Button className="bg-white text-black"  onClick={login} >Login</Button>
+            {'p-50 min-w-200  w-full h-full  transition-opacity duration-50'}>
+            <div className=" bg-white/10 min-w-100 relative w-full h-full flex items-center justify-center flex-col gap-5">
+                <h3 className="text-center border-white/10 w-full py-8 font-bold absolute top-0 text-white text-2xl border-b">Login</h3>
+                <input className="border  border-white/30 bg-white/20 text-white p-2" type="text" value={username} onChange={updateUsername} />
+                <input className="border border-white/30 bg-white/20 text-white p-2" type="password" value={password} onChange={updatePassword} />
+                <div className="grid grid-cols-2 gap-2 w-full p-4 absolute bottom-0">
+                   
+                    <button
+                        className="w-full h-16 hover:bg-black/20 bg-black/40 p-2 text-white transform transition-transform duration-200 hover:-translate-y-1"
+                        onClick={login}
+                    >
+                        Registrati
+                    </button>
+                    
+                     <button
+                        className="w-full h-16  hover:bg-black/20 bg-black/40 p-2 text-white transform transition-transform duration-200 hover:-translate-y-1"
+                        onClick={login}
+                    >
+                        Login
+                    </button>
+                </div>
+
             </div>
 
 

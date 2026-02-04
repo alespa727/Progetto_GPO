@@ -1,5 +1,4 @@
-import { websocket, endpoint2 } from "@/types";
-import { createContext, useContext, useEffect, ReactNode, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, ReactNode, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 const SocketContext = createContext<Socket | null>(null);
@@ -11,32 +10,41 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let newSocket: Socket;
-    try {
-      newSocket = io(websocket, {
-        transports: ["websocket"]
-      });
+    const connect = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      newSocket.on("connect", () => {
-        console.log("Socket connesso con ID:", newSocket.id);
-        setStatus(true);
-        newSocket.emit("login", { username: "ale", password: "password1" });
-      });
+     
+      try {
 
-      newSocket.on('disconnect', (reason) => {
-        console.log('Disconnesso dal server:', reason);
+        newSocket = io("", {
+          path: "/server1/socket.io",
+          transports: ["websocket"]
+        });
+        console.log("connecting..")
+
+        newSocket.on("connect", () => {
+          console.log("Socket connesso con ID:", newSocket.id);
+          setStatus(true);
+          newSocket.emit("login", { username: "ale", password: "password1" });
+        });
+
+        newSocket.on('disconnect', (reason) => {
+          console.log('Disconnesso dal server:', reason);
+          setStatus(false);
+        });
+
+        newSocket.on("message", (data) => {
+          console.log("Messaggio dal server:", data);
+        });
+
+        setSocket(newSocket);
+      } catch (e) {
         setStatus(false);
-      });
+        console.log("error", e);
+      }
 
-      newSocket.on("message", (data) => {
-        console.log("Messaggio dal server:", data);
-      });
-
-      setSocket(newSocket);
-    } catch (e){
-      setStatus(false);
-      console.log("error", e);
-    }
-
+    };
+    connect()
     return () => {
       newSocket.disconnect();
     };

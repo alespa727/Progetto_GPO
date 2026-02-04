@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Account } from "../types";
-import { ClientMode, useMode } from "./ModeProvider";
-import axios from "axios";
 type AccountProps = {
   account: Account | null,
   setAccount: (account: Account) => void
@@ -14,7 +12,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [account, setAccount] = useState<Account | null>(null);
 
   useEffect(()=>{
-    console.log(account);
+    if(account)
+      console.log(account);
   }, [account]);
 
   return (
