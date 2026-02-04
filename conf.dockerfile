@@ -7,7 +7,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Build con Maven globale
+# Build con Maven globale senza test
 RUN mvn clean package -DskipTests
 
 # Stage finale con JDK leggero
@@ -16,5 +16,5 @@ FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Start
-CMD ["java", "-jar", "app.jar"]
+# Start Spring Boot sulla porta dinamica di Railway
+CMD ["sh", "-c", "java -jar app.jar --server.port=$PORT"]
