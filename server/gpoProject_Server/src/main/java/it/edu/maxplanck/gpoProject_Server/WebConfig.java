@@ -37,7 +37,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins((String[]) this.allowedOrigins)
+                .allowedOrigins(List.of(
+            "http://localhost:5173",
+            "https://progettogpo.vercel.app",
+					"https://weightlessly-tres-dagmar.ngrok-free.dev/"
+        ))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
     }
