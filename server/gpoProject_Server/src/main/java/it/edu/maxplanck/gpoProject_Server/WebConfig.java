@@ -5,9 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import java.util.List;
-import java.util.Arrays;
-
 
 /**
  * Gestisce impostazioni di configurazione come il cors
@@ -19,14 +16,18 @@ public class WebConfig implements WebMvcConfigurer {
     private String uploadDirImages;
     
     @Value("${app.upload.dir.files}")
-	private String uploadDirFiles;
+    private String uploadDirFiles;
     
-    private String[] allowedOrigins;
-    
+    private final String[] allowedOrigins;
+
     public WebConfig(@Value("${client.port}") String clientPort) {
-    	this.allowedOrigins = new String[] {
-    			clientPort
-    	};
+        // puoi aggiungere qui più origin se vuoi
+        this.allowedOrigins = new String[] {
+            clientPort,
+            "http://localhost:5173",
+            "https://progettogpo.vercel.app",
+            "https://weightlessly-tres-dagmar.ngrok-free.dev"
+        };
     }
 
     @Override
@@ -34,18 +35,15 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:" + uploadDirImages + "/");
         registry.addResourceHandler("/files/**")
-        		.addResourceLocations("file:" + uploadDirFiles + "/");
+                .addResourceLocations("file:" + uploadDirFiles + "/");
     }
     
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(List.of(
-            "http://localhost:5173",
-            "https://progettogpo.vercel.app",
-					"https://weightlessly-tres-dagmar.ngrok-free.dev/"
-        ))
+                .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(true); // se usi credenziali, serve
     }
 }
