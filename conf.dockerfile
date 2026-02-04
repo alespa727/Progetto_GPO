@@ -1,14 +1,19 @@
-# Usa OpenJDK 21
-FROM eclipse-temurin:21-jdk-alpine
+# Usa OpenJDK + Maven
+FROM maven:3.9.3-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-# Copia i file Maven
+# Copia pom.xml e src
 COPY pom.xml .
 COPY src ./src
 
-# Build con Maven
-RUN ./mvnw clean package -DskipTests
+# Build con Maven globale
+RUN mvn clean package -DskipTests
 
-# Avvio
-CMD ["java", "-jar", "target/caring-caring.jar"]
+# Step finale
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+
+# Start
+CMD ["java", "-jar", "app.jar"]
