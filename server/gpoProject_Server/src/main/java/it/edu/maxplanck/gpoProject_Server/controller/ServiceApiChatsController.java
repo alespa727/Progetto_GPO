@@ -34,16 +34,16 @@ import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
 import it.edu.maxplanck.gpoProject_Server.database.model.MessageChat;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAttachedChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCallChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCallsChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChatsDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChatDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChatDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChat;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageChat;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAttachedChat;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCallChat;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCallsChat;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChat;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChats;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriend;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChat;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChat;
 import it.edu.maxplanck.gpoProject_Server.exceptions.DataException;
 import it.edu.maxplanck.gpoProject_Server.exceptions.DataExceptions;
 import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
@@ -71,7 +71,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("chat")
-	public ResponseEntity<?> postChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestChatDTO body) {
+	public ResponseEntity<?> postChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestChat body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -87,7 +87,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		/*
 		 * Crea una nuova chat in database
 		 */
-		this.databaseService.createChat(id, body.friend().username());
+		this.databaseService.createChat(id, body.getFriend().getUsername());
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -110,17 +110,17 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		 * Ottiene le varie chat dell'utente
 		 */
 		List<Chat> listChats = this.databaseService.findChatsOfUser(id);
-		if(listChats == null || listChats.isEmpty()) return ResponseEntity.ok().body(new ResponseChatsDTO(null));
+		if(listChats == null || listChats.isEmpty()) return ResponseEntity.ok().body(new ResponseChats(null));
 		
-		List<ResponseChatDTO> c = new ArrayList<ResponseChatDTO>();
+		List<ResponseChat> c = new ArrayList<ResponseChat>();
 		for(Chat ch : listChats) {
 			User u = (ch.getFkFriendship().getFkUser1().getPkID() == id)? ch.getFkFriendship().getFkUser2() : ch.getFkFriendship().getFkUser1();
 			
 			String image = this.findImage(u);
-			c.add(new ResponseChatDTO(ch.getPkID(), new ResponseFriendDTO(u.getUsername(), image)));
+			c.add(new ResponseChat(ch.getPkID(), new ResponseFriend(u.getUsername(), image)));
 		}
 		
-		ResponseChatsDTO chats = new ResponseChatsDTO(c);
+		ResponseChats chats = new ResponseChats(c);
 		return ResponseEntity.ok().body(chats);
 	}
 	
@@ -156,7 +156,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("chats/{chat}/message")
-	public ResponseEntity<?> postMessageChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId, @RequestBody RequestMessageChatDTO body) {
+	public ResponseEntity<?> postMessageChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId, @RequestBody RequestMessageChat body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -172,7 +172,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		/*
 		 * Crea un messaggio in una determinata chat
 		 */
-		this.databaseService.createMessageChat(id, chatId, body.message());
+		this.databaseService.createMessageChat(id, chatId, body.getMessage());
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -189,11 +189,11 @@ public class ServiceApiChatsController extends BasicApiRestController {
 	public ResponseEntity<?> postAttachmentChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId, @RequestParam("files") MultipartFile[] files, @RequestParam(value = "message", required = false) String message){
 		
 		ObjectMapper objectMapper = new ObjectMapper();
-		RequestMessageChatDTO body = null;
+		RequestMessageChat body = null;
 
 		if (message != null && !message.isBlank()) {
 		    try {
-				body = objectMapper.readValue(message, RequestMessageChatDTO.class);
+				body = objectMapper.readValue(message, RequestMessageChat.class);
 			} catch (JsonMappingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -270,7 +270,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 			}
         }
 		
-		message = (body == null || body.message() == null)? null : body.message();
+		message = (body == null || body.getMessage() == null)? null : body.getMessage();
 		this.databaseService.createAttachmentChat(id, chatId, filename, extension, message);
 		
 		return ResponseEntity.ok().build();
@@ -298,22 +298,22 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		 */
 
 		List<MessageChat> messages = this.databaseService.getMessagesChat(id, chatId, messageId);
-		if(messages == null || messages.isEmpty()) return ResponseEntity.ok().body(new ResponseCallsChatDTO(chatId, null));
+		if(messages == null || messages.isEmpty()) return ResponseEntity.ok().body(new ResponseCallsChat(chatId, null));
 		
-		List<ResponseMessageChatDTO> mess = new ArrayList<ResponseMessageChatDTO>();
+		List<ResponseMessageChat> mess = new ArrayList<ResponseMessageChat>();
 		for(MessageChat m : messages) {
 			List<Attached> attachedMessage = this.databaseService.getAttachmentsRepo().findByFkMessage(m.getPkID());
-			List<ResponseAttachedChatDTO> attachements = new ArrayList<ResponseAttachedChatDTO>();
+			List<ResponseAttachedChat> attachements = new ArrayList<ResponseAttachedChat>();
 			
 			for(Attached a : attachedMessage) {
 				String path = this.findAttachment(a);
-				if(path != null) attachements.add(new ResponseAttachedChatDTO(a.getPkID(), this.standardServerPath + this.standardPathFiles, a.getFilename(), a.getExtension()));
+				if(path != null) attachements.add(new ResponseAttachedChat(a.getPkID(), this.standardServerPath + this.standardPathFiles, a.getFilename(), a.getExtension()));
 			}
 			
-			mess.add(new ResponseMessageChatDTO(m.getPkID(), m.getFkUser().getUsername(), m.getMessage(), m.getSentAt(), (attachements.isEmpty()? null : attachements)));
+			mess.add(new ResponseMessageChat(m.getPkID(), m.getFkUser().getUsername(), m.getMessage(), m.getSentAt(), (attachements.isEmpty()? null : attachements)));
 		}
 		
-		ResponseMessagesChatDTO m = new ResponseMessagesChatDTO(chatId, mess);
+		ResponseMessagesChat m = new ResponseMessagesChat(chatId, mess);
 		
 		return ResponseEntity.ok().body(m);
 	}
@@ -361,12 +361,12 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		 * Ottiene le chiamate di una chat
 		 */
 		List<Call> calls = this.databaseService.getCalls(id, chatId);
-		if(calls == null || calls.isEmpty()) return ResponseEntity.ok().body(new ResponseCallsChatDTO(chatId, null));
+		if(calls == null || calls.isEmpty()) return ResponseEntity.ok().body(new ResponseCallsChat(chatId, null));
 		
-		List<ResponseCallChatDTO> call = new ArrayList<ResponseCallChatDTO>();
-		for(Call c : calls) call.add(new ResponseCallChatDTO(c.getPkID(), c.getStartTime(), c.getEndTime()));
+		List<ResponseCallChat> call = new ArrayList<ResponseCallChat>();
+		for(Call c : calls) call.add(new ResponseCallChat(c.getPkID(), c.getStartTime(), c.getEndTime()));
 		
-		ResponseCallsChatDTO c = new ResponseCallsChatDTO(chatId, call);
+		ResponseCallsChat c = new ResponseCallsChat(chatId, call);
 		return ResponseEntity.ok().body(c);
 	}
 	

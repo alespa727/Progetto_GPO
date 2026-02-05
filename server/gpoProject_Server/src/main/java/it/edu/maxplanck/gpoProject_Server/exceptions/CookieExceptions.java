@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 
 public enum CookieExceptions {
 
-	COOKIES_COOKIE_NOT_FOUND("Cookie non trovato", HttpStatus.NOT_FOUND),
-	COOKIES_COOKIES_NOT_FOUND("Cookies non trovati", HttpStatus.NOT_FOUND),
+	COOKIES_COOKIE_NOT_FOUND("Cookie non trovato", HttpStatus.UNAUTHORIZED),
+	COOKIES_COOKIES_NOT_FOUND("Cookies non trovati", HttpStatus.UNAUTHORIZED),
 	COOKIES_COOKIE_NOT_VALID("Cookie non valido", HttpStatus.NOT_ACCEPTABLE);
 	
 	private final String message;

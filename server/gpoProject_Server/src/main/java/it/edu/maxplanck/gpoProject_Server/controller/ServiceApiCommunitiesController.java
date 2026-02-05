@@ -21,20 +21,20 @@ import it.edu.maxplanck.gpoProject_Server.database.model.MessageCommunity;
 import it.edu.maxplanck.gpoProject_Server.database.model.Section;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChannelDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSectionDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSubscriptionDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountsDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChannelDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunitiesDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunityDataDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChannelSectionCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChannelSectionCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseSectionDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChannel;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCommunity;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunity;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSection;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSubscription;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccount;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccounts;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChannel;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunities;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunity;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunityData;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChannelSectionCommunity;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChannelSectionCommunity;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseSection;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -58,7 +58,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("community")
-	public ResponseEntity<?> patchCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunityDTO body) {
+	public ResponseEntity<?> patchCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunity body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -74,13 +74,13 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Crea una nuova community in database
 		 */
-		this.databaseService.createCommunity(id, body.isInviteCodeValid(), body.name(), body.description());
+		this.databaseService.createCommunity(id, body.isInviteCodeValid(), body.getName(), body.getDescription());
 	
 		return ResponseEntity.created(null).build();
 	}
 
 	@PatchMapping("communities/{community}")
-	public ResponseEntity<?> postCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunityDTO body, @PathVariable("community") Integer communityId) {
+	public ResponseEntity<?> postCommunity(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestCommunity body, @PathVariable("community") Integer communityId) {
 
 		/*
 		 * Controlla se body request valido:
@@ -96,13 +96,13 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Crea una nuova community in database
 		 */
-		this.databaseService.updateCommunity(id, communityId, body.isInviteCodeValid(), body.name(), body.description());
+		this.databaseService.updateCommunity(id, communityId, body.isInviteCodeValid(), body.getName(), body.getDescription());
 	
 		return ResponseEntity.ok().build();
 	}
 	
 	@PostMapping("communities/{community}/subscription")
-	public ResponseEntity<?> postSubscriptionCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @RequestBody RequestSubscriptionDTO body) {
+	public ResponseEntity<?> postSubscriptionCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @RequestBody RequestSubscription body) {
 		
 		/*
 		 * Autentificazione
@@ -112,7 +112,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Fa la iscrizione alla community
 		 */
-		this.databaseService.createRegistration(id, communityId, body.inviteCode());
+		this.databaseService.createRegistration(id, communityId, body.getInviteCode());
 		
 		return ResponseEntity.ok().build();
 	}
@@ -153,7 +153,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 */
 		Community c = this.databaseService.findCommunity(id, communityId);
 		
-		ResponseCommunityDataDTO community = new ResponseCommunityDataDTO(c.getName(), c.getInviteCode(), c.isInviteCodeValid(), c.getDescription(), c.getCreatedAt());
+		ResponseCommunityData community = new ResponseCommunityData(c.getName(), c.getInviteCode(), c.isInviteCodeValid(), c.getDescription(), c.getCreatedAt());
 		
 		return ResponseEntity.ok().body(community);
 	}
@@ -177,15 +177,15 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Ottiene gli user della community
 		 */
 		List<User> u = this.databaseService.getUsersCommunity(id, commmunityId);
-		if(u == null || u.isEmpty()) return ResponseEntity.ok().body(new ResponseAccountsDTO(null));
+		if(u == null || u.isEmpty()) return ResponseEntity.ok().body(new ResponseAccounts(null));
 		
-		List<ResponseAccountDTO> users = new ArrayList<ResponseAccountDTO>();
+		List<ResponseAccount> users = new ArrayList<ResponseAccount>();
 		for(User us : u) {
 			String image = this.findImage(us);
-			users.add(new ResponseAccountDTO(us.getUsername(), us.isAdmin(), us.getCreatedAt(), image));
+			users.add(new ResponseAccount(us.getUsername(), us.isAdmin(), us.getCreatedAt(), image));
 		}
 		
-		ResponseAccountsDTO us = new ResponseAccountsDTO(users);
+		ResponseAccounts us = new ResponseAccounts(users);
 		
 		return ResponseEntity.ok().body(us);
 	}
@@ -208,33 +208,33 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Ottiene le community a cui un utente e' iscritto
 		 */
 		List<Community> communities = this.databaseService.findCommunitiesOfUser(id);
-		if(communities == null) ResponseEntity.ok().body(new ResponseCommunitiesDTO(null));
+		if(communities == null) ResponseEntity.ok().body(new ResponseCommunities(null));
 		
-		List<ResponseCommunityDTO> c = new ArrayList<ResponseCommunityDTO>();
+		List<ResponseCommunity> c = new ArrayList<ResponseCommunity>();
 		for(Community com : communities) {
 			
 			List<Section> sections = this.databaseService.findSectionsOfCommunity(com);
-			List<ResponseSectionDTO> sect = new ArrayList<ResponseSectionDTO>();
+			List<ResponseSection> sect = new ArrayList<ResponseSection>();
 			
 			if(sections != null) {
 				for(Section sec : sections) {
 					List<Channel> channels = this.databaseService.findChannelsOfSection(sec);
-					List<ResponseChannelDTO> chan = new ArrayList<ResponseChannelDTO>();
+					List<ResponseChannel> chan = new ArrayList<ResponseChannel>();
 					
 					if(channels != null) {
 						for(Channel ch : channels) {
-							chan.add(new ResponseChannelDTO(ch.getPkID(), ch.getName(), ch.getType(), ch.getDescription(), ch.getCreatedAt()));
+							chan.add(new ResponseChannel(ch.getPkID(), ch.getName(), ch.getType(), ch.getDescription(), ch.getCreatedAt()));
 						}
 					}
 					
-					sect.add(new ResponseSectionDTO(sec.getPkID(), sec.getName(), (chan.isEmpty())? null : chan));
+					sect.add(new ResponseSection(sec.getPkID(), sec.getName(), (chan.isEmpty())? null : chan));
 				}
 			}
 			
-			c.add(new ResponseCommunityDTO(com.getName(), com.getInviteCode(), com.isInviteCodeValid(), com.getDescription(), com.getCreatedAt(), (sect.isEmpty()? null : sect)));
+			c.add(new ResponseCommunity(com.getName(), com.getInviteCode(), com.isInviteCodeValid(), com.getDescription(), com.getCreatedAt(), (sect.isEmpty()? null : sect)));
 		}
 		
-		ResponseCommunitiesDTO comm = new ResponseCommunitiesDTO(c);
+		ResponseCommunities comm = new ResponseCommunities(c);
 		
 		return ResponseEntity.ok().body(comm);
 	}
@@ -271,7 +271,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("communities/{community}/section")
-	public ResponseEntity<?> postSection(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @RequestBody RequestSectionDTO body) {
+	public ResponseEntity<?> postSection(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @RequestBody RequestSection body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -287,7 +287,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Crea una nuova sezione in una community in database
 		 */
-		this.databaseService.createSection(id, communityId, body.name());
+		this.databaseService.createSection(id, communityId, body.getName());
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -318,7 +318,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("communities/{community}/sections/{section}/channel")
-	public ResponseEntity<?> postChannel(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @PathVariable("section") Integer sectionId, @RequestBody RequestChannelDTO body) {
+	public ResponseEntity<?> postChannel(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @PathVariable("section") Integer sectionId, @RequestBody RequestChannel body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -334,7 +334,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Crea un nuovo canale in una sezione di una community in database
 		 */
-		this.databaseService.createChannelSectionCommunity(id, communityId, sectionId, body.name(), body.type(), body.description());
+		this.databaseService.createChannelSectionCommunity(id, communityId, sectionId, body.getName(), body.getType(), body.getDescription());
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -366,7 +366,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("communities/{community}/sections/{section}/channels/{channel}/message")
-	public ResponseEntity<?> postMessageCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @PathVariable("section") Integer sectionId, @PathVariable("channel") Integer channelId, @RequestBody RequestMessageCommunityDTO body) {
+	public ResponseEntity<?> postMessageCommunity(HttpServletRequest request, HttpServletResponse response, @PathVariable("community") Integer communityId, @PathVariable("section") Integer sectionId, @PathVariable("channel") Integer channelId, @RequestBody RequestMessageCommunity body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -382,7 +382,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Crea un messaggio in una determinata community
 		 */
-		this.databaseService.createMessageChannelSectionCommunity(id, communityId, sectionId, channelId, body.message());
+		this.databaseService.createMessageChannelSectionCommunity(id, communityId, sectionId, channelId, body.getMessage());
 		
 		return ResponseEntity.created(null).build();
 	}
@@ -409,13 +409,13 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Ottiene tutti i messaggi della community
 		 */
 		List<MessageCommunity> messagesChannel = this.databaseService.getMessagesChannelSectionCommunity(id, communityId, sectionId, channelId, messageId);
-		if(messagesChannel == null) return ResponseEntity.ok().body(new ResponseMessagesChannelSectionCommunityDTO(null));
+		if(messagesChannel == null) return ResponseEntity.ok().body(new ResponseMessagesChannelSectionCommunity(null));
 		
-		List<ResponseMessageChannelSectionCommunityDTO> messages = new ArrayList<ResponseMessageChannelSectionCommunityDTO>();
+		List<ResponseMessageChannelSectionCommunity> messages = new ArrayList<ResponseMessageChannelSectionCommunity>();
 		
-		for(MessageCommunity mess : messagesChannel) messages.add(new ResponseMessageChannelSectionCommunityDTO(mess.getPkID(), mess.getMessage()));
+		for(MessageCommunity mess : messagesChannel) messages.add(new ResponseMessageChannelSectionCommunity(mess.getPkID(), mess.getMessage()));
 		
-		ResponseMessagesChannelSectionCommunityDTO m = new ResponseMessagesChannelSectionCommunityDTO((messages.isEmpty())? null : messages);
+		ResponseMessagesChannelSectionCommunity m = new ResponseMessagesChannelSectionCommunity((messages.isEmpty())? null : messages);
 		
 		return ResponseEntity.ok().body(m);
 	}

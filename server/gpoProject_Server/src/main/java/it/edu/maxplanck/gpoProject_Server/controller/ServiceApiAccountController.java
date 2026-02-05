@@ -21,13 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccountDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestFriendDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestProfileDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendsDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseProfileDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccount;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestFriend;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestProfile;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccount;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriend;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriends;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseProfile;
 import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
@@ -56,7 +56,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	 * @return
 	 */
 	@PatchMapping("account")
-	public ResponseEntity<?> patchAccount(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccountDTO body) {
+	public ResponseEntity<?> patchAccount(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccount body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -72,7 +72,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Update dati in database attraverso id
 		 */
-		this.databaseService.updateUserAccount(id, body.username(), body.password());
+		this.databaseService.updateUserAccount(id, body.getUsername(), body.getPassword());
 		
 		return ResponseEntity.ok().build();
 	}
@@ -100,7 +100,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Ritorna dati
 		 */
-		ResponseAccountDTO responseDTO = new ResponseAccountDTO(u.getUsername(), u.isAdmin(), u.getCreatedAt(), image);
+		ResponseAccount responseDTO = new ResponseAccount(u.getUsername(), u.isAdmin(), u.getCreatedAt(), image);
 		return ResponseEntity.ok().body(responseDTO);
 	}
 
@@ -140,7 +140,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	 * @return
 	 */
 	@PatchMapping("profile")
-	public ResponseEntity<?> patchProfile(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestProfileDTO body){
+	public ResponseEntity<?> patchProfile(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestProfile body){
 		
 		/*
 		 * Autentificazione
@@ -239,7 +239,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Ritorna dati
 		 */
-		ResponseProfileDTO r = new ResponseProfileDTO(image);
+		ResponseProfile r = new ResponseProfile(image);
 		
 		return ResponseEntity.ok().body(r);
 	}
@@ -252,7 +252,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("friend")
-	public ResponseEntity<?> postFriend(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestFriendDTO body) {
+	public ResponseEntity<?> postFriend(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestFriend body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -268,9 +268,9 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		/*
 		 * Ottiene dati da database attraverso id
 		 */
-		this.databaseService.createFriendship(id, body.username());
+		this.databaseService.createFriendship(id, body.getUsername());
 		
-		return ResponseEntity.ok().build();
+		return ResponseEntity.created(null).build();
 	}
 	
 	/**
@@ -291,19 +291,19 @@ public class ServiceApiAccountController extends BasicApiRestController {
 		 * Ottiene dati da database attraverso id
 		 */
 		List<User> listFriends = this.databaseService.findFriendsOfUser(id);
-		if(listFriends == null || listFriends.isEmpty()) return ResponseEntity.ok().body(new ResponseFriendsDTO(null));
+		if(listFriends == null || listFriends.isEmpty()) return ResponseEntity.ok().body(new ResponseFriends(null));
 		
 		/*
 		 * Ritorna dati
 		 */
-		List<ResponseFriendDTO> f = new ArrayList<ResponseFriendDTO>();
+		List<ResponseFriend> f = new ArrayList<ResponseFriend>();
 		for(User u : listFriends) {
 			
 			String image = this.findImage(u);
-			f.add(new ResponseFriendDTO(u.getUsername(), image));
+			f.add(new ResponseFriend(u.getUsername(), image));
 		}
 		
-		ResponseFriendsDTO friends = new ResponseFriendsDTO(f);
+		ResponseFriends friends = new ResponseFriends(f);
 		return ResponseEntity.ok().body(friends);
 	}
 }

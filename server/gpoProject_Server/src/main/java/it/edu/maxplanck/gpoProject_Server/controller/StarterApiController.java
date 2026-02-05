@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccessDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccess;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ public class StarterApiController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("registration")
-	public ResponseEntity<?> registration(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccessDTO body) {
+	public ResponseEntity<?> registration(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccess body) {
 
 		/*
 		 * Controlla se body request valido:
@@ -49,9 +49,9 @@ public class StarterApiController extends BasicApiRestController {
 		 * Prova a creare un nuovo utente:
 		 * 		- Creazione fallisce -> Errore database / dati inseriti non validi
 		*/
-		this.databaseService.createUser(body.username(), body.password());
+		this.databaseService.createUser(body.getUsername(), body.getPassword());
 
-		return ResponseEntity.ok().build();
+		return ResponseEntity.created(null).build();
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class StarterApiController extends BasicApiRestController {
 	 * @return
 	 */
 	@PostMapping("login")
-	public ResponseEntity<?> login(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccessDTO body) {
+	public ResponseEntity<?> login(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccess body) {
 		
 		/*
 		 * Controlla se body request valido:
@@ -74,7 +74,7 @@ public class StarterApiController extends BasicApiRestController {
 		 * Prova a recuperare l'utente:
 		 * 		- Creazione fallisce -> Errore database / dati inseriti non corretti
 		*/
-		int id  = this.databaseService.findUser(body.username(), body.password());
+		int id  = this.databaseService.findUser(body.getUsername(), body.getPassword());
 			
 		/*
 		 * Creazione risposta con token e cookies:
@@ -85,7 +85,7 @@ public class StarterApiController extends BasicApiRestController {
 	
 		Map<String, Object> claims = new HashMap<String, Object>();
 		claims.put("id", id);
-		claims.put("username", body.username());
+		claims.put("username", body.getUsername());
 		
 		String token = null;
 		token = this.authenticationService.getTokenService().generateTokenAccess(claims, UtilServer.accessTokenSubject);
