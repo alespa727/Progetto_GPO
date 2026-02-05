@@ -40,7 +40,7 @@ public final class Channel {
 	@Column(name = ChannelData.columnNameDescription)
 	private String description;
 	
-	@Column(name = ChannelData.columnNameCreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(nullable = false)
 	private LocalDate createdAt;
 
 	public Channel(){
@@ -54,7 +54,7 @@ public final class Channel {
 		this.name = name;
 		this.type = type;
 		this.description = description;
-		this.createdAt = null;
+		this.createdAt = LocalDate.now();
 	}
 	
 	public Channel(Integer pkID, Section fkSection, String name, String type, String description, LocalDate createdAt) {

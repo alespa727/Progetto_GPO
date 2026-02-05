@@ -43,7 +43,7 @@ public final class Community {
 	@Column(name = CommunityData.columnNameDescription)
 	private String description;
 	
-	@Column(name = CommunityData.columnNameCreatedAt, columnDefinition = "createdAt DATE DEFAULT CURDATE()", insertable = false, updatable = false)
+	@Column(nullable = false)
 	private LocalDate createdAt;
 
 	public Community(){
