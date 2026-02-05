@@ -132,7 +132,7 @@ public class AdminApiController extends BasicApiRestController {
 		int id = this.authenticationService.authenticate(request, response);
 		
 		User u = this.databaseService.findUser(id);
-		if(!u.isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
+		//if(!u.isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
 		
 		/*
 		 * Ritorna endpoints
