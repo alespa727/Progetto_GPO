@@ -93,40 +93,30 @@ io.on("connection", (socket) => {
 
     socket.on("join_server", (data) => {
         const { serverId } = data;
-        const server = servers.find(c => c.id.toString() === serverId.toString());
-
-        if (!server) return;
+        if(!serverId) return;
 
         socket.join(`server_${serverId}`);
-        console.log(key + " è entrato nel server_" + serverId);
-        server.sections.forEach((s)=>{
-            s.channels.forEach((c)=>{
-                if(c.type === ChannelType.VOICE){
-                    emitVoiceUsersUpdate(c.id);
-                }
-            })
-        })
-        
+     
     });
 
     socket.on("leave_server", (data) => {
         const { serverId } = data;
-        const server = servers.find(c => c.id.toString() === serverId.toString());
-
-        if (!server) return;
+        if(!serverId) return;
 
         socket.leave(`server_${serverId}`);
     });
 
-    socket.on("join_channel", ({ channelId }) => {
+    socket.on("join_channel", (data) => {
+        const { channelId } = data;
         socket.join(`channel_${channelId}`);
-        console.log(typeof(channelId), channelId)
-        emitVoiceUsersUpdate(parseInt(channelId));
+        console.log(key + " è entrato nel channel " + channelId);
     });
 
-     socket.on("leave_channel", ({ channelId }) => {
+    socket.on("leave_channel", (data) => {
+        
+        const { channelId } = data;
         socket.leave(`channel_${channelId}`);
-        emitVoiceUsersUpdate(parseInt(channelId));
+        console.log(key + " è uscito dal channel " + channelId);
     });
 
     socket.on("leave_chat", (data) => {
