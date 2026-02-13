@@ -1,0 +1,121 @@
+CREATE TABLE `utenti` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `username` varchar(20) UNIQUE NOT NULL,
+  `password` varchar(256) NOT NULL,
+  `is_admin` boolean NOT NULL DEFAULT false,
+  `ultimo_accesso` datetime DEFAULT (CURRENT_TIMESTAMP),
+  `created_at` timestamp DEFAULT (CURRENT_TIMESTAMP),
+  `image_path` varchar(100)
+);
+
+CREATE TABLE `chat` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `amicizia_fk` int NOT NULL,
+  `created_at` timestamp DEFAULT (CURRENT_TIMESTAMP),
+  `last_message` datetime
+);
+
+CREATE TABLE `amicizie` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `user_fk1` int NOT NULL,
+  `user_fk2` int NOT NULL,
+  `created_at` timestamp DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE `chiamate` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `chat_fk` int NOT NULL,
+  `start_time` datetime DEFAULT (CURRENT_TIMESTAMP),
+  `end_time` datetime,
+  `is_finished` boolean NOT NULL DEFAULT false
+);
+
+CREATE TABLE `community` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `owner_fk` int NOT NULL,
+  `invite_code` varchar(20) UNIQUE,
+  `is_code_valid` boolean NOT NULL DEFAULT true,
+  `name` varchar(100) NOT NULL,
+  `description` text,
+  `created_at` timestamp DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE `iscrizione` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `community_fk` int NOT NULL,
+  `user_fk` int NOT NULL,
+  `date` datetime DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE `sezioni_canali` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `nome` varchar(30) NOT NULL,
+  `community_fk` int NOT NULL
+);
+
+CREATE TABLE `canali` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `sezione_fk` int NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `tipo` varchar(20) NOT NULL COMMENT 'testo | vocale',
+  `descrizione` text,
+  `creato_il` datetime DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE `messaggi_community` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `canale_fk` int NOT NULL,
+  `user_fk` int NOT NULL,
+  `text` text,
+  `sent_at` timestamp DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE `messaggi_chat` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `chat_fk` int NOT NULL,
+  `user_fk` int NOT NULL,
+  `text` text,
+  `sent_at` timestamp DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE `allegati` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `messaggio_chat_fk` int NOT NULL,
+  `path` varchar(255) NOT NULL
+);
+
+CREATE UNIQUE INDEX `amicizie_index_0` ON `amicizie` (`user_fk1`, `user_fk2`);
+
+CREATE UNIQUE INDEX `iscrizione_index_1` ON `iscrizione` (`community_fk`, `user_fk`);
+
+ALTER TABLE `amicizie` COMMENT = 'CHECK (user_fk1 <> user_fk2)';
+
+ALTER TABLE `chat` ADD CONSTRAINT `fk_chat_amicizia` FOREIGN KEY (`amicizia_fk`) REFERENCES `amicizie` (`id`);
+
+ALTER TABLE `amicizie` ADD CONSTRAINT `fk_amicizie_user1` FOREIGN KEY (`user_fk1`) REFERENCES `utenti` (`id`);
+
+ALTER TABLE `amicizie` ADD CONSTRAINT `fk_amicizie_user2` FOREIGN KEY (`user_fk2`) REFERENCES `utenti` (`id`);
+
+ALTER TABLE `chiamate` ADD CONSTRAINT `fk_chiamata_chat` FOREIGN KEY (`chat_fk`) REFERENCES `chat` (`id`);
+
+ALTER TABLE `community` ADD CONSTRAINT `fk_community_owner` FOREIGN KEY (`owner_fk`) REFERENCES `utenti` (`id`);
+
+ALTER TABLE `iscrizione` ADD CONSTRAINT `fk_iscrizione_community` FOREIGN KEY (`community_fk`) REFERENCES `community` (`id`);
+
+ALTER TABLE `iscrizione` ADD CONSTRAINT `fk_iscrizione_user` FOREIGN KEY (`user_fk`) REFERENCES `utenti` (`id`);
+
+ALTER TABLE `sezioni_canali` ADD CONSTRAINT `fk_sezioni_community` FOREIGN KEY (`community_fk`) REFERENCES `community` (`id`);
+
+ALTER TABLE `canali` ADD CONSTRAINT `fk_canali_sezione` FOREIGN KEY (`sezione_fk`) REFERENCES `sezioni_canali` (`id`);
+
+ALTER TABLE `messaggi_community` ADD CONSTRAINT `fk_messaggi_canale` FOREIGN KEY (`canale_fk`) REFERENCES `canali` (`id`);
+
+ALTER TABLE `messaggi_community` ADD CONSTRAINT `fk_messaggi_user` FOREIGN KEY (`user_fk`) REFERENCES `utenti` (`id`);
+
+ALTER TABLE `messaggi_chat` ADD CONSTRAINT `fk_messaggi_chat_chat` FOREIGN KEY (`chat_fk`) REFERENCES `chat` (`id`);
+
+ALTER TABLE `messaggi_chat` ADD CONSTRAINT `fk_messaggi_chat_user` FOREIGN KEY (`user_fk`) REFERENCES `utenti` (`id`);
+
+ALTER TABLE `allegati` ADD CONSTRAINT `fk_allegati_chat` FOREIGN KEY (`messaggio_chat_fk`) REFERENCES `messaggi_chat` (`id`);
+
+ALTER TABLE `messaggi_community` ADD FOREIGN KEY (`user_fk`) REFERENCES `sezioni_canali` (`id`);

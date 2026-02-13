@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record ResponseCommunityDTO(
+        Integer id,
 	String name,
 	String inviteCode,
 	boolean isInviteCodeValid,

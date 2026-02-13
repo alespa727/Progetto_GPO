@@ -3,6 +3,7 @@ package it.edu.maxplanck.gpoProject_Server.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.edu.maxplanck.gpoProject_Server.dto.response.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,15 +27,6 @@ import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSectionDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSubscriptionDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountsDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChannelDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunitiesDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunityDataDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChannelSectionCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChannelSectionCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseSectionDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -208,7 +200,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		 * Ottiene le community a cui un utente e' iscritto
 		 */
 		List<Community> communities = this.databaseService.findCommunitiesOfUser(id);
-		if(communities == null) ResponseEntity.ok().body(new ResponseCommunitiesDTO(null));
+		if(communities == null || communities.isEmpty()) return ResponseEntity.ok().body(new ResponseCommunitiesDTO(new ArrayList<>()));
 		
 		List<ResponseCommunityDTO> c = new ArrayList<ResponseCommunityDTO>();
 		for(Community com : communities) {
@@ -231,7 +223,7 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 				}
 			}
 			
-			c.add(new ResponseCommunityDTO(com.getName(), com.getInviteCode(), com.isInviteCodeValid(), com.getDescription(), com.getCreatedAt(), (sect.isEmpty()? null : sect)));
+			c.add(new ResponseCommunityDTO(com.getPkID(), com.getName(), com.getInviteCode(), com.isInviteCodeValid(), com.getDescription(), com.getCreatedAt(), (sect.isEmpty()? null : sect)));
 		}
 		
 		ResponseCommunitiesDTO comm = new ResponseCommunitiesDTO(c);
@@ -382,9 +374,9 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Crea un messaggio in una determinata community
 		 */
-		this.databaseService.createMessageChannelSectionCommunity(id, communityId, sectionId, channelId, body.message());
-		
-		return ResponseEntity.created(null).build();
+		MessageCommunity m = this.databaseService.createMessageChannelSectionCommunity(id, communityId, sectionId, channelId, body.message());
+        ResponseMessageChatDTO mes = new ResponseMessageChatDTO(m.getPkID(), m.getFkUser().getUsername(), m.getMessage(), m.getSentAt(), new ArrayList<>());
+		return ResponseEntity.created(null).body(mes);
 	}
 	
 	/**
@@ -403,20 +395,25 @@ public class ServiceApiCommunitiesController extends BasicApiRestController {
 		/*
 		 * Autentificazione
 		 */
-		int id = this.authenticationService.authenticate(request, response);
-		
-		/*
-		 * Ottiene tutti i messaggi della community
-		 */
-		List<MessageCommunity> messagesChannel = this.databaseService.getMessagesChannelSectionCommunity(id, communityId, sectionId, channelId, messageId);
-		if(messagesChannel == null) return ResponseEntity.ok().body(new ResponseMessagesChannelSectionCommunityDTO(null));
-		
-		List<ResponseMessageChannelSectionCommunityDTO> messages = new ArrayList<ResponseMessageChannelSectionCommunityDTO>();
-		
-		for(MessageCommunity mess : messagesChannel) messages.add(new ResponseMessageChannelSectionCommunityDTO(mess.getPkID(), mess.getMessage()));
-		
-		ResponseMessagesChannelSectionCommunityDTO m = new ResponseMessagesChannelSectionCommunityDTO((messages.isEmpty())? null : messages);
-		
-		return ResponseEntity.ok().body(m);
+        int id = this.authenticationService.authenticate(request, response);
+
+        /*
+         * Ottiene tutti i messaggi della community
+         */
+        List<MessageCommunity> messagesChannel = this.databaseService.getMessagesChannelSectionCommunity(id, communityId, sectionId, channelId, messageId);
+        System.out.println(messagesChannel);
+        if(messagesChannel == null || messagesChannel.isEmpty())
+            return ResponseEntity.ok().body(new ResponseMessagesChannelDTO(channelId, new ArrayList<>())
+);
+
+        List<ResponseMessageChatDTO> messages = new ArrayList<ResponseMessageChatDTO>();
+
+        for(MessageCommunity mess : messagesChannel){
+            messages.add(new ResponseMessageChatDTO(mess.getPkID(), mess.getFkUser().getUsername(), mess.getMessage(), mess.getSentAt(), new ArrayList<>()));
+        }
+
+        ResponseMessagesChannelDTO m = new ResponseMessagesChannelDTO(channelId, (messages.isEmpty())? null : messages);
+
+        return ResponseEntity.ok().body(m);
 	}
 }

@@ -1,0 +1,154 @@
+CREATE TABLE IF NOT EXISTS `utenti` (
+	`id` INTEGER AUTO_INCREMENT,
+	`username` VARCHAR(20) NOT NULL UNIQUE,
+	`password` VARCHAR(256) NOT NULL,
+	`is_admin` BOOLEAN NOT NULL DEFAULT false,
+	`ultimo_accesso` DATETIME DEFAULT CURRENT_TIMESTAMP,
+	`created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	`image_path` VARCHAR(100),
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `chat` (
+	`id` INTEGER AUTO_INCREMENT,
+	`amicizia_fk` INTEGER NOT NULL,
+	`created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	`last_message` DATETIME,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `amicizie` (
+	`id` INTEGER AUTO_INCREMENT,
+	`user_fk1` INTEGER NOT NULL,
+	`user_fk2` INTEGER NOT NULL,
+	`created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE UNIQUE INDEX `amicizie_index_0`
+ON `amicizie` (`user_fk1`, `user_fk2`);
+CREATE TABLE IF NOT EXISTS `chiamate` (
+	`id` INTEGER AUTO_INCREMENT,
+	`chat_fk` INTEGER NOT NULL,
+	`start_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+	`end_time` DATETIME,
+	`is_finished` BOOLEAN NOT NULL DEFAULT false,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `community` (
+	`id` INTEGER AUTO_INCREMENT,
+	`owner_fk` INTEGER NOT NULL,
+	`invite_code` VARCHAR(20) UNIQUE,
+	`is_code_valid` BOOLEAN NOT NULL DEFAULT true,
+	`name` VARCHAR(100) NOT NULL,
+	`description` TEXT,
+	`created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `iscrizione` (
+	`id` INTEGER AUTO_INCREMENT,
+	`community_fk` INTEGER NOT NULL,
+	`user_fk` INTEGER NOT NULL,
+	`date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE UNIQUE INDEX `iscrizione_index_1`
+ON `iscrizione` (`community_fk`, `user_fk`);
+CREATE TABLE IF NOT EXISTS `sezioni_canali` (
+	`id` INTEGER AUTO_INCREMENT,
+	`nome` VARCHAR(30) NOT NULL,
+	`community_fk` INTEGER NOT NULL,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `canali` (
+	`id` INTEGER AUTO_INCREMENT,
+	`sezione_fk` INTEGER NOT NULL,
+	`nome` VARCHAR(100) NOT NULL,
+	`tipo` VARCHAR(20) NOT NULL COMMENT 'testo | vocale',
+	`descrizione` TEXT,
+	`creato_il` DATETIME DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `messaggi_community` (
+	`id` INTEGER AUTO_INCREMENT,
+	`canale_fk` INTEGER NOT NULL,
+	`user_fk` INTEGER NOT NULL,
+	`text` TEXT,
+	`sent_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `messaggi_chat` (
+	`id` INTEGER AUTO_INCREMENT,
+	`chat_fk` INTEGER NOT NULL,
+	`user_fk` INTEGER NOT NULL,
+	`text` TEXT,
+	`sent_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `allegati` (
+	`id` INTEGER AUTO_INCREMENT,
+	`messaggio_chat_fk` INTEGER NOT NULL,
+	`path` VARCHAR(255) NOT NULL,
+	PRIMARY KEY(`id`)
+);
+
+
+ALTER TABLE `chat`
+ADD FOREIGN KEY(`amicizia_fk`) REFERENCES `amicizie`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `amicizie`
+ADD FOREIGN KEY(`user_fk1`) REFERENCES `utenti`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `amicizie`
+ADD FOREIGN KEY(`user_fk2`) REFERENCES `utenti`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `chiamate`
+ADD FOREIGN KEY(`chat_fk`) REFERENCES `chat`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `community`
+ADD FOREIGN KEY(`owner_fk`) REFERENCES `utenti`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `iscrizione`
+ADD FOREIGN KEY(`community_fk`) REFERENCES `community`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `iscrizione`
+ADD FOREIGN KEY(`user_fk`) REFERENCES `utenti`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `sezioni_canali`
+ADD FOREIGN KEY(`community_fk`) REFERENCES `community`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `canali`
+ADD FOREIGN KEY(`sezione_fk`) REFERENCES `sezioni_canali`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `messaggi_community`
+ADD FOREIGN KEY(`canale_fk`) REFERENCES `canali`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `messaggi_community`
+ADD FOREIGN KEY(`user_fk`) REFERENCES `utenti`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `messaggi_chat`
+ADD FOREIGN KEY(`chat_fk`) REFERENCES `chat`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `messaggi_chat`
+ADD FOREIGN KEY(`user_fk`) REFERENCES `utenti`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `allegati`
+ADD FOREIGN KEY(`messaggio_chat_fk`) REFERENCES `messaggi_chat`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
