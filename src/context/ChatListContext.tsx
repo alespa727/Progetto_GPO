@@ -1,16 +1,18 @@
 import { Chat, endpoint2 } from "@/types";
 import axios from "axios";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useAccount } from "./UserProvider";
 
 const ChatContext = createContext<Chat[]>([]);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [chats, setChats] = useState<Chat[]>([]);
+  const account = useAccount();
 
   useEffect(() => {
     const fetchChats = async () => {
       try {
-       
+        if(!account) return;
         const res = await axios.get(endpoint2+"/services/chats", {
                     withCredentials: true
                 });
@@ -23,7 +25,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchChats();
-  }, []);
+  }, [account]);
 
   return (
     <ChatContext.Provider value={chats}>

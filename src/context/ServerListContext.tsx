@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
 import { Channel, ChannelType, endpoint, endpoint2, Section, Server } from "../types";
+import { useAccount } from "./UserProvider";
 
 const ServerContext = createContext<Server[] | null>(null);
 
 export const ServerProvider = ({ children }: { children: ReactNode }) => {
   const [servers, setServers] = useState<Server[] | null>(null);
+  const account = useAccount();
   const example: Server[] = [
     new Server(
       1,
@@ -37,8 +39,9 @@ export const ServerProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchServers = async () => {
+    
       try {
-
+        if(!account) return;
         let list: Server[] = [];
         const res = await axios.get(endpoint2 + "/services/communities", {
           withCredentials: true
@@ -56,12 +59,12 @@ export const ServerProvider = ({ children }: { children: ReactNode }) => {
         setServers(list);
 
       } catch (err) {
-        console.error("Errore nel fetch utente:", err);
+        console.error("Errore nel fetch dei server:", err);
       }
     };
 
     fetchServers();
-  }, []);
+  }, [account]);
 
   return (
     <ServerContext.Provider value={servers}>

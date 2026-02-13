@@ -4,13 +4,14 @@ import { useAccount } from "@/context/UserProvider";
 import { Attachment, endpoint2, Message } from "@/types";
 import axios, { HttpStatusCode } from "axios";
 import { Plus, Send } from "lucide-react";
+import { div } from "motion/react-client";
 import { useRef, useState } from "react";
 
 export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message: Message) => void, forceUpdate: React.Dispatch<React.SetStateAction<number>> }) {
     const socket = useSocket();
     const account = useAccount();
     const [nuovoTesto, setNuovoTesto] = useState<string>("");
-    const chat = useActiveChatContext().activeChat;
+    const channel = useActiveServerContext().activeChannel;
     const [isFile, setFile] = useState(false);
     const [files, setFiles] = useState<File[]>();
     const addFiles = (files: File[]) => {
@@ -20,14 +21,12 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
         ]);
     }
 
-    if (!chat || !(account && account !== undefined)) return;
+    if (!channel || !(account && account !== undefined)) return;
 
-    let id = chat ? chat.id : null;
-    let type = "chat";
+    let id = channel ? channel.id : null;
+    let type = "channel";
 
     const sendMessage = async (nuovoTesto: string) => {
-
-
 
         if (!socket) return;
         try {
@@ -35,7 +34,7 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
             let newMessage = new Message(tempId, account.username, nuovoTesto, [], new Date(), false);
             addMessage(newMessage)
             const res = await axios.post(
-                endpoint2 + "/services/chats/" + id + "/message",
+                endpoint2 + "/services/communities/1/sections/1/channels/"+id+"/message",
                 {
                     message: nuovoTesto,
                 },
@@ -65,48 +64,6 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
 
     }
 
-    const sendMessageAndAttachments = async (nuovoTesto: string, files: File[]) => {
-        if (!files) return;
-        try {
-            const tempId = Date.now();
-            const atts: Attachment[] = files?.map(f => {
-                const filename = f.name.split(".")[0];
-                const extension = f.name.split(".")[1]
-                return new Attachment(tempId - 1, f.webkitRelativePath, filename, extension)
-            });
-            let newMessage = new Message(tempId, account.username, nuovoTesto, atts, new Date(), false);
-            addMessage(newMessage);
-            const formData = new FormData();
-
-            files.forEach(file => {
-                formData.append("files", file);
-            });
-            formData.append("message", JSON.stringify({ message: nuovoTesto }));
-
-            const res = await axios.post(endpoint2 + "/services/chats/" + chat.id + "/attachment", formData, {
-                withCredentials: true,
-            });
-
-            if (socket && res.status === HttpStatusCode.Created) {
-                newMessage.messageId = res.data.messageId;
-                newMessage.sent = true;
-                console.log(res.data.attachments.map((a: any) => Attachment.fromJSON(a)))
-                newMessage.attachments = res.data.attachments.map((a: any) => Attachment.fromJSON(a));
-                socket.emit("sendMessage", { id, type, message: newMessage });
-                console.log(res)
-
-            } else {
-                newMessage.fail = true;
-            }
-            forceUpdate(prev => prev + 1);
-        } catch (error) {
-            console.error("errore mandando il messaggio")
-        } finally {
-            setNuovoTesto("");
-            setFile(!isFile);
-            setFiles([])
-        }
-    };
 
     const send = async () => {
         if (!socket) return;
@@ -114,7 +71,7 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
         if (nuovoTesto.trim() === "") return;
         
         if (files && files?.length > 0) {
-            await sendMessageAndAttachments(nuovoTesto, files);
+          
         } else {
             await sendMessage(nuovoTesto)
         }
@@ -160,6 +117,7 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
 }
 import { useDropzone } from "react-dropzone";
 import { useEffect, } from "react";
+import { useActiveServerContext } from "@/context/ActiveServerProvider";
 
 function MyDropzone({
     files,

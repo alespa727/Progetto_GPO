@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { PrivateChatResponse } from "../types";
 
 interface SettingsContext {
   state: boolean;

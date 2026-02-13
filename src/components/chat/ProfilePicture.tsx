@@ -1,4 +1,3 @@
-import placeholder from "../../assets/placeholder.png";
 import { useChatContext } from "@/context/ChatContext";
 
 export function ProfilePicture({ className, src="" }: { className: string, src?: string }) {
@@ -8,7 +7,7 @@ export function ProfilePicture({ className, src="" }: { className: string, src?:
     return (
         <div className={`rounded-full overflow-hidden ${className}`}>
             <img
-                src={src!=="" ? (src ? src : placeholder) : ""}
+                src={src!=="" ? (src ? src : "/placeholder.png") : "/placeholder.png"}
                 alt=""
                 className="w-full h-full object-cover"
             />

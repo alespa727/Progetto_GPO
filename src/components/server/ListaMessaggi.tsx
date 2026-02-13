@@ -1,10 +1,10 @@
 import { Message } from "@/types";
-import { Messaggio } from "./Messaggio";
-import { useActiveChatContext } from "@/context/ActiveChatProvider";
+import { Messaggio } from "../common/Messaggio";
 import { useEffect, useRef, useState, Fragment } from "react";
+import { useActiveServerContext } from "@/context/ActiveServerProvider";
 
 export function ListaMessaggi({ messages }: { messages: Message[] }) {
-    const chat = useActiveChatContext().activeChat;
+    const channel = useActiveServerContext().activeChannel;
     const [selectedMsgIndex, setSelectedMsgIndex] = useState<number | null>(null);
     const messagesRef = useRef<null | HTMLDivElement>(null);
 
@@ -21,7 +21,7 @@ export function ListaMessaggi({ messages }: { messages: Message[] }) {
         scrollToBottom();
     }, [messages]);
 
-    if (!chat) return null;
+    if (!channel) return null;
 
     return (
         <div
@@ -37,10 +37,10 @@ export function ListaMessaggi({ messages }: { messages: Message[] }) {
                 const showDateSeparator = currentDate && currentDate !== prevDate;
 
                 return (
-                    <Fragment key={msg.messageId || index}>
+                    <Fragment key={msg.messageId}>
                         <Messaggio
-                            messageType={"chat"}
-                            id={chat.id}
+                            messageType={"channel"}
+                            id={channel.id}
                             msg={msg}
                             style={selectedMsgIndex === index ? "bg-white/10 mr-4 rounded-md" : ""}
                             onCloseMenu={() => { setSelectedMsgIndex(null) }}

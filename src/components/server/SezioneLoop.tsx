@@ -18,7 +18,7 @@ export function SectionLoop({ serverSections, ...props }: SezioneLoopProps) {
     <div className="mb-1 flex-1 overflow-y-auto">
       {sections.map((section) => (
         <SectionContext.Provider value={section} key={section.id}>
-            <div className="border-b border-white/10 rounded-t-[10px] ">
+            <div className=" rounded-t-[10px] ">
                 {
                     props.children
                 }

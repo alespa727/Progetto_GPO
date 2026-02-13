@@ -18,9 +18,11 @@ export const ActiveServerProvider = ({ children }: { children: ReactNode }) => {
 
 
   const changeServer = (server: Server | null): void=>{
+    if(server === activeServer) return;
     if(activeServer){
       socket?.emit("leave_server", { serverId: activeServer.id});
       console.log("leave_server", { serverId: activeServer.id});
+      setActiveChannel(null);
     }
       
     
@@ -35,14 +37,33 @@ export const ActiveServerProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(()=>{
     if(activeServer)
-      setActiveChannel(activeServer.sections[0].channels[0]);
+      changeChannel(activeServer.sections[0].channels[0]);
 
   }, [activeServer]);
+
+  const changeChannel = (channel: Channel | null): void=>{
+    if(channel === activeChannel) return;
+    if(activeChannel){
+      socket?.emit("leave_channel", { channelId: activeChannel.id});
+      console.log("leave_channel", { channelId: activeChannel.id});
+      setActiveChannel(null);
+    }
+      
+    
+    if(channel!==null){
+      socket?.emit("join_channel", { channelId: channel.id })
+      console.log("join_channel", { channelId: channel.id });
+    }
+
+    setActiveChannel(channel)
+    return; 
+  }
+
 
   
 
   return (
-    <ActiveServerContext.Provider value={{ activeServer, activeChannel, setActiveServer: changeServer, setActiveChannel  }}>
+    <ActiveServerContext.Provider value={{ activeServer, activeChannel, setActiveServer: changeServer, setActiveChannel: changeChannel  }}>
       {children}
     </ActiveServerContext.Provider>
   );

@@ -21,7 +21,7 @@ export function ParticipantTileCustom({
     audioTrack?: TrackReference;
     screenShare?: TrackReference;
 }) {
-    
+
     const participant = useParticipantContext();
     const { audioLevel } = participant;
     const room = useRoomContext();
@@ -33,12 +33,24 @@ export function ParticipantTileCustom({
         const downloadPfp = async () => {
             if (!participant.identity) return;
 
-            const res = await axios.get(
-                endpoint2 + "/services/profileImage?username=" + participant.identity,
-                { withCredentials: true }
+            const res = await axios.post(
+                endpoint2 + "/admin/profiles",
+                JSON.stringify({
+                    users: [
+                        {
+                            username: participant.identity
+                        },
+                    ]
+                }),
+                { 
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                 },
             );
 
-            setPfp(res.data.path.replace("http://localhost:8080", ""));
+            setPfp(res.data.friends[0].imagePath.replace("http://localhost:8080", ""));
         };
 
         downloadPfp();
@@ -62,13 +74,13 @@ export function ParticipantTileCustom({
                     <div className="relative w-full h-full">
                         {audioTrack && <AudioTrack trackRef={audioTrack} />}
 
-                         {
-                        screenShare && (
-                            <VideoTrack style={{
-                                objectFit: 'cover',
-                            }} trackRef={screenShare} className="w-full h-full" />
-                        )
-                    }
+                        {
+                            screenShare && (
+                                <VideoTrack style={{
+                                    objectFit: 'cover',
+                                }} trackRef={screenShare} className="w-full h-full" />
+                            )
+                        }
 
                         <div className="absolute top-0 left-0 w-full px-4 py-3 text-gray-200">
                             <h3 className="text-xl font-medium">

@@ -120,7 +120,6 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                                     <MyCustomZoom key={a.id} src={`/files/${a.filename}.${a.extension}`} attachment={a}
                                         alt="img">
                                     </MyCustomZoom>
-
                                 );
                             } else {
                                 return (

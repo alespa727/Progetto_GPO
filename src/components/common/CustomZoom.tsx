@@ -2,7 +2,6 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { createPortal } from "react-dom"
 import { Download, X } from "lucide-react"
-import { Button } from "../animate-ui/primitives/buttons/button"
 import axios from "axios"
 import { Attachment } from "@/types"
 
@@ -22,9 +21,8 @@ export default function MyCustomZoom({
             <motion.img
                 src={src}
                 alt={alt}
-                layoutId="zoom-image"
                 onClick={() => setIsZoomed(true)}
-                className="rounded-lg cursor-pointer max-w-[50vw]"
+                className="rounded-lg cursor-pointer max-w-[30vw]"
             />
 
             {typeof window !== "undefined" &&

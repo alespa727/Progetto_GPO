@@ -14,6 +14,8 @@ export function ChannelName() {
   const { setActiveChannel, activeChannel } = useActiveServerContext();
 
   const isActive = activeChannel?.id === channel.id;
+  console.log(isActive)
+  console.log(activeChannel)
   const socket = useSocket();
   const [userList, setUsers] = useState<string[]>([]);
   let [count, setCount] = useState<number>(0);
@@ -40,9 +42,13 @@ export function ChannelName() {
   }, []);
 
   const handleClick = async () => {
-  
-    setActiveChannel(channel);
-    console.log("Attivato", channel)
+    if (channel.type === ChannelType.TEXT) {
+      setActiveChannel(channel);
+      console.log("Attivato", channel)
+    } else {
+      console.log("attiva chiamata")
+    }
+
   };
 
   return (
@@ -53,10 +59,10 @@ export function ChannelName() {
             onClick={handleClick}
             className={`
         w-full text-left rounded-(--radius)
-        transition-all duration-150
+        transition-all duration-150  md:bg-transparent
         ${isActive
-                ? "bg-white/20 text-white"
-                : "text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "md:bg-white/20 text-white"
+                : "text-gray-300 md:hover:bg-white/10 md:hover:text-white"
               }
       `}
           >
@@ -71,6 +77,13 @@ export function ChannelName() {
               <span className="truncate font-medium">
                 {channel.name}
               </span>
+
+              {channel.type === ChannelType.VOICE ? (<>
+                <div className="font-light text-[14px] absolute right-5  flex items-center">
+                  <div className="rounded-l-(--radius) p-1 bg-black/40">00</div>
+                  <div className="rounded-r-(--radius) p-1 bg-white/20">10</div>
+                </div>
+              </>) : (<></>)}
             </div>
 
             {false ? (
@@ -89,9 +102,7 @@ export function ChannelName() {
 
 
           {channel.type === ChannelType.VOICE ? (
-            <div className="  w-full text-left rounded-(--radius) px-3 pl- mb-1
-        flex flex-col gap-1/2 mt-1
-        transition-all duration-150 pb-2">
+            <div className={(userList.length > 0 ? "pb-2 mb-1 gap-1/2 mt-1" : "") + " w-full text-left rounded-(--radius) px-3  flex flex-col   transition-all duration-150 "}>
               <RoomAudioRenderer />
               {
 

@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import "../../styles/Chat.css";
-import { endpoint2, Message } from "../../types.tsx";
+import { Message } from "../../types.tsx";
 import { useSocket } from "../../context/SocketProvider.tsx";
 import { useChatContext } from "../../context/ChatContext.tsx";
 import { Header } from "./ChatHeader.tsx";
-import { ListaMessaggi } from "../common/ListaMessaggi.tsx";
+import { ListaMessaggi } from "./ListaMessaggi.tsx";
 import { MessageInput } from "./MessageInput.tsx";
-import ChatCall from "../chiamata/ChatCall.tsx";
 import axios from "axios";
 import { useAccount } from "@/context/UserProvider.tsx";
+import ChiamataChat from "./ChiamataChat.tsx";
+import CallInterface from "../chiamata/CallInterface.tsx";
+import ChatCall from "../chiamata/ChatCall.tsx";
 
 function Chat() {
   const socket = useSocket();

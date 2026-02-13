@@ -6,6 +6,7 @@ import { Button } from "../animate-ui/primitives/buttons/button";
 function Login() {
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
+    const [error, setError] = useState<string>("");
 
     const updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value)
@@ -42,8 +43,8 @@ function Login() {
 
         }}
             className=
-            {'p-50 min-w-200  w-full h-full  transition-opacity duration-50'}>
-            <div className=" bg-white/10 min-w-100 relative w-full h-full flex items-center justify-center flex-col gap-5">
+            {'md:p-50 p-3 md:min-w-200 w-full transition-opacity duration-300'}>
+            <div className=" bg-white/10 relative w-full h-full flex items-center justify-center flex-col gap-5">
                 <h3 className="text-center border-white/10 w-full py-8 font-bold absolute top-0 text-white text-2xl border-b">Login</h3>
                 <input className="border  border-white/30 bg-white/20 text-white p-2" type="text" value={username} onChange={updateUsername} />
                 <input className="border border-white/30 bg-white/20 text-white p-2" type="password" value={password} onChange={updatePassword} />

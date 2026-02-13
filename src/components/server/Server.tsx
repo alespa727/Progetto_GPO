@@ -7,10 +7,13 @@ import { ServerName } from "./ServerName.tsx";
 import { useServerContext } from "../../context/ServerContext.tsx";
 import { useActiveChatContext } from "@/context/ActiveChatProvider.tsx";
 import { useRef } from "react";
+import { useActiveServerContext } from "@/context/ActiveServerProvider.tsx";
 
 function Server() {
 
   const activeServer = useServerContext();
+
+  const channel = useActiveServerContext().activeChannel;
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -23,7 +26,7 @@ function Server() {
         const newWidth = startWidth + (mouseMoveEvent.pageX - startX);
 
 
-        if (newWidth > 200 && newWidth < 300) {
+        if (newWidth > 200 && newWidth < 400) {
           containerRef.current.style.width = `${newWidth}px`;
           containerRef.current.style.flex = "none";
           document.documentElement.style.setProperty('--chat-width', `${newWidth}px`);
@@ -49,10 +52,10 @@ function Server() {
   return (
 
     <div ref={containerRef} 
-    className="bg-[#1e1e2e] relative shrink-0 font-medium flex flex-col h-full pb-16"
-    style={{
-        width: `calc(var(--chat-width, 300px))`
-      }}>
+    className={ (channel ? "hidden md:flex flex-col" : "flex flex-col") +
+    " bg-[#1e1e2e] font-medium border-r border-slate-700 relative " +
+    "w-full md:w-(--chat-width,300px) md:min-w-[200px] md:max-w-[400px]"}
+    >
       <ServerName></ServerName>
 
       <SectionLoop>

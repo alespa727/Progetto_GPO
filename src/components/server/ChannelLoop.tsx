@@ -10,7 +10,7 @@ export interface ChannelLoopProps {
 export function ChannelLoop({...props }: ChannelLoopProps) {
     const section = useSectionContext();
     return (
-        <>
+        <div className="p-1">
         {section.channels.map((channel) => (
             <ChannelContext.Provider value={channel} key={channel.id}>
                 <div className={"m-1 transition duration-400 ease-in-out" }>
@@ -20,6 +20,6 @@ export function ChannelLoop({...props }: ChannelLoopProps) {
                 </div>
             </ChannelContext.Provider>
         ))}
-        </>
+        </div>
     );
 }

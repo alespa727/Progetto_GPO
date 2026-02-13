@@ -22,21 +22,27 @@ export const ModeProvider = ({ children }: { children: ReactNode }) => {
   const setAccount = useSetAccount();
   useEffect(() => {
     const execute = async () => {
-
-      const account = await axios.get(endpoint2+
+      try {
+        const account = await axios.get(endpoint2+
         "/services/account"
         ,
         {
           withCredentials: true
         });
-
-      const accObj: Account = Account.fromJSON(account.data)
+        
+      const accObj: Account | null = Account.fromJSON(account.data)
+      if(!accObj){
+          console.warn("Eseguire il login");
+          return;
+        }
       if (setAccount && accObj) {
         setAccount(accObj);
         setMode(ClientMode.Chats);
       }
-      else
-        console.error(account)
+      } catch (error) {
+         console.error("Eseguire il login")
+      }
+     
     }
     execute()
   }, [])

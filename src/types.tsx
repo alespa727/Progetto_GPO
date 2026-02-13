@@ -27,7 +27,8 @@ export class Account {
     this.username = username;
   }
 
-  static fromJSON(json: any): Account {
+  static fromJSON(json: any): Account | null{
+    if(!json) return null;
     return new Account(json.createdAt, json.isAdmin, json.path, json.username);
   }
 }
@@ -110,7 +111,6 @@ export class Message {
     let arr = null;
     if(json.attachments){
       arr = [];
-      console.log(json.attachments)
       if(json.attachments.length !== 0)
       arr = json.attachments.map(
         (item: any) => Attachment.fromJSON(item)
@@ -119,7 +119,6 @@ export class Message {
    
 
     let message = new Message(json.messageId, json.username, json.message, arr ? arr : null, new Date(json.sentAt), true);
-    console.log(message)
     return message
   }
 }
@@ -137,22 +136,26 @@ export enum ChannelType {
 }
 export class Channel {
   id: number;
+  sectionId: number;
+  communityId: number;
   type: ChannelType;
   name: string;
   description?: string;
   createdAt?: Date;
 
-  constructor(id: number, type: ChannelType, name: string, description?: string, createdAt?: Date) {
+  constructor(id: number, sectionId: number, communityId: number, type: ChannelType, name: string, description?: string, createdAt?: Date) {
     this.id = id;
     this.type = type;
     this.name = name;
     this.description = description;
     this.createdAt = createdAt;
+    this.sectionId = sectionId;
+    this.communityId = communityId;
   }
 
   static fromJSON(json: any): Channel {
-  
-    return new Channel(json.id, json.type, json.name, json.description);
+    console.log(json)
+    return new Channel(json.id, json.sectionId, json.communityId, json.type, json.name, json.description);
   }
 }
 
@@ -174,7 +177,11 @@ export class Section {
   static fromJSON(json: any): Section {
     const section = new Section(json.id, json.name);
     if (json.channels) {
-      section.channels = json.channels.map((c: any) => Channel.fromJSON(c));
+      section.channels = json.channels.map((c: any) =>{
+        c.sectionId = json.id;
+        c.communityId = json.communityId;
+        return Channel.fromJSON(c);
+      } );
     }
     return section;
   }
@@ -211,7 +218,11 @@ export class Server {
     let server = new Server(
       json.id,
       json.name,
-      json.sections ? json.sections.map((s: any) => Section.fromJSON(s)) : [],
+      json.sections ? json.sections.map((s: any) => 
+        {
+          s.communityId = json.id;
+          return Section.fromJSON(s)}
+        ) : [],
       json.description,
       json.createdAt ? new Date(json.createdAt) : undefined
     );
