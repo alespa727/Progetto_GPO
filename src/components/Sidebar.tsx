@@ -5,6 +5,7 @@ import { ClientMode, useMode } from "../context/ModeProvider";
 import { useActiveServerContext } from "../context/ActiveServerProvider";
 import { ServerLoop } from "./server/ServerLoop";
 import { ServerPicture } from "./server/ServerPicture";
+import { Cog } from "lucide-react";
 function Sidebar() {
 
   const setClientMode = useMode().setMode;
@@ -15,12 +16,17 @@ function Sidebar() {
   if(servers===null) return;
 
   return (
-    <div className="shrink-0 w-16 flex bg-(--background) content-center flex-col">
+    <div className="shrink-0 w-16 items-center flex bg-(--background) content-center flex-col">
       <div className={circleStyle.concat("mb-1")} onClick={()=>{setActiveServer(null); setClientMode(ClientMode.Chats)}}></div>
       <div className="m-3 border-white/20 border"/>
       <ServerLoop servers={servers}>
           <ServerPicture alt="" style={circleStyle.concat("mt-2")}></ServerPicture>
       </ServerLoop>
+      <div className="h-full"></div>
+       <Cog
+                  onClick={() => {}}
+                  className="text-gray-300 mb-6 w-7 h-7 hover:rotate-360 duration-1000 transition-transform cursor-pointer  md:invisible"
+                />
     </div>
   );
 }
