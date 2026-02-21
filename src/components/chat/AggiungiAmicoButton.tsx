@@ -17,7 +17,6 @@ enum ResponseType {
 
 
 export function AddFriendButton() {
-    const socket = useSocket();
     const updateChats = useChats()?.forceUpdate;
     const [username, setUsername] = useState<string>("");
     const [isActive, setActive] = useState<boolean>(false)
@@ -32,8 +31,7 @@ export function AddFriendButton() {
 
 
     const sendFriendshipReq = async () => {
-        if (!socket) return;
-
+    
         if (username === "") {
             setResponse("Inserire un username valido")
             setType(ResponseType.ERROR);
