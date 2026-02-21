@@ -22,6 +22,7 @@ export function ListaMessaggi({ messages }: { messages: Message[] }) {
     }, [messages]);
 
     if (!chat) return null;
+    if(!messages)  return;
 
     return (
         <div

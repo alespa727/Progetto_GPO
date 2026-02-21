@@ -15,7 +15,7 @@ function Sidebar() {
   if(servers===null) return;
 
   return (
-    <div className="shrink-0 w-16 flex content-center flex-col">
+    <div className="shrink-0 w-16 flex bg-(--background) content-center flex-col">
       <div className={circleStyle.concat("mb-1")} onClick={()=>{setActiveServer(null); setClientMode(ClientMode.Chats)}}></div>
       <div className="m-3 border-white/20 border"/>
       <ServerLoop servers={servers}>

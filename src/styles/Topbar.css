@@ -3,7 +3,7 @@
   width: 100%;          
   cursor: grab;
   height: 36px;         
-  background-color: #1e1e2e;
+  background-color: var(--background);
   color: white;
   display: flex;
   align-items: center;   

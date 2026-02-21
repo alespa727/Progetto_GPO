@@ -10,19 +10,13 @@ function Topbar() {
   const chatContext = useActiveChatContext();
   const [header, setHeader] = useState<string>("Discord")
   const socket = useSocketStatus();
-
-  useEffect(()=>{
-    if(chatContext.activeChat){
-      setHeader(chatContext.activeChat.friend.username)
-    }
-  }, [chatContext.activeChat])
   
   if(!socket || !account) return;
 
   return (
     <div className="topbar q-electron-drag">
       <div className="drag-layer" ref={topbar}></div>
-      <div className="title">{header}</div>
+      <div className="text-(--text) text-center w-full">{header}</div>
     </div>
   );
 }

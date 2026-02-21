@@ -2,11 +2,10 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Account } from "../types";
 type AccountProps = {
   account: Account | null,
-  setAccount: (account: Account) => void
+  setAccount: (account: Account | null) => void
 }
 
 const AccountContext = createContext<AccountProps | null>(null);
-
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [account, setAccount] = useState<Account | null>(null);

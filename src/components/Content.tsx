@@ -8,33 +8,21 @@ import { useActiveServerContext } from "../context/ActiveServerProvider.tsx";
 import { ServerContext } from "../context/ServerContext.tsx";
 import { useActiveChatContext } from "../context/ActiveChatProvider.tsx";
 import { ChatContext } from "../context/ChatContext.tsx";
-import { useSocketStatus } from "@/context/SocketProvider.tsx";
-import { Loader, Loader2Icon } from "lucide-react";
-import { div } from "motion/react-client";
 
 function Content() {
 
   const mode = useMode().mode;
   const activeServer = useActiveServerContext().activeServer;
   const activeChat = useActiveChatContext().activeChat;
-  const socketStatus = useSocketStatus();
 
-  if (!socketStatus) {
-    return (
-      <>
-        <div className="z-1000 absolute flex items-center justify-center bg-[#292938ff] w-full h-full">
-          <Loader2Icon className="w-20 h-20 text-white animate-spin"></Loader2Icon>
-        </div>
-      </>
-    )
-  }
 
+  // Decide che parte dell'interfaccia mostrare
   switch (mode) {
     case ClientMode.Server:
       return (
         <div className="content">
           <ServerContext value={activeServer}>
-            <div className="flex box-border h-full border-solid border border-[#313244]  bg-[#292938ff]">
+            <div className="flex box-border h-full border-solid border border-[#313244]  bg-(--background)">
               <Server></Server>
               <ChannelChat></ChannelChat>
             </div>
@@ -46,9 +34,10 @@ function Content() {
       return (
         <div className="content">
           <ChatContext value={activeChat}>
-            <div className="flex box-border w-full h-full border-solid border border-[#313244]  bg-[#292938ff]">
+            <div className="flex box-border w-full h-full border-solid border border-[#313244]  bg-(--surface)">
               <Chats></Chats>
-              <Chat></Chat>
+              {activeChat ? <Chat></Chat> : <div></div>}
+              
             </div>
           </ChatContext>
 

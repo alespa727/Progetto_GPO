@@ -19,6 +19,9 @@ export function getImagePath(){
     const chat = useChatContext();
     
     if(chat){
+        if(chat.friend.imagePath==="default"){
+            return "/placeholder.png";
+        }
         if(chat.friend.imagePath){
             console.log("Chat",chat, chat.friend.imagePath.replace("http://localhost:8080/images","/pfp"));
             return chat.friend.imagePath.replace("http://localhost:8080/","");

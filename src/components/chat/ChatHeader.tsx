@@ -51,14 +51,14 @@ export function Header({ value }: { value: string }) {
 
    
     return (
-        <div className={(roomStatus ? "bg-black ": "")+"border-white/10 justify-center  transition-colors duration-300 ease-in border-b items-center flex w-full pl-3 p-4 text-center"}>
+        <div className={(roomStatus ? "bg-black ": "bg-(--background)")+" border-white/10 justify-center  transition-colors duration-300 ease-in border-b items-center flex w-full pl-3 p-4 text-center"}>
             <ArrowLeft className="md:hidden block cursor-pointer text-white/60" onClick={()=>setActiveChat(null)}></ArrowLeft>
             <p className="w-full h-full ">{roomStatus ? "Chiamata con "+value : "Chat con "+value }</p>
            
             
             {
                 !roomStatus ? 
-                (<PhoneCallIcon className="cursor-pointer text-white/60" onClick={handleClick}></PhoneCallIcon>)
+                (<PhoneCallIcon className="cursor-pointer" onClick={handleClick}></PhoneCallIcon>)
                 :
                 ""
             }

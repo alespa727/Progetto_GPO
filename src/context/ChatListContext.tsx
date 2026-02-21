@@ -3,11 +3,21 @@ import axios from "axios";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useAccount } from "./UserProvider";
 
-const ChatContext = createContext<Chat[]>([]);
+type ChatContextProps={
+  chats: Chat[],
+  forceUpdate: () => void
+}
+
+const ChatContext = createContext<ChatContextProps | null>(null);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [chats, setChats] = useState<Chat[]>([]);
+  const [update, setUpdate] = useState<boolean>(false);
   const account = useAccount();
+
+  const forceUpdate = ()=>{
+    setUpdate(!update);
+  }
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -25,10 +35,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchChats();
-  }, [account]);
+  }, [account, update]);
 
   return (
-    <ChatContext.Provider value={chats}>
+    <ChatContext.Provider value={{chats, forceUpdate}}>
       {children}
     </ChatContext.Provider>
   );

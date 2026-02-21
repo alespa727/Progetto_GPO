@@ -11,7 +11,7 @@ export function ChatName() {
 
     return (
         <motion.div>
-            {username}
+            <p>{username}</p>
         </motion.div >
     );
 }

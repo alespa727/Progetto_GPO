@@ -10,6 +10,7 @@ export enum ChatType {
 }
 
 export class Account {
+  authorization?: string;
   createdAt: Date;
   isAdmin: boolean;
   path: string;

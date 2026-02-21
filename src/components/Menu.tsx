@@ -5,7 +5,7 @@ import UserProfile from "./UserProfile.tsx";
 import { ClientMode, useMode } from "../context/ModeProvider.tsx";
 import Settings from "./settings/Settings.tsx"
 import { useSettingsStatusContext } from "../context/SettingsContext.tsx";
-import Login from "./common/Login.tsx";
+import Start from "./common/Start.tsx";
 import { useFriends } from "@/context/FriendContext.tsx";
 
 function Menu() {
@@ -17,9 +17,9 @@ function Menu() {
     return (
       <>
         <div className="app">
-          <Login>
+          <Start>
 
-          </Login>
+          </Start>
         </div>
       </>
     );

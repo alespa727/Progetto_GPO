@@ -3,11 +3,8 @@ import { Trash, Pencil, Eye, Clipboard, DownloadIcon } from "lucide-react";
 import { Message } from "../../types";
 import { useSocket } from "../../context/SocketProvider";
 import { useState } from "react";
-import { Button } from "../animate-ui/primitives/buttons/button";
 import axios from "axios";
-import { ImageZoom } from "../ui/image-zoom";
 import "../../styles/zoom.css";
-import Zoom, { type ControlledProps, type UncontrolledProps } from "react-medium-image-zoom"
 import MyCustomZoom from "./CustomZoom";
 import { motion } from "framer-motion";
 
@@ -82,7 +79,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                     transition={{ type: "spring", stiffness: 260, damping: 25 }}
                     whileTap={{ scale: 0.99 }}
                     onClick={() => {
-                        console.log("Div clicked"); // qui metti la funzione che vuoi
+                        console.log("Div clicked"); 
                     }}
                 >
                     <div className="gap-2 w-full  flex flex-col p-1 text-[15px]">
@@ -102,7 +99,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                             <span
                                 className={`break-all`}
                             >
-                                {msg.message + " " + message.messageId}
+                                {msg.message}
                             </span>
 
                             {

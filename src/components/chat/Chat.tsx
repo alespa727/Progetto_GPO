@@ -8,9 +8,8 @@ import { ListaMessaggi } from "./ListaMessaggi.tsx";
 import { MessageInput } from "./MessageInput.tsx";
 import axios from "axios";
 import { useAccount } from "@/context/UserProvider.tsx";
-import ChiamataChat from "./ChiamataChat.tsx";
-import CallInterface from "../chiamata/CallInterface.tsx";
 import ChatCall from "../chiamata/ChatCall.tsx";
+import { data } from "framer-motion/client";
 
 function Chat() {
   const socket = useSocket();
