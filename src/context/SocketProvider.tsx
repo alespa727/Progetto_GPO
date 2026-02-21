@@ -95,7 +95,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     
     // Evita memory leak
     return () => {
-
+      setStatus(false);
       if (newSocket)
         newSocket.disconnect();
     };
