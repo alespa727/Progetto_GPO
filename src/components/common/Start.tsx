@@ -1,5 +1,5 @@
 import { endpoint2 } from "@/types";
-import axios, { HttpStatusCode } from "axios";
+import axios, { AxiosError, HttpStatusCode } from "axios";
 import { useState } from "react";
 
 enum Mode {
@@ -19,6 +19,7 @@ enum AuthError {
 
     // --- Generico ---
     VALIDATION_ERROR = "VALIDATION_ERROR",
+    NETWORK_ERROR = "NETWORK_ERROR"
 }
 
 const getAuthErrorMessage = (error: AuthError): string => {
@@ -36,6 +37,8 @@ const getAuthErrorMessage = (error: AuthError): string => {
             return "Username già in uso.";
         case AuthError.PASSWORDS_DO_NOT_MATCH:
             return "Le password non coincidono.";
+        case AuthError.NETWORK_ERROR:
+            return "Errore di connessione";
 
         case AuthError.VALIDATION_ERROR:
             return "Dati non validi.";
@@ -120,6 +123,12 @@ function Start() {
         localStorage.setItem("accessToken", res.data.accessToken);
         reload()
     };
+    
+    const reset=()=>{
+        setConfirm("")
+        setPassword("")
+        setUsername("")
+    }
 
     const registra = async () => {
         if (!areCredentialsCorrect()) return;
@@ -129,22 +138,43 @@ function Start() {
             return;
         }
 
-        const res = await axios.post(
-            endpoint2 + "/registration",
-            { username, password },
-            {
-                withCredentials: true,
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            }
-        )
 
-        if (res.status === HttpStatusCode.Ok) {
-            setErrore(null)
-            setSuccesso(true);
-        }
+        try {
             
+            const res = await axios.post(
+                endpoint2 + "/registration",
+                { username, password },
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            if (res.status === HttpStatusCode.Ok) {
+                setErrore(null);
+                setSuccesso(true);
+                reset()
+            }
+
+        } catch (error: any) {
+          
+            if (error.response) {
+                // Il server ha risposto con uno status fuori dal range 2xx
+                if (error.response.status === HttpStatusCode.Conflict) {
+                    setErrore(AuthError.USERNAME_ALREADY_EXISTS);
+                } else {
+                    setErrore(AuthError.INVALID_CREDENTIALS);
+                }
+            } else {
+                // Errore di rete o richiesta non partita
+                setErrore(AuthError.NETWORK_ERROR);
+            }
+
+            setSuccesso(false);
+            return;
+        }
         reload()
     };
 
@@ -208,7 +238,7 @@ function Start() {
 
                 {
                     successo && <div className={"w-full p-2 bg-(--base) rounded-(--radius)" + (" bg-green-500")}>
-                        <p className={"text-white text-center"}>{(mode === Mode.LOGIN ? "Ti sei autenticato con successo" : "Ti sei registrato con successo!")+" Reload in 3s"}</p>
+                        <p className={"text-white text-center"}>{(mode === Mode.LOGIN ? "Ti sei autenticato con successo" : "Ti sei registrato con successo!") + " Reload in 3s"}</p>
                     </div>
                 }
 
