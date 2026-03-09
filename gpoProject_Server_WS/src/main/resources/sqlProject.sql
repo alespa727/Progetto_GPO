@@ -8,7 +8,7 @@ use progetto_gpo;
 
 /* TABLES */
 
-CREATE TABLE attachments (
+CREATE TABLE attachmentsChat (
 	id INT AUTO_INCREMENT,
 	fkMessage INT NOT NULL,
 	path VARCHAR(20),
@@ -17,7 +17,16 @@ CREATE TABLE attachments (
 	PRIMARY KEY(id)
 );
 
-CREATE TABLE calls (
+CREATE TABLE attachmentsCommunity (
+	id INT AUTO_INCREMENT,
+	fkMessage INT NOT NULL,
+	path VARCHAR(20),
+	filename VARCHAR(255),
+	extension VARCHAR(10),
+	PRIMARY KEY(id)
+);
+
+CREATE TABLE callsChat (
 	id INT AUTO_INCREMENT,
 	fkChat INT NOT NULL,
 	startTime DATETIME DEFAULT CURRENT_TIMESTAMP(),
@@ -114,7 +123,9 @@ ALTER TABLE users ADD CONSTRAINT uniqueUsername unique(username);
 
 /* Foreign keys */
 
-ALTER TABLE attachments ADD CONSTRAINT fkAttachmentsMessagesChat FOREIGN KEY(fkMessage) REFERENCES messagesChat(id) ON DELETE CASCADE;
+ALTER TABLE attachmentsChat ADD CONSTRAINT fkAttachmentsMessagesChat FOREIGN KEY(fkMessage) REFERENCES messagesChat(id) ON DELETE CASCADE;
+
+ALTER TABLE attachmentsCommunity ADD CONSTRAINT fkAttachmentsMessagesCommunity FOREIGN KEY(fkMessage) REFERENCES messagesCommunity(id) ON DELETE CASCADE;
 
 ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatUsers FOREIGN KEY(fkUser) REFERENCES users(id);
 ALTER TABLE messagesChat ADD CONSTRAINT fkMessagesChatChats FOREIGN KEY(fkChat) REFERENCES chats(id) ON DELETE CASCADE;
@@ -124,7 +135,7 @@ ALTER TABLE chats ADD CONSTRAINT fkChatsFriendships FOREIGN KEY(fkFriendship) RE
 ALTER TABLE friendships ADD CONSTRAINT fkFriendshipsUsers1 FOREIGN KEY(fkUser1) REFERENCES users(id);
 ALTER TABLE friendships ADD CONSTRAINT fkFriendshipsUsers2 FOREIGN KEY(fkUser2) REFERENCES users(id);
 
-ALTER TABLE calls ADD CONSTRAINT fkCallsChats FOREIGN KEY(fkChat) REFERENCES chats(id) ON DELETE CASCADE;
+ALTER TABLE callsChat ADD CONSTRAINT fkCallsChats FOREIGN KEY(fkChat) REFERENCES chats(id) ON DELETE CASCADE;
 
 ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsUsers FOREIGN KEY(fkUser) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE registrations ADD CONSTRAINT fkRegistrationsCommunities FOREIGN KEY(fkCommunity) REFERENCES communities(id) ON DELETE CASCADE;
@@ -137,3 +148,18 @@ ALTER TABLE channels ADD CONSTRAINT fkChannelsSections FOREIGN KEY(fkSection) RE
 
 ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityChannels FOREIGN KEY(fkChannel) REFERENCES channels(id) ON DELETE CASCADE;
 ALTER TABLE messagesCommunity ADD CONSTRAINT fkMessagesCommunityUsers FOREIGN KEY(fkUser) REFERENCES users(id);
+
+
+/* TEST */
+describe attachmentsChat;
+describe attachmentsCommunity;
+describe callsChat;
+describe channels;
+describe chats;
+describe communities;
+describe friendships;
+describe messagesChat;
+describe messagesCommunity;
+describe registrations;
+describe sections;
+describe users;

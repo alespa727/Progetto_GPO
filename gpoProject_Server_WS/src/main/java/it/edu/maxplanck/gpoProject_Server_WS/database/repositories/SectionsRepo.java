@@ -1,5 +1,9 @@
 package it.edu.maxplanck.gpoProject_Server_WS.database.repositories;
 
-public interface SectionsRepo {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import it.edu.maxplanck.gpoProject_Server_WS.database.models.Section;
+
+public interface SectionsRepo extends JpaRepository<Section, Integer> {
 
 }

@@ -1,5 +1,9 @@
 package it.edu.maxplanck.gpoProject_Server_WS.database.repositories;
 
-public interface ChannelsRepo {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import it.edu.maxplanck.gpoProject_Server_WS.database.models.Channel;
+
+public interface ChannelsRepo extends JpaRepository<Channel, Integer> {
 
 }

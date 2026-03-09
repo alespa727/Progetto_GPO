@@ -1,5 +1,9 @@
 package it.edu.maxplanck.gpoProject_Server_WS.database.repositories;
 
-public interface CommunitiesRepo {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import it.edu.maxplanck.gpoProject_Server_WS.database.models.Community;
+
+public interface CommunitiesRepo extends JpaRepository<Community, Integer> {
 
 }
