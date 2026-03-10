@@ -1,6 +1,7 @@
 package it.edu.maxplanck.gpoProject_Server_WS.database.models;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -8,14 +9,17 @@ import org.hibernate.annotations.OnDeleteAction;
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.ChatData;
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.MessageChatData;
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.UserData;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -44,6 +48,9 @@ public final class MessageChat {
 	
 	@Column(name = MessageChatData.columnNameSentAt, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP()", insertable = false, updatable = false)
 	private LocalDateTime sentAt;
+	
+	@OneToMany(mappedBy = "fkMessage", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<AttachedChat> attachments;
 
 	public MessageChat(){
 		super();
@@ -105,5 +112,13 @@ public final class MessageChat {
 
 	public void setSentAt(LocalDateTime sentAt) {
 		this.sentAt = sentAt;
+	}
+
+	public List<AttachedChat> getAttachments() {
+		return attachments;
+	}
+
+	public void setAttachments(List<AttachedChat> attachments) {
+		this.attachments = attachments;
 	}
 }

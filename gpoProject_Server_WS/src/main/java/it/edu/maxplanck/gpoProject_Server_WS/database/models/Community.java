@@ -1,17 +1,21 @@
 package it.edu.maxplanck.gpoProject_Server_WS.database.models;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.CommunityData;
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.UserData;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -45,6 +49,12 @@ public final class Community {
 	@Column(nullable = false)
 	private LocalDate createdAt;
 
+	@OneToMany(mappedBy = "fkCommunity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Registration> registrations;
+	
+	@OneToMany(mappedBy = "fkCommunity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Section> sections;
+	
 	public Community(){
 		super();
 	}
@@ -95,11 +105,11 @@ public final class Community {
 		this.inviteCode = inviteCode;
 	}
 
-	public boolean isInviteCodeValid() {
+	public Boolean isInviteCodeValid() {
 		return isInviteCodeValid;
 	}
 
-	public void setInviteCodeValid(boolean isInviteCodeValid) {
+	public void setInviteCodeValid(Boolean isInviteCodeValid) {
 		this.isInviteCodeValid = isInviteCodeValid;
 	}
 
@@ -125,5 +135,21 @@ public final class Community {
 
 	public void setCreatedAt(LocalDate createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public List<Registration> getRegistrations() {
+		return registrations;
+	}
+
+	public void setRegistrations(List<Registration> registrations) {
+		this.registrations = registrations;
+	}
+
+	public List<Section> getSections() {
+		return sections;
+	}
+
+	public void setSections(List<Section> sections) {
+		this.sections = sections;
 	}
 }

@@ -1,18 +1,23 @@
 package it.edu.maxplanck.gpoProject_Server_WS.database.models;
 
+import java.util.List;
+
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.CommunityData;
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.SectionData;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -35,6 +40,9 @@ public final class Section {
 	@Column(name = SectionData.columnNameName, length = SectionData.nameLenght, nullable = false)
 	private String name;
 
+	@OneToMany(mappedBy = "fkSection", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Channel> channels;
+	
 	public Section(){
 		super();
 	}
@@ -75,5 +83,13 @@ public final class Section {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public List<Channel> getChannels() {
+		return channels;
+	}
+
+	public void setChannels(List<Channel> channels) {
+		this.channels = channels;
 	}
 }

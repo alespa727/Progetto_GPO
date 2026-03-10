@@ -1,20 +1,24 @@
 package it.edu.maxplanck.gpoProject_Server_WS.database.models;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.ChannelData;
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.SectionData;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -46,6 +50,9 @@ public final class Channel {
 	@Column(nullable = false)
 	private LocalDate createdAt;
 
+	@OneToMany(mappedBy = "fkChannel", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MessageCommunity> messages;
+	
 	public Channel(){
 		super();
 	}
@@ -116,6 +123,14 @@ public final class Channel {
 
 	public void setCreatedAt(LocalDate createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public List<MessageCommunity> getMessages() {
+		return messages;
+	}
+
+	public void setMessages(List<MessageCommunity> messages) {
+		this.messages = messages;
 	}
 }
 

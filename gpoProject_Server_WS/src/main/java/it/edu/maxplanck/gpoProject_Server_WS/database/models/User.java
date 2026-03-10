@@ -2,13 +2,17 @@ package it.edu.maxplanck.gpoProject_Server_WS.database.models;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import it.edu.maxplanck.gpoProject_Server_WS.database.models.ModelDataDatabase.UserData;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -43,6 +47,18 @@ public final class User {
 	@Column(name = UserData.columnNameImagePath, length = UserData.imagePathLenght)
 	private String imagePath;
 
+	@OneToMany(mappedBy = "fkUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MessageChat> messagesChats;
+	
+	@OneToMany(mappedBy = "fkUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MessageCommunity> messagesCommunities;
+	
+	@OneToMany(mappedBy = "fkUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Registration> registrations;
+	
+	@OneToMany(mappedBy = "fkUserOwner", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Community> communitiesOwner;
+	
 	public User(){
 		super();
 	}
@@ -93,11 +109,11 @@ public final class User {
 		this.password = password;
 	}
 
-	public Boolean isAdmin() {
+	public Boolean getIsAdmin() {
 		return isAdmin;
 	}
 
-	public void setAdmin(Boolean isAdmin) {
+	public void setIsAdmin(Boolean isAdmin) {
 		this.isAdmin = isAdmin;
 	}
 
@@ -123,5 +139,37 @@ public final class User {
 
 	public void setImagePath(String imagePath) {
 		this.imagePath = imagePath;
+	}
+
+	public List<MessageChat> getMessagesChats() {
+		return messagesChats;
+	}
+
+	public void setMessagesChats(List<MessageChat> messagesChats) {
+		this.messagesChats = messagesChats;
+	}
+
+	public List<MessageCommunity> getMessagesCommunities() {
+		return messagesCommunities;
+	}
+
+	public void setMessagesCommunities(List<MessageCommunity> messagesCommunities) {
+		this.messagesCommunities = messagesCommunities;
+	}
+
+	public List<Registration> getRegistrations() {
+		return registrations;
+	}
+
+	public void setRegistrations(List<Registration> registrations) {
+		this.registrations = registrations;
+	}
+
+	public List<Community> getCommunitiesOwner() {
+		return communitiesOwner;
+	}
+
+	public void setCommunitiesOwner(List<Community> communitiesOwner) {
+		this.communitiesOwner = communitiesOwner;
 	}
 }
