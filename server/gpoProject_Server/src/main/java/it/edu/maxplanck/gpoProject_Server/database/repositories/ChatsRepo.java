@@ -20,4 +20,6 @@ public interface ChatsRepo extends JpaRepository<Chat, Integer> {
 	List<Chat> findChatByUserId(@Param("userId") Integer userId);
     
     boolean existsByFkFriendship(Friendship f);
+
+    Chat findChatByFkFriendship(Friendship f);
 }

@@ -1,0 +1,128 @@
+package it.edu.maxplanck.gpoProject_Server.controller.communities;
+
+import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
+import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
+import it.edu.maxplanck.gpoProject_Server.database.model.Channel;
+import it.edu.maxplanck.gpoProject_Server.database.model.Community;
+import it.edu.maxplanck.gpoProject_Server.database.model.MessageCommunity;
+import it.edu.maxplanck.gpoProject_Server.database.model.Section;
+import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChannelDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSectionDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChannelDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChatDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseSectionDTO;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.hibernate.Hibernate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("api/services/communities/{communityId}/sections/{sectionId}/channels")
+public class ChannelController extends BasicApiRestController {
+
+    public ChannelController(DatabaseService databaseService, AuthenticationService authenticationService) {
+        super(databaseService, authenticationService);
+    }
+
+    public boolean verifyRequestParams(Integer userId, Community community, Section section) {
+
+        if(!databaseService.isUserPartOfCommunity(userId, community)){
+            return false;
+        }
+
+        if(!databaseService.isSectionPartOfCommunity(section.getPkID(), community)){
+            return false;
+        }
+
+        return true;
+    }
+
+    @PostMapping("")
+    public ResponseEntity<?> postChannel(HttpServletRequest request, HttpServletResponse response, @PathVariable("communityId") Integer communityId, @PathVariable("sectionId") Integer sectionId, @RequestBody RequestChannelDTO body) {
+
+        this.authenticationService.getAuthenticationRequestDTOService().authChannelDTO(body);
+
+        int userId = authenticate(request, response);
+
+        Community community = this.databaseService.getCommunitiesRepo().findById(communityId).orElse(null);
+        Section section = this.databaseService.getSectionsRepo().findById(sectionId).orElse(null);
+
+        if(!verifyRequestParams(userId, community, section)){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Parametri non validi"));
+        }
+
+        /*
+         * Crea un nuovo canale in una sezione di una community in database
+         */
+        this.databaseService.createChannelCommunity(userId, sectionId, body.name(), body.type(), body.description());
+
+        return ResponseEntity.created(null).build();
+    }
+
+    @DeleteMapping("/{channelId}")
+    public ResponseEntity<?> deleteChannel(HttpServletRequest request, HttpServletResponse response, @PathVariable("communityId") Integer communityId, @PathVariable("sectionId") Integer sectionId, @PathVariable("channelId") Integer channelId) {
+
+        /*
+         * Autentificazione
+         */
+        int userId = authenticate(request, response);
+
+        Community community = this.databaseService.getCommunitiesRepo().findById(communityId).orElseThrow();
+        Section section = this.databaseService.getSectionsRepo().findById(sectionId).orElseThrow();
+
+        if(!verifyRequestParams(userId, community, section)){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Parametri non validi"));
+        }
+
+        if(!databaseService.isChannelPartOfSection(channelId, section)){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Parametri non validi"));
+        }
+
+        this.databaseService.deleteChannelSectionCommunity(userId, channelId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/{channelId}")
+    public ResponseEntity<?> getChannel(HttpServletRequest request, HttpServletResponse response, @PathVariable("communityId") Integer communityId,  @PathVariable("sectionId") Integer sectionId,  @PathVariable("channelId") Integer channelId) {
+
+        int userId = this.authenticationService.authenticate(request, response);
+
+        Community community = this.databaseService.getCommunitiesRepo().getReferenceById(communityId);
+        Section section = this.databaseService.getSectionsRepo().getReferenceById(sectionId);
+
+        if(!verifyRequestParams(userId, community, section)){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Parametri non validi"));
+        }
+
+        Channel channel = this.databaseService.getChannelsRepo()
+                .findById(channelId)
+                .orElseThrow();
+        ResponseChannelDTO responseChannelDTO = new ResponseChannelDTO(channelId, channel.getName(), channel.getType(), channel.getDescription(), channel.getCreatedAt());
+
+        return ResponseEntity.ok(responseChannelDTO);
+    }
+
+
+
+
+}

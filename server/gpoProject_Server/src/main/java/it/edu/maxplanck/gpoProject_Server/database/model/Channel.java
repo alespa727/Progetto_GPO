@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = ChannelData.tableName)
-public final class Channel {
+public class Channel {
 
 	// Primary Keys
 	@Id

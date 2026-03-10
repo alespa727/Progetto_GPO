@@ -20,13 +20,14 @@ public class WebConfig implements WebMvcConfigurer {
     
     private final String[] allowedOrigins;
 
-    public WebConfig(@Value("${client.port}") String clientPort) {
+    public WebConfig(@Value("z${client.port}") String clientPort) {
         // puoi aggiungere qui più origin se vuoi
         this.allowedOrigins = new String[] {
             clientPort,
             "http://localhost:5173",
             "https://progettogpo.vercel.app",
-            "https://weightlessly-tres-dagmar.ngrok-free.dev"
+            "https://weightlessly-tres-dagmar.ngrok-free.dev",
+                "http://ale727.servegame.com:5173"
         };
     }
 

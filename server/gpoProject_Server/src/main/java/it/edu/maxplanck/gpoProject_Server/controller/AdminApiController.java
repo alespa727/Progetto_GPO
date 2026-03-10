@@ -3,12 +3,11 @@ package it.edu.maxplanck.gpoProject_Server.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
+import it.edu.maxplanck.gpoProject_Server.database.model.Friendship;
+import it.edu.maxplanck.gpoProject_Server.dto.request.RequestProfileDTO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
@@ -70,7 +69,7 @@ public class AdminApiController extends BasicApiRestController {
 		
 		User u = this.databaseService.findUser(id);
 		if(!u.isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
-		
+
 		List<ResponseFriendDTO> usersImagePaths = new ArrayList<ResponseFriendDTO>();
 		for(RequestFriendDTO r : body.users()) {
 			User utente = null;
@@ -81,9 +80,18 @@ public class AdminApiController extends BasicApiRestController {
 			}
 			usersImagePaths.add(new ResponseFriendDTO(r.username(), this.findImage(utente)));
 		}
-		
+
 		ResponseFriendsDTO users = new ResponseFriendsDTO(usersImagePaths);
-		
+
 		return ResponseEntity.ok().body(users);
 	}
+    @PostMapping("chat")
+    public ResponseEntity<?> chat(HttpServletRequest request, HttpServletResponse response, @RequestParam Integer chatId){
+
+        int id = this.authenticationService.authenticate(request, response);
+
+        Chat c = this.databaseService.findChat(id, chatId);
+
+        return ResponseEntity.ok().body(c.getFkFriendship());
+    }
 }

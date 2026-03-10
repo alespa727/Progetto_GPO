@@ -3,6 +3,10 @@ package it.edu.maxplanck.gpoProject_Server.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.jsonwebtoken.Claims;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,20 +42,25 @@ public class StarterApiController extends BasicApiRestController {
 	 */
 	@PostMapping("registration")
 	public ResponseEntity<?> registration(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccessDTO body) {
+        try{
+            /*
+             * Controlla se body request valido:
+             * 		- No -> Errore
+             */
+            this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
 
-		/*
-		 * Controlla se body request valido:
-		 * 		- No -> Errore
-		 */
-		this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
-		
-		/*
-		 * Prova a creare un nuovo utente:
-		 * 		- Creazione fallisce -> Errore database / dati inseriti non validi
-		*/
-		this.databaseService.createUser(body.username(), body.password());
+            /*
+             * Prova a creare un nuovo utente:
+             * 		- Creazione fallisce -> Errore database / dati inseriti non validi
+             */
+            this.databaseService.createUser(body.username(), body.password());
+        }catch(DatabaseException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Utente già esistente"));
+        }
 
-		return ResponseEntity.ok().build();
+
+		return ResponseEntity.ok().body(Map.of("message", "Registrazione avvenuta con successo"));
 	}
 
 	/**
@@ -61,45 +70,90 @@ public class StarterApiController extends BasicApiRestController {
 	 * @param body
 	 * @return
 	 */
-	@PostMapping("login")
-	public ResponseEntity<?> login(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestAccessDTO body) {
-		
-		/*
-		 * Controlla se body request valido:
-		 * 		- No -> Errore
-		 */
-		this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
-		
-		/*
-		 * Prova a recuperare l'utente:
-		 * 		- Creazione fallisce -> Errore database / dati inseriti non corretti
-		*/
-		int id  = this.databaseService.findUser(body.username(), body.password());
-			
-		/*
-		 * Creazione risposta con token e cookies:
-		 * 		- Creazione fallisce -> Errore interno
-		*/
-		Cookie access = null;
-		Cookie refresh = null;
-	
-		Map<String, Object> claims = new HashMap<String, Object>();
-		claims.put("id", id);
-		claims.put("username", body.username());
-		
-		String token = null;
-		token = this.authenticationService.getTokenService().generateTokenAccess(claims, UtilServer.accessTokenSubject);
-		access = this.authenticationService.getCookieService().generateCookie(UtilServer.accessCookieName, token, true, false, "/api/", UtilServer.timeExpirationDateAccessCookie);
-	
-		token = null;
-		token = this.authenticationService.getTokenService().generateTokenRefresh(claims, UtilServer.refreshTokenSubject);
-		refresh = this.authenticationService.getCookieService().generateCookie(UtilServer.refreshCookieName, token, true, false, "/api/", UtilServer.timeExpirationDateRefreshCookie);
-		
-		response.addCookie(access);
-		response.addCookie(refresh);
+    @PostMapping("login")
+    public ResponseEntity<?> login(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestBody(required = false) RequestAccessDTO body
+    ) {
+        // 1️⃣ Controllo se c'è un refresh token valido
+        Cookie[] cookies = request.getCookies();
+        String refreshToken = null;
 
-		return ResponseEntity.ok().build();
-	}
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (UtilServer.refreshCookieName.equals(c.getName())) {
+                    refreshToken = c.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 2️⃣ Se esiste un refresh token valido -> login automatico
+        if (refreshToken != null) {
+            try {
+                Claims claims = this.authenticationService.getTokenService().getClaimsRefresh(refreshToken);
+
+                // genera nuovo access token
+                String accessToken = this.authenticationService
+                        .getTokenService()
+                        .generateTokenAccess(claims, UtilServer.accessTokenSubject);
+
+                // genera nuovo cookie access token
+                Cookie access = this.authenticationService
+                        .getCookieService()
+                        .generateCookie(UtilServer.accessCookieName, accessToken, true, false,
+                                "/api/", UtilServer.timeExpirationDateAccessCookie);
+                response.addCookie(access);
+
+                return ResponseEntity.ok(Map.of(
+                        "message", "Login automatico avvenuto con refresh token valido",
+                        "accessToken", accessToken
+                ));
+            } catch (TokenException e) {
+                // refresh token non valido → prosegui al login normale
+            }
+        }
+
+        // 3️⃣ Login normale con username/password
+        if (body == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Nessun refresh token valido e nessun body login fornito"));
+        }
+
+        this.authenticationService.getAuthenticationRequestDTOService().authAccessDTO(body);
+        int id = this.databaseService.findUser(body.username(), body.password());
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", id);
+        claims.put("username", body.username());
+
+        String accessToken = this.authenticationService
+                .getTokenService()
+                .generateTokenAccess(claims, UtilServer.accessTokenSubject);
+
+        Cookie access = this.authenticationService
+                .getCookieService()
+                .generateCookie(UtilServer.accessCookieName, accessToken, true, false,
+                        "/api/", UtilServer.timeExpirationDateAccessCookie);
+
+        String refreshTokenNew = this.authenticationService
+                .getTokenService()
+                .generateTokenRefresh(claims, UtilServer.refreshTokenSubject);
+
+        Cookie refresh = this.authenticationService
+                .getCookieService()
+                .generateCookie(UtilServer.refreshCookieName, refreshTokenNew, true, false,
+                        "/api/", UtilServer.timeExpirationDateRefreshCookie);
+
+        response.addCookie(access);
+        response.addCookie(refresh);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Login avvenuto con successo",
+                "accessToken", accessToken
+        ));
+    }
 
 	/**
 	 * Fa il logout

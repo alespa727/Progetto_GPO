@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.util.Base64;
 import java.util.Map;
 
 @Service
@@ -24,6 +25,12 @@ public class TokenService extends TokenManager {
     ) {
         this.keyAccess = Keys.hmacShaKeyFor(secretAccess.getBytes(UtilToken.charset));
         this.keyRefresh = Keys.hmacShaKeyFor(secretRefresh.getBytes(UtilToken.charset));
+        byte[] keyBytes = keyAccess.getEncoded();
+        String keyBase64 = Base64.getEncoder().encodeToString(keyBytes);
+        System.out.println("Key in Base64: " + keyBase64);
+        String keyUtf8 = new String(keyBytes, UtilToken.charset);
+        System.out.println("Key as UTF-8: " + keyUtf8);
+
     }
 
     // Genera token di accesso

@@ -6,11 +6,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,65 +66,12 @@ public class ServiceApiChatsController extends BasicApiRestController {
 	}
 
 	/**
-	 * Crea una nuova chat con un amico
-	 * @param request
-	 * @param response
-	 * @param body
-	 * @return
-	 */
-	@PostMapping("chat")
-	public ResponseEntity<?> postChat(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestChatDTO body) {
-
-		/*
-		 * Controlla se body request valido:
-		 * 		- No -> Errore
-		 */
-		this.authenticationService.getAuthenticationRequestDTOService().authChatDTO(body);
-		
-		/*
-		 * Autentificazione
-		 */
-		int id = this.authenticationService.authenticate(request, response);
-		
-		/*
-		 * Crea una nuova chat in database
-		 */
-		this.databaseService.createChat(id, body.friend().username());
-		
-		return ResponseEntity.created(null).build();
-	}
-
-	/**
 	 * Ottiene tutte le chat create
 	 * @param request
 	 * @param response
 	 * @return
 	 */
-	@GetMapping("chats")
-	public ResponseEntity<?> getChats(HttpServletRequest request, HttpServletResponse response) {
 
-		/*
-		 * Autentificazione
-		 */
-		int id = this.authenticationService.authenticate(request, response);
-		
-		/*
-		 * Ottiene le varie chat dell'utente
-		 */
-		List<Chat> listChats = this.databaseService.findChatsOfUser(id);
-		if(listChats == null || listChats.isEmpty()) return ResponseEntity.ok().body(new ResponseChatsDTO(null));
-		
-		List<ResponseChatDTO> c = new ArrayList<ResponseChatDTO>();
-		for(Chat ch : listChats) {
-			User u = (ch.getFkFriendship().getFkUser1().getPkID() == id)? ch.getFkFriendship().getFkUser2() : ch.getFkFriendship().getFkUser1();
-			
-			String image = this.findImage(u);
-			c.add(new ResponseChatDTO(ch.getPkID(), new ResponseFriendDTO(u.getUsername(), image)));
-		}
-		
-		ResponseChatsDTO chats = new ResponseChatsDTO(c);
-		return ResponseEntity.ok().body(chats);
-	}
 	
 	/**
 	 * Elimina una chat
@@ -296,8 +245,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		 */
 
 		List<MessageChat> messages = this.databaseService.getMessagesChat(id, chatId, messageId);
-		if(messages == null || messages.isEmpty()) return ResponseEntity.ok().body(new ResponseCallsChatDTO(chatId, null));
-		
+	    if(messages==null) messages = new ArrayList<>();
 		List<ResponseMessageChatDTO> mess = new ArrayList<ResponseMessageChatDTO>();
 		for(MessageChat m : messages) {
 			List<Attached> attachedMessage = this.databaseService.getAttachmentsRepo().findByFkMessage(m.getPkID());
@@ -308,7 +256,7 @@ public class ServiceApiChatsController extends BasicApiRestController {
 				if(path != null) attachements.add(new ResponseAttachedChatDTO(a.getPkID(), this.standardServerPath + this.standardPathFiles, a.getFilename(), a.getExtension()));
 			}
 			
-			mess.add(new ResponseMessageChatDTO(m.getPkID(), m.getFkUser().getUsername(), m.getMessage(), m.getSentAt(), (attachements.isEmpty()? null : attachements)));
+			mess.add(new ResponseMessageChatDTO(m.getPkID(), m.getFkUser().getUsername(), m.getMessage(), m.getSentAt(), attachements));
 		}
 		
 		ResponseMessagesChatDTO m = new ResponseMessagesChatDTO(chatId, mess);
@@ -316,48 +264,14 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		return ResponseEntity.ok().body(m);
 	}
 	
-	/**
-	 * Crea una call in una chat
-	 * @param request
-	 * @param response
-	 * @param chatId
-	 * @param body
-	 * @return
-	 */
-	@PostMapping("chats/{chat}/call")
-	public ResponseEntity<?> postCallChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId) {
-		
-		/*
-		 * Autentificazione
-		 */
-		int id = this.authenticationService.authenticate(request, response);
-		
-		/*
-		 * Crea una nuova chiamata nel database nella chat
-		 */
-		this.databaseService.createCall(id, chatId);
-		
-		return ResponseEntity.created(null).build();
-	}
-	
-	/**
-	 * Ottiene le varie call che sono successe nella chat
-	 * @param request
-	 * @param response
-	 * @param chatId
-	 * @return
-	 */
+
+    /*
 	@GetMapping("chats/{chat}/calls")
 	public ResponseEntity<?> getCallsChat(HttpServletRequest request, HttpServletResponse response, @PathVariable("chat") Integer chatId) {
 
-		/*
-		 * Autentificazione
-		 */
 		int id = this.authenticationService.authenticate(request, response);
 		
-		/*
-		 * Ottiene le chiamate di una chat
-		 */
+
 		List<Call> calls = this.databaseService.getCalls(id, chatId);
 		if(calls == null || calls.isEmpty()) return ResponseEntity.ok().body(new ResponseCallsChatDTO(chatId, null));
 		
@@ -366,28 +280,6 @@ public class ServiceApiChatsController extends BasicApiRestController {
 		
 		ResponseCallsChatDTO c = new ResponseCallsChatDTO(chatId, call);
 		return ResponseEntity.ok().body(c);
-	}
-	
-	/**
-	 * Modifica l'endtime della call che e' attiva (al massimo 1 attiva)
-	 * @param request
-	 * @param response
-	 * @param chatId
-	 * @return
-	 */
-	@PutMapping("chats/callEnd")
-	public ResponseEntity<?> patchCallChat(HttpServletRequest request, HttpServletResponse response) {
+	}*/
 
-		/*
-		 * Autentificazione
-		 */
-		int id = this.authenticationService.authenticate(request, response);
-		
-		/*
-		 * Ottiene le chiamate di una chat
-		 */
-		this.databaseService.updateCall(id);
-		
-		return ResponseEntity.ok().build();
-	}
 }

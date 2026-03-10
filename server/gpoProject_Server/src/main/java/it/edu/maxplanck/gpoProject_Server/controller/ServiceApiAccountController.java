@@ -6,7 +6,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -167,7 +170,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	@PatchMapping("profileImage")
 	public ResponseEntity<?> patchImageProfileImage(HttpServletRequest request, HttpServletResponse response, @RequestParam("image") MultipartFile file) {
 
-	    if (file.isEmpty()) return ResponseEntity.badRequest().body("File vuoto");
+	    if (file.isEmpty()) return ResponseEntity.badRequest().body(Map.of("message", "File vuoto"));
 
 	    /*
 	     * Autenticazione
@@ -179,7 +182,7 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	     * Verifica immagine
 	     */
 	    try {
-	        if (!GenericUtil.isFileValidImage(file)) return ResponseEntity.badRequest().body("File non immagine");
+	        if (!GenericUtil.isFileValidImage(file)) return ResponseEntity.badRequest().body(Map.of("message", "File non immagine"));
 	    } catch (IOException e) {
 	        return ResponseEntity.internalServerError().build();
 	    }
@@ -258,29 +261,40 @@ public class ServiceApiAccountController extends BasicApiRestController {
 	 * @param body
 	 * @return
 	 */
-	@PostMapping("friend")
-	public ResponseEntity<?> postFriend(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestFriendDTO body) {
+    @PostMapping("friend")
+    public ResponseEntity<?> postFriend(HttpServletRequest request, HttpServletResponse response, @RequestBody RequestFriendDTO body) {
+        try {
+            // Controlla validità body
+            this.authenticationService.getAuthenticationRequestDTOService().authFriendDTO(body);
 
-		/*
-		 * Controlla se body request valido:
-		 * 		- No -> Errore
-		 */
-		this.authenticationService.getAuthenticationRequestDTOService().authFriendDTO(body);
-		
-		/*
-		 * Autentificazione
-		 */
-		int id = this.authenticationService.authenticate(request, response);
-		
-		/*
-		 * Ottiene dati da database attraverso id
-		 */
-		this.databaseService.createFriendship(id, body.username());
-		
-		return ResponseEntity.ok().build();
-	}
-	
-	/**
+            // Autentificazione
+            int id = this.authenticationService.authenticate(request, response);
+
+
+            User user = this.databaseService.findUser(id);
+
+            if(user.getUsername().equals(body.username())) return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Non puoi inviare la richiesta a te stesso"));
+
+            // Crea amicizia
+            this.databaseService.createFriendship(id, body.username());
+
+            // Crea chat
+            this.databaseService.createChat(id, body.username());
+
+            return ResponseEntity.ok().body(Map.of("message", "Amicizia creata con successo"));
+
+        } catch (DatabaseException e) {
+
+            return ResponseEntity
+                    .status(e.getExceptions().getResponseStatus())
+                    .body(Map.of("message", e.getExceptions().getMessage()));
+        }
+    }
+
+
+    /**
 	 * Ottiene gli amici dell'account in uso
 	 * @param request
 	 * @param response

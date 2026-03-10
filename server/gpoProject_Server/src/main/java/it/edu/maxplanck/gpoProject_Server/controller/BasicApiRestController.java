@@ -4,6 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -42,6 +44,10 @@ public abstract class BasicApiRestController {
 		this.databaseService = databaseService;
 		this.authenticationService = authenticationService;
 	}
+
+    public Integer authenticate(HttpServletRequest request, HttpServletResponse response){
+        return authenticationService.authenticate(request, response);
+    }
 	
 	/**
 	 * Controlla se esiste una immagine profilo dell'utente

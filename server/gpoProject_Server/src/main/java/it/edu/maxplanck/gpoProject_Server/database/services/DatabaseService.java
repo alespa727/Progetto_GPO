@@ -3,6 +3,8 @@ package it.edu.maxplanck.gpoProject_Server.database.services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAttachedChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChatDTO;
@@ -196,7 +198,26 @@ public class DatabaseService {
 		return u;
 	}
 
-	/**
+    /**
+     * Cerca un utente in base al nome
+     * <br>Errore se i dati inseriti non sono validi o se non viene trovato
+     * @param username
+     * @return
+     * @throws DatabaseException
+     */
+    public User doesUserExist(String username) throws DatabaseException {
+        // TODO Auto-generated method stub
+
+        if(username == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+
+        User u = this.getUsersRepo().findUserByUsername(username);
+        if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
+
+        return u;
+    }
+
+
+    /**
 	 * Fa l'update dello status dell'utente
 	 * @param id
 	 * @throws DatabaseException
@@ -317,7 +338,7 @@ public class DatabaseService {
 	 * @param description
 	 * @throws DatabaseException
 	 */
-	public void createCommunity(Integer id, boolean isInviteCodeValid, String name, String description) throws DatabaseException {
+	public Community createCommunity(Integer id, boolean isInviteCodeValid, String name, String description) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		User u = this.findUser(id);
@@ -329,6 +350,7 @@ public class DatabaseService {
 		
 		Community c = new Community(u, inviteCode, isInviteCodeValid, name, description);
 		this.communitiesRepo.save(c);
+        return c;
 	}
 
 	/**
@@ -355,11 +377,12 @@ public class DatabaseService {
 		// TODO Auto-generated method stub
 		
 		if(chatId == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
-		this.findUser(id);
+		User user = this.findUser(id);
 		
 		Chat c = this.chatsRepo.findById(chatId).orElse(null);
+        System.out.println(user.isAdmin());
 		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_CHAT_NOT_FOUND);
-		if(!this.isUserPartOfChat(id, c)) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_CHAT);
+		if(!this.isUserPartOfChat(id, c) && !user.isAdmin()) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_CHAT);
 		
 		return c;
 	}
@@ -371,8 +394,7 @@ public class DatabaseService {
 	 * @throws DatabaseException
 	 */
 	public List<Chat> findChatsOfUser(Integer id) throws DatabaseException {
-		// TODO Auto-generated method stub
-		
+
 		this.findUser(id);
 		
 		List<Chat> chats = null;
@@ -431,51 +453,26 @@ public class DatabaseService {
 		return messages;
 	}
 
-	/**
-	 * Crea una chiamata nella chat
-	 * <br>Errore se ha gia' un'altra chiamata ancora attiva
-	 * @param id
-	 * @param chatId
-	 * @throws DatabaseException
-	 */
-	public void createCall(Integer id, Integer chatId) throws DatabaseException {
-		// TODO Auto-generated method stub
-		
-		Chat chat = this.findChat(id, chatId);
-		if(this.getCallsRepo().hasCallsOpen(id)) throw new DatabaseException(DatabaseExceptions.DB_CALL_STILL_OPEN);
+	public Call createCall(Integer userId, Integer chatId) throws DatabaseException {
+        Chat chat = this.findChat(userId, chatId);
+		if(this.getCallsRepo().hasCallsOpen(userId)) throw new DatabaseException(DatabaseExceptions.DB_CALL_STILL_OPEN);
 		
 		Call c = new Call(chat);
-		this.callsRepo.save(c);
+
+        return this.callsRepo.save(c);
 	}
 
-	/**
-	 * Ottiene tutte le chiamate che sono avvenute nella chat
-	 * @param id
-	 * @param chatId
-	 * @return
-	 * @throws DatabaseException
-	 */
-	public List<Call> getCalls(Integer id, Integer chatId) throws DatabaseException {
-		// TODO Auto-generated method stub
-		
-		this.findChat(id, chatId);
+
+	public List<Call> getCalls(Integer userId, Integer chatId) throws DatabaseException {
+		this.findChat(userId, chatId);
 		
 		List<Call> calls = this.callsRepo.getCallsByFkChat(chatId);
 		return calls;
 	}
 
-	/**
-	 * Aggiorna lo status della chiamata attiva
-	 * @param id
-	 * @throws DatabaseException
-	 */
-	public void updateCall(Integer id) throws DatabaseException {
-		// TODO Auto-generated method stub
-		
-		this.findUser(id);
-		
-		Call c = this.callsRepo.getCallOfUser(id);
-		if(c != null) c.setEndTime(LocalDateTime.now());
+	public void endCall(Integer callId) throws NoSuchElementException, DatabaseException {
+		Call c = this.callsRepo.findById(callId).orElseThrow();
+        c.setEndTime(LocalDateTime.now());
 	}
 
 	/**
@@ -628,28 +625,32 @@ public class DatabaseService {
 		this.communitiesRepo.delete(c);
 	}
 
-	public void createSection(Integer id, Integer communityId, String name) throws DatabaseException, DataException {
+	public Section createSection(Integer id, Integer communityId, String name) throws DatabaseException, DataException {
 		// TODO Auto-generated method stub
 		
 		Community c = this.findCommunity(id, communityId);
-		if(c.getFkUserOwner().getPkID() != id || this.findUser(id).isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
-		
+
+        if(!c.getFkUserOwner().getPkID().equals(id) && !this.findUser(id).isAdmin())
+            throw new DataException(DataExceptions.DATA_FORBIDDEN);
+
 		Section s = new Section(c, name);
 		
 		this.sectionsRepo.save(s);
+        return s;
 	}
 
-	public void createChannelSectionCommunity(Integer id, Integer communityId, Integer sectionId, String name, String type, String description) throws DatabaseException, DataException {
+	public Channel createChannelCommunity(Integer userId, Integer sectionId, String name, String type, String description) throws DatabaseException, DataException {
 		// TODO Auto-generated method stub
-		
-		Community c = this.findCommunity(id, communityId);
-		if(c.getFkUserOwner().getPkID() != id || this.findUser(id).isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
-		
-		Section s = this.findSection(sectionId);
-		
+
+        Section s = this.findSection(sectionId);
+
+        if(!s.getFkCommunity().getFkUserOwner().getPkID().equals(userId) && !this.findUser(userId).isAdmin())
+            throw new DataException(DataExceptions.DATA_FORBIDDEN);
+
 		Channel ch = new Channel(s, name, type, description);
 		
 		this.channelsRepo.save(ch);
+        return ch;
 	}
 
 	public Section findSection(Integer sectionId) throws DatabaseException {
@@ -662,12 +663,9 @@ public class DatabaseService {
 		return s;
 	}
 
-	public MessageCommunity createMessageChannelSectionCommunity(Integer id, Integer communityId, Integer sectionId, Integer channelId, String message) throws DatabaseException, DataException {
+	public MessageCommunity createMessageChannel(Integer id, Integer channelId, String message) throws DatabaseException, DataException {
 		// TODO Auto-generated method stub
-		
-		this.findCommunity(id, communityId);
-		this.findSection(sectionId);
-		
+
 		User u = this.findUser(id);
 		Channel ch = this.findChannel(channelId);
 		
@@ -688,21 +686,21 @@ public class DatabaseService {
 		return c;
 	}
 
-	public List<MessageCommunity> getMessagesChannelSectionCommunity(Integer id, Integer communityId, Integer sectionId, Integer channelId, Integer messageId)  throws DatabaseException, DataException {
+	public List<MessageCommunity> getMessagesChannelSectionCommunity(Integer id, Integer channelId, Integer messageId)  throws DatabaseException, DataException {
 		// TODO Auto-generated method stub
-		
-		Community c = this.findCommunity(id, communityId);
-		Section s = this.findSection(sectionId);
-		Channel ch = this.findChannel(channelId);
-		
+
+        Channel ch = this.findChannel(channelId);
+        Section s = ch.getFkSection();
+		Community c = s.getFkCommunity();
+
+		if(!this.isUserPartOfCommunity(id, c)) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_COMMUNITY);
+
 		if(!this.isSectionPartOfCommunity(s.getPkID(), c)) throw new DatabaseException(DatabaseExceptions.DB_SECTION_IS_NOT_PART_OF_COMMUNITY);
 		if(!this.isChannelPartOfSection(ch.getPkID(), s)) throw new DatabaseException(DatabaseExceptions.DB_CHANNEL_IS_NOT_PART_OF_SECTION);
 		
 		if(messageId == null) messageId = 0;
-		
-		List<MessageCommunity> messages = this.messagesCommunityRepo.findByFkChannelIDAndIDGreaterThanOrderByPkIDAsc(channelId, messageId, UtilDatabase.maxMessagesRead);
-		
-		return messages;
+
+        return this.messagesCommunityRepo.findByFkChannelIDAndIDGreaterThanOrderByPkIDAsc(channelId, messageId, UtilDatabase.maxMessagesRead);
 	}
 	
 	public boolean isSectionPartOfCommunity(Integer sectionId, Community community) throws DatabaseException {
@@ -719,51 +717,49 @@ public class DatabaseService {
 		return (this.channelsRepo.existsChannelByPkIDAndFkSection(channelId, section));
 	}
 	
-	public void deleteSectionCommunity(int id, Integer communityId, Integer sectionId) {
+	public void deleteSectionCommunity(int id, Integer sectionId) {
 		// TODO Auto-generated method stub
-		
-		Community c = this.findCommunity(id, communityId);
+
+        Section s = this.findSection(sectionId);
+        Community c = s.getFkCommunity();
 		if(c.getFkUserOwner().getPkID() != id || this.findUser(id).isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
-		
-		Section s = this.findSection(sectionId);
-		
+
 		this.sectionsRepo.delete(s);
 	}
 
-	public void deleteChannelSectionCommunity(int id, Integer communityId, Integer sectionId, Integer channelId) {
+	public void deleteChannelSectionCommunity(int id, Integer channelId) {
 		// TODO Auto-generated method stub
-		
-		Community c = this.findCommunity(id, communityId);
-		if(c.getFkUserOwner().getPkID() != id || this.findUser(id).isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
-		
-		this.findSection(sectionId);
-		Channel ch = this.findChannel(channelId);
+        Channel ch = this.findChannel(channelId);
+		Community c = ch.getFkSection().getFkCommunity();
+
+		if(c.getFkUserOwner().getPkID().equals(id)  || this.findUser(id).isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
 		
 		this.channelsRepo.delete(ch);
 	}
 
-	public void createRegistration(Integer id, Integer communityId, String inviteCode) throws DatabaseException {
+	public Registration createRegistration(Integer userId, String inviteCode) throws DatabaseException {
 		// TODO Auto-generated method stub
 		
 		if(inviteCode == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
 		
-		User u = this.findUser(id);
-		Community c = this.communitiesRepo.findById(communityId).orElse(null);
+		User u = this.findUser(userId);
+		Community c = this.communitiesRepo.getCommunityByInviteCode(inviteCode);
+
 		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
-		
+        System.out.println(c.getName());
 		if(this.registrationsRepo.existsRegistrationByFkUserAndFkCommunity(u, c)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_ALREADY_CREATED);
-		if(c.getFkUserOwner().getPkID() == id) return;
+		if(c.getFkUserOwner().getPkID().equals(userId)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_ALREADY_CREATED);
 		if(!inviteCode.equals(c.getInviteCode()) || !c.isInviteCodeValid()) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_NOT_DONE);
 		
 		Registration r = new Registration(c, u);
-		
-		this.registrationsRepo.save(r);
-	}
 
-	public void deleteRegistration(int id, Integer communityId) {
+        return this.registrationsRepo.save(r);
+    }
+
+	public void deleteRegistration(int userId, Integer communityId) {
 		// TODO Auto-generated method stub
 		
-		User u = this.findUser(id);
+		User u = this.findUser(userId);
 		Community c = this.communitiesRepo.findById(communityId).orElse(null);
 		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
 		
@@ -774,10 +770,10 @@ public class DatabaseService {
 		this.registrationsRepo.delete(r);
 	}
 
-	public void updateCommunity(Integer id, Integer communityId, Boolean inviteCodeValid, String name, String description) {
+	public void updateCommunity(Integer userId, Integer communityId, Boolean inviteCodeValid, String name, String description) {
 		// TODO Auto-generated method stub
 		
-		Community c = this.findCommunity(id,communityId);
+		Community c = this.findCommunity(userId,communityId);
 		
 		if(inviteCodeValid != null && ((c.isInviteCodeValid() && !inviteCodeValid) || (!c.isInviteCodeValid() && inviteCodeValid))) c.setInviteCodeValid(inviteCodeValid);
 		
