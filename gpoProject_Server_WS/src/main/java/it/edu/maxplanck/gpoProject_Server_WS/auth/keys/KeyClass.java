@@ -10,20 +10,20 @@ import io.jsonwebtoken.security.Keys;
 public class KeyClass {
 
 	private final Key key;
-	private final long expiration;
+	private final long keyTimeToLive;
 	private final SignatureAlgorithm algorithm;
 	
-	public KeyClass(Key key, long expiration, SignatureAlgorithm algorithm) {
+	public KeyClass(Key key, long keyTimeToLive, SignatureAlgorithm algorithm) {
 		super();
 		this.key = key;
-		this.expiration = expiration;
+		this.keyTimeToLive = keyTimeToLive;
 		this.algorithm = algorithm;
 	}
 
 	public KeyClass(
 			String secret,
 			Charset charset, 
-			long expiration,
+			long keyTimeToLive,
 			SignatureAlgorithm algorithm
 	) {
 		super();
@@ -31,7 +31,7 @@ public class KeyClass {
 		if(charset == null) charset = StandardCharsets.UTF_8;
 		this.key = Keys.hmacShaKeyFor(secret.getBytes(charset));
 		
-		this.expiration = expiration;
+		this.keyTimeToLive = keyTimeToLive;
 		
 		if(algorithm == null) this.algorithm = algorithm;
 		else this.algorithm = SignatureAlgorithm.HS256;
@@ -39,14 +39,14 @@ public class KeyClass {
 
 	public KeyClass(
 			String secret,
-			long expiration
+			long keyTimeToLive
 	) {
 		super();
 		
 		Charset charset = StandardCharsets.UTF_8;
 		this.key = Keys.hmacShaKeyFor(secret.getBytes(charset));
 		
-		this.expiration = expiration;
+		this.keyTimeToLive = keyTimeToLive;
 		
 		this.algorithm = SignatureAlgorithm.HS256;
 	}
@@ -56,7 +56,7 @@ public class KeyClass {
 	}
 	
 	public long getExpiration() {
-		return expiration;
+		return keyTimeToLive;
 	}
 	
 	public SignatureAlgorithm getAlgorithm() {

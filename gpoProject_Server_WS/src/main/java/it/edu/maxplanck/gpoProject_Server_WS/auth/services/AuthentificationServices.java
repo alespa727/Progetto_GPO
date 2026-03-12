@@ -1,11 +1,14 @@
 package it.edu.maxplanck.gpoProject_Server_WS.auth.services;
 
+import org.springframework.stereotype.Service;
+
 import it.edu.maxplanck.gpoProject_Server_WS.auth.cookies.CookieService;
 import it.edu.maxplanck.gpoProject_Server_WS.auth.tokens.TokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@Service
 public class AuthentificationServices {
 
 	protected TokenService tokenService;

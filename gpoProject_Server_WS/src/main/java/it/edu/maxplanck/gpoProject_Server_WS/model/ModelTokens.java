@@ -1,4 +1,4 @@
-package it.edu.maxplanck.gpoProject_Server_WS.auth.tokens;
+package it.edu.maxplanck.gpoProject_Server_WS.model;
 
 public class ModelTokens {
 	

@@ -8,6 +8,11 @@ public class GpoProjectServerWsApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(GpoProjectServerWsApplication.class, args);
-		System.out.println("SPRING has Started...");
+		
+		System.out.println(""
+				+ "\n---------------------------"
+				+ "\n   SPRING has Started..."
+				+ "\n---------------------------\n"
+		);
 	}
 }

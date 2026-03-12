@@ -9,6 +9,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.InvalidKeyException;
 import it.edu.maxplanck.gpoProject_Server_WS.auth.keys.KeyClass;
+import it.edu.maxplanck.gpoProject_Server_WS.model.ModelTokens;
 
 @Service
 public class TokenService {
@@ -27,6 +28,8 @@ public class TokenService {
         this.tokenManager = tokenManager;
     }
     
+    // Access Token
+    
     public String generate_AccessToken(Map<String, Object> claims, String subject) throws InvalidKeyException {
     	return this.tokenManager.generateToken(claims, subject, accessKey.getKey(), accessKey.getExpiration(), accessKey.getAlgorithm());
     }
@@ -38,6 +41,8 @@ public class TokenService {
     public Claims retriveClaims_AccessToken(String token) throws JwtException {
     	return this.tokenManager.obtainTokenClaims(token, accessKey.getKey());
     }
+    
+    // Refresh token
     
     public String generate_RefreshToken(Map<String, Object> claims, String subject) throws InvalidKeyException {
     	return this.tokenManager.generateToken(claims, subject, refreshKey.getKey(), refreshKey.getExpiration(), refreshKey.getAlgorithm());
