@@ -9,7 +9,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.InvalidKeyException;
 import it.edu.maxplanck.gpoProject_Server_WS.auth.keys.KeyClass;
-import it.edu.maxplanck.gpoProject_Server_WS.auth.keys.ModelKeys;
 
 @Service
 public class TokenService {
@@ -19,12 +18,12 @@ public class TokenService {
 	private final TokenManager tokenManager;
     
     public TokenService(
-    		@Value(ModelKeys.accessTokenPath) String secretAccess,
-    		@Value(ModelKeys.refreshTokenPath) String secretRefresh,
+    		@Value(ModelTokens.accessTokenPath) String secretAccess,
+    		@Value(ModelTokens.refreshTokenPath) String secretRefresh,
     		TokenManager tokenManager
     ) {
-    	this.accessKey = new KeyClass(secretAccess, ModelKeys.accessToken_TimeToLive);
-    	this.refreshKey = new KeyClass(secretRefresh, ModelKeys.refreshToken_TimeToLive);
+    	this.accessKey = new KeyClass(secretAccess, ModelTokens.accessToken_TimeToLive);
+    	this.refreshKey = new KeyClass(secretRefresh, ModelTokens.refreshToken_TimeToLive);
         this.tokenManager = tokenManager;
     }
     

@@ -1,6 +1,6 @@
-package it.edu.maxplanck.gpoProject_Server_WS.auth.keys;
+package it.edu.maxplanck.gpoProject_Server_WS.auth.tokens;
 
-public class ModelKeys {
+public class ModelTokens {
 	
 	public static final String accessTokenPath = "${jwt.Secret.Token.Access}";
 	public static final long accessToken_TimeToLive = 15 * 60 * 1000; // 15 min
