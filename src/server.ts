@@ -35,21 +35,29 @@ export function verifyAccessToken(token: string) {
 }
 
 let cookies: any[] | null | undefined = null;
+const LOGIN_INTERVAL = (10+1) * 24 * 60 * 60 * 1000; 
 
-axios.post("http://localhost:8080/api/login", { username: "ale", password: "727" },
-    {
+function doLogin() {
+    axios.post("http://localhost:8080/api/login", {
+        username: "ale",
+        password: "727"
+    }, {
         withCredentials: true,
-        headers: {
-            "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" }
     })
     .then((response) => {
         cookies = response.headers["set-cookie"];
+        console.log("Login riuscito, cookies salvati:", cookies);
     })
     .catch((error) => {
-        console.log(error.response?.data);
+        console.log("Errore login:", error.response?.data || error.message);
+    })
+    .finally(() => {
+        setTimeout(doLogin, LOGIN_INTERVAL);
     });
+}
 
+doLogin();
 
 
 const httpServer = createServer(app);
