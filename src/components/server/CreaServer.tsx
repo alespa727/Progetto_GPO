@@ -8,6 +8,7 @@ import axios from "axios";
 
 import { ClientHttp, endpoint2 } from "@/types";
 import { useChats } from "@/context/ChatListContext";
+import { updateServers } from "@/context/ServerListContext";
 
 enum ResponseType {
     ERROR,
@@ -16,54 +17,47 @@ enum ResponseType {
 }
 
 
-export function AddFriendButton() {
-    const updateChats = useChats()?.forceUpdate;
-    const [username, setUsername] = useState<string>("");
+export function CreateServerButton() {
+
+    const forceUpdate = updateServers();
+    const [name, setName] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
     const [isActive, setActive] = useState<boolean>(false)
     const [response, setResponse] = useState<string>("")
     const [type, setType] = useState<ResponseType>(ResponseType.SUCCESSFUL)
 
-    if (!updateChats) return;
+    const circleStyle = "w-[65%] rounded-full aspect-square bg-white/10 self-center ";
 
     useEffect(() => {
-        setUsername("")
+        setName("")
+        setDescription("")
+        setActive(false)
     }, [response])
 
 
-    const sendFriendshipReq = async () => {
-
-        if (username === "") {
-            setResponse("Inserire un username valido")
+    const createServer = async () => {
+    
+        if (name === "") {
+            setResponse("Inserire un nome valido")
             setType(ResponseType.ERROR);
             return;
         }
 
         try {
-            const res = await ClientHttp.addFriend(username);
-
-            if (res.data.message)
-                setResponse(res.data.message);
-
-            updateChats();
+            const res = await ClientHttp.postCommunities(name, description)
+            forceUpdate();
+            setResponse(res.message);
         } catch (error: unknown) {
             setType(ResponseType.ERROR);
-
             if (axios.isAxiosError(error)) {
-                const data = error.response?.data;
-
                 console.log("STATUS:", error.response?.status);
-                console.log("DATA RAW:", data);
+                console.log("HEADERS:", error.response?.headers);
+                console.log("DATA RAW:", error.response?.data);
+                console.log("TYPE OF DATA:", typeof error.response?.data);
 
-                if (data && typeof data === "object" && "message" in data) {
-                    setResponse((data as { message: string }).message);
-                } else if (typeof data === "string") {
-                    setResponse(data);
-                } else {
-                    setResponse("Errore sconosciuto");
-                }
-            } else {
-                setResponse("Errore non previsto");
+                setResponse(error.response?.data.message);
             }
+
         }
     }
 
@@ -74,34 +68,13 @@ export function AddFriendButton() {
                 whileHover={{ scale: 1.01, background: "#FFFFFF1F" }}
                 whileTap={{ scale: 0.97, background: "#7ED957" }}
                 transition={{
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 20,
-                    mass: 0.5
+                type: "spring",
+                stiffness: 200,
+                damping: 20,
+                mass: 0.5
                 }}
-                onClick={() => setActive(!isActive)}
-                className="
-                    flex
-                    items-center
-                    justify-center
-                    gap-[9px]
-                    text-[15px]
-                    m-2.5
-                    mb-0
-                    ml-0
-                    rounded-l-0
-                    p-1
-                    aspect-square
-                    rounded-(--radius)
-                    active:bg-green-500
-                   
-                    text-white
-                    font-semibold
-                    shadow-md
-                    hover:shadow-lg
-                    cursor-pointer
-                    select-none
-                "
+                onClick={() => { setActive(true)}}
+                className={circleStyle.concat("mb-1 flex items-center justify-center active:bg-green-50 text-white font-semibold shadow-md hover:shadow-lg cursor-pointer select-none")}
             >
                 <PlusCircle></PlusCircle>
             </motion.div>
@@ -148,17 +121,26 @@ export function AddFriendButton() {
                                     onClick={(e) => e.stopPropagation()}
                                 >
 
-                                    <h2 className="m-7 text-xl font-bold">Aggiungi un amico</h2>
+                                    <h2 className="m-7 text-xl font-bold">Crea il tuo nuovo server!</h2>
 
                                     <div className="m-7 flex flex-col">
                                         <input
                                             type="text"
-                                            placeholder="Ex. tommy123"
+                                            placeholder="Ex. Nome del server di tommy"
                                             className="p-2 rounded mb-3  bg-(--surface1) border border-white/10"
-                                            value={username}
-                                            onChange={(e) => setUsername(e.target.value)}
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
                                         />
 
+                                         <input
+                                            type="text"
+                                            placeholder="Ex. Descrizione molto bella!"
+                                            className="p-2 rounded mb-3  bg-(--surface1) border border-white/10"
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                        />
+
+                                     
                                         {
                                             response !== "" && <div className={"w-full p-2 bg-(--base) rounded-(--radius)" + (type === ResponseType.ERROR ? " bg-red-500" : " bg-green-500")}>
                                                 <p className={"text-white text-center"}>{(type === ResponseType.ERROR ? "Errore: " : "") + response}</p>
@@ -172,8 +154,8 @@ export function AddFriendButton() {
                                                 scale: 0.9,
                                             }}
                                             className={"rounded-(--radius) text-white text-[16px] mt-3 w-full h-full bg-(--surface1) p-2"}
-                                            onClick={() => sendFriendshipReq()}>
-                                            Invia richiesta
+                                            onClick={() => createServer()}>
+                                            Crea!
                                         </motion.button>
                                     </div>
                                 </div>

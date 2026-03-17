@@ -70,7 +70,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
             <ContextMenu.Trigger onContextMenu={onTrigger} className={style}>
                 <motion.div
                     className={
-                        "rounded-r-[var(--radius)] px-4 mr-4 flex items-center justify-center " +
+                        "rounded-r-[var(--radius)] px-6 mr-4 flex items-center justify-center " +
                         (!hoverButton ? "hover:bg-white/10" : "")
                     }
                     initial={{ scale: 0.98, opacity: 0.5 }}
@@ -82,7 +82,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                         console.log("Div clicked"); 
                     }}
                 >
-                    <div className="gap-2 w-full  flex flex-col p-1 text-[15px]">
+                    <div className="gap-3 w-full  flex flex-col p-1 text-[15px]">
                         <div className={`pt-1/2 gap-2 flex  ${!message.sent ? "text-gray-400" : "text-white"}`}>
                             <span>
                                 {msg.sentAt
@@ -112,9 +112,9 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                         </div>
 
                         {message.attachments.map(a => {
-                            if (a.extension === "jpeg" || a.extension === "png" || a.extension === "jpg") {
+                            if (a.extension === ".jpeg" || a.extension === ".png" || a.extension === ".jpg") {
                                 return (
-                                    <MyCustomZoom key={a.id} src={`/files/${a.filename}.${a.extension}`} attachment={a}
+                                    <MyCustomZoom key={a.id} src={`/files/${a.filename}${a.extension}`} attachment={a}
                                         alt="img">
                                     </MyCustomZoom>
                                 );
@@ -137,7 +137,7 @@ export function Messaggio({ msg, messageType, id, style, onCloseMenu, onTrigger 
                                     >
 
                                         <span className="text-xl w-full h-full justify-center">
-                                            {a.filename + "." + a.extension}
+                                            {a.filename + a.extension}
                                         </span>
 
                                         <button

@@ -12,6 +12,7 @@ export interface ServerLoopProps {
 export function ServerLoop({ servers, ...props }: ServerLoopProps) {
   return (
     <>
+    <div className="flex flex-col gap-2 mb-2">
       {servers.map((s) => (
         <ServerContext value={s} key={s.id}>
           {
@@ -19,6 +20,8 @@ export function ServerLoop({ servers, ...props }: ServerLoopProps) {
           }
         </ServerContext>
       ))}
+    </div>
+      
     </>
   );
 }

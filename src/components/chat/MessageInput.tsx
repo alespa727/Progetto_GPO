@@ -35,7 +35,7 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
             let newMessage = new Message(tempId, account.username, nuovoTesto, [], new Date(), false);
             addMessage(newMessage)
             const res = await axios.post(
-                endpoint2 + "/services/chats/" + id + "/message",
+                endpoint2 + "/services/chats/" + id + "/messages",
                 {
                     message: nuovoTesto,
                 },
@@ -81,15 +81,16 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
             files.forEach(file => {
                 formData.append("files", file);
             });
-            formData.append("message", JSON.stringify({ message: nuovoTesto }));
+            formData.append("message", nuovoTesto );
 
-            const res = await axios.post(endpoint2 + "/services/chats/" + chat.id + "/attachment", formData, {
+            const res = await axios.post(endpoint2 + "/services/chats/" + chat.id + "/attachments", formData, {
                 withCredentials: true,
             });
 
             if (socket && res.status === HttpStatusCode.Created) {
                 newMessage.messageId = res.data.messageId;
                 newMessage.sent = true;
+                console.log(res.data)
                 console.log(res.data.attachments.map((a: any) => Attachment.fromJSON(a)))
                 newMessage.attachments = res.data.attachments.map((a: any) => Attachment.fromJSON(a));
                 socket.emit("sendMessage", { id, type, message: newMessage });
@@ -100,7 +101,7 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
             }
             forceUpdate(prev => prev + 1);
         } catch (error) {
-            console.error("errore mandando il messaggio")
+            console.error("errore mandando il messaggio",error)
         } finally {
             setNuovoTesto("");
             setFile(!isFile);

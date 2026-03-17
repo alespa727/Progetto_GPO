@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import "../../styles/Chat.css";
-import { Message } from "../../types.tsx";
+import { ClientHttp, Message } from "../../types.tsx";
 import { useSocket } from "../../context/SocketProvider.tsx";
 import { useChatContext } from "../../context/ChatContext.tsx";
 import { Header } from "./ChatHeader.tsx";
@@ -68,14 +68,10 @@ function Chat() {
   const fetchMessages = async (id: number) => {
 
     if (!chat) return
-    let endpointUrl = `/api/services/chats/${id}/messages`;
-   
-    try {
-      const res = await axios.get(endpointUrl, {
-        withCredentials: true
-      });
 
-      const newMessages = res.data.messages.map((msg: any) => Message.fromJSON(msg));
+    try {
+      const newMessages = await ClientHttp.getMessages(chat.id);
+      newMessages.forEach(m=>m.sent=true)
       messagesRef.current = newMessages;
       forceUpdate(prev => prev + 1);
     } catch (err) {

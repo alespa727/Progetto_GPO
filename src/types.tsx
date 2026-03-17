@@ -1,13 +1,136 @@
+import axios, { AxiosResponse } from "axios";
+
 export const portServer = 5000;
 
-export const endpoint ="/server1";
+export const endpoint = "/server1";
 export const websocket = endpoint;
 export const endpoint2 = "/api"
+export const services = endpoint2 + "/services"
 
 export enum ChatType {
   FRIEND = "FRIEND",
   CHANNEL = "CHANNEL",
 }
+
+
+const friendsUrl = services + "/friends";
+const chatsUrl = services + "/chats";
+const communitiesUrl = services + "/communities";
+
+export class ClientHttp {
+
+
+   /**
+     * @return i server
+     */
+  static async getProfile(): Promise<Account> {
+    const res = await axios.get<Account>(services+"/profile",
+      {
+        withCredentials: true
+      });
+      console.log(res)
+
+    return res.data;
+  }
+  /**
+     * @return i server
+     */
+  static async getMessages(chatId: number): Promise<Message[]> {
+    const res = await axios.get<Message[]>(chatsUrl + "/" + chatId + "/messages",
+
+      {
+        withCredentials: true
+      });
+      console.log(res)
+
+    return res.data;
+  }
+
+  /**
+     * @return i server
+     */
+  static async postCommunities(name: string, description: string): Promise<DefaultResponse> {
+    const res = await axios.post<DefaultResponse>(communitiesUrl,
+      {
+        "isInviteCodeValid": true,
+        "name": name,
+        "description": description
+      },
+      {
+        withCredentials: true
+      });
+
+    return res.data;
+  }
+
+  /**
+   * @return i server
+   */
+  static async getCommunities(): Promise<Server[]> {
+    const res = await axios.get<Server[]>(communitiesUrl,
+      {
+        withCredentials: true
+      });
+
+    return res.data;
+  }
+
+  /**
+   * @returns gli account dei tuoi amici
+   */
+  static async fetchChats(fromChatId?: number): Promise<Chat[]> {
+    const res = await axios.get<Chat[]>(chatsUrl,
+      {
+        withCredentials: true
+      });
+    console.log("chats:", res.data);
+
+    return res.data;
+  }
+
+
+  /**
+   * @param username username di chi vuoi aggiungere
+   * @returns risposta http
+   */
+  static async addFriend(username: string): Promise<AxiosResponse<DefaultResponse>> {
+    const res = await axios.post<DefaultResponse>(friendsUrl,
+      {
+        username,
+      },
+      {
+        withCredentials: true
+      });
+      
+    return res;
+  }
+
+  /**
+   * @returns gli account dei tuoi amici
+   */
+  static async fetchFriends(): Promise<Account[]> {
+    const res = await axios.get<Account[]>(friendsUrl,
+      {
+        withCredentials: true
+      });
+
+    console.log(res.data)
+    return res.data;
+  }
+
+}
+
+export class DefaultResponse {
+  message: string;
+
+  constructor(
+    message: string
+  ) {
+    this.message = message;
+  }
+
+}
+
 
 export class Account {
   authorization?: string;
@@ -28,8 +151,8 @@ export class Account {
     this.username = username;
   }
 
-  static fromJSON(json: any): Account | null{
-    if(!json) return null;
+  static fromJSON(json: any): Account | null {
+    if (!json) return null;
     return new Account(json.createdAt, json.isAdmin, json.path, json.username);
   }
 }
@@ -65,13 +188,13 @@ export class Chat {
   }
 }
 
-export class Attachment{
+export class Attachment {
   id: number;
   path: string;
   filename: string;
   extension: string;
 
-  constructor(id: number, path: string, filename: string, extension: string){
+  constructor(id: number, path: string, filename: string, extension: string) {
     this.id = id;
     this.path = path;
     this.filename = filename;
@@ -79,7 +202,7 @@ export class Attachment{
   }
 
   static fromJSON(json: any): Attachment {
-    
+
     let attachment = new Attachment(json.id, json.path, json.filename, json.extension.replace(".", ""));
     return attachment
   }
@@ -105,19 +228,19 @@ export class Message {
   }
 
   static fromJSON(json: any): Message {
-      if (!json) {
-        throw new Error("Message.fromJSON called with null/undefined");
-      }
-      
-    let arr = null;
-    if(json.attachments){
-      arr = [];
-      if(json.attachments.length !== 0)
-      arr = json.attachments.map(
-        (item: any) => Attachment.fromJSON(item)
-      );
+    if (!json) {
+      throw new Error("Message.fromJSON called with null/undefined");
     }
-   
+
+    let arr = null;
+    if (json.attachments) {
+      arr = [];
+      if (json.attachments.length !== 0)
+        arr = json.attachments.map(
+          (item: any) => Attachment.fromJSON(item)
+        );
+    }
+
 
     let message = new Message(json.messageId, json.username, json.message, arr ? arr : null, new Date(json.sentAt), true);
     return message
@@ -178,11 +301,11 @@ export class Section {
   static fromJSON(json: any): Section {
     const section = new Section(json.id, json.name);
     if (json.channels) {
-      section.channels = json.channels.map((c: any) =>{
+      section.channels = json.channels.map((c: any) => {
         c.sectionId = json.id;
         c.communityId = json.communityId;
         return Channel.fromJSON(c);
-      } );
+      });
     }
     return section;
   }
@@ -219,15 +342,15 @@ export class Server {
     let server = new Server(
       json.id,
       json.name,
-      json.sections ? json.sections.map((s: any) => 
-        {
-          s.communityId = json.id;
-          return Section.fromJSON(s)}
-        ) : [],
+      json.sections ? json.sections.map((s: any) => {
+        s.communityId = json.id;
+        return Section.fromJSON(s)
+      }
+      ) : [],
       json.description,
       json.createdAt ? new Date(json.createdAt) : undefined
     );
-    
+
     return server;
   }
 }

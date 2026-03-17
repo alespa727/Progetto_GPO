@@ -34,7 +34,7 @@ export function MessageInput({ addMessage, forceUpdate }: { addMessage: (message
             let newMessage = new Message(tempId, account.username, nuovoTesto, [], new Date(), false);
             addMessage(newMessage)
             const res = await axios.post(
-                endpoint2 + "/services/communities/1/sections/1/channels/"+id+"/message",
+                endpoint2 + "/services/communities/1/sections/1/channels/"+id+"/messages",
                 {
                     message: nuovoTesto,
                 },

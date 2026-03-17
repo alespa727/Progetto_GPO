@@ -1,41 +1,24 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
-import { Channel, ChannelType, endpoint, endpoint2, Section, Server } from "../types";
+import { Channel, ChannelType, ClientHttp, endpoint, endpoint2, Section, Server } from "../types";
 import { useAccount } from "./UserProvider";
 
-const ServerContext = createContext<Server[] | null>(null);
+type ServersContextProps={
+  servers: Server[] | null,
+  forceUpdate: () => void
+}
+
+const ServerContext = createContext<ServersContextProps | null>(null);
 
 export const ServerProvider = ({ children }: { children: ReactNode }) => {
   const [servers, setServers] = useState<Server[] | null>(null);
+  const [update, setUpdate] = useState<boolean>(false);
   const account = useAccount();
-  const example: Server[] = [
-    new Server(
-      1,
-      "Example Server",
-      [
-        new Section(
-          1,
-          "General",
-          [
-            new Channel(
-              1,
-              ChannelType.VOICE,
-              "General Voice",
-              "Canale vocale principale"
-            ),
-            new Channel(
-              2,
-              ChannelType.TEXT,
-              "general-chat",
-              "Chat generale del server"
-            )
-          ]
-        )
-      ],
-      "Server di esempio",
-      new Date()
-    )
-  ];
+  
+  const forceUpdate = ()=>{
+    setUpdate(!update);
+  }
+
 
   useEffect(() => {
     const fetchServers = async () => {
@@ -43,19 +26,14 @@ export const ServerProvider = ({ children }: { children: ReactNode }) => {
       try {
         if(!account) return;
         let list: Server[] = [];
-        const res = await axios.get(endpoint2 + "/services/communities", {
-          withCredentials: true
-        });
-        console.log("SERVER", res.data.communities[0])
-        for (let i = 0; i < res.data.communities.length; i++) {
-          const element = res.data.communities[i]
-          console.log("server",Server.fromJSON(element));
+
+        let servers = await ClientHttp.getCommunities();
+     
+        for (let i = 0; i < servers.length; i++) {
+          const element = servers[i]
           list.push(Server.fromJSON(element))
         }
       
-        console.log(list)
-
-        setServers(example);
         setServers(list);
 
       } catch (err) {
@@ -64,15 +42,21 @@ export const ServerProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchServers();
-  }, [account]);
+  }, [account, update]);
 
   return (
-    <ServerContext.Provider value={servers}>
+    <ServerContext.Provider value={{servers, forceUpdate}}>
       {children}
     </ServerContext.Provider>
   );
 };
 
 export const useServers = () => {
-  return useContext(ServerContext);
+  return useContext(ServerContext)?.servers;
+};
+
+export const updateServers = () => {
+  const ctx = useContext(ServerContext);
+
+  return ctx?.forceUpdate ?? (() => {});
 };

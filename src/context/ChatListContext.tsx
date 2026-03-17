@@ -1,4 +1,4 @@
-import { Chat, endpoint2 } from "@/types";
+import { Chat, ClientHttp, endpoint2 } from "@/types";
 import axios from "axios";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useAccount } from "./UserProvider";
@@ -23,11 +23,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const fetchChats = async () => {
       try {
         if(!account) return;
-        const res = await axios.get(endpoint2+"/services/chats", {
-                    withCredentials: true
-                });
-        const chats : Chat[] = res.data.chats.map((c: any)=>Chat.fromJSON(c))
-        console.log(chats)
+        const chats = await ClientHttp.fetchChats()
+        
         setChats(chats);
       } catch (err) {
         console.error("Errore nel fetch utente:", err);

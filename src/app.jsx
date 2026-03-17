@@ -4,6 +4,7 @@ import './styles/index.css'
 import Topbar from './components/Topbar.tsx'
 import Menu from './components/Menu.tsx'
 import { ContextProvider } from './context/ContextProvider.tsx'
+import { ClientHttp } from './types.tsx'
 
 createRoot(document.getElementById('root')).render(
     <ContextProvider>
@@ -12,6 +13,7 @@ createRoot(document.getElementById('root')).render(
       <Menu />
     </ContextProvider>,
 )
+
 
 
 /*

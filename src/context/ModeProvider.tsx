@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useSetAccount } from "./UserProvider";
 import axios from "axios";
-import { Account, endpoint2 } from "@/types";
+import { Account, ClientHttp, endpoint2 } from "@/types";
 
 export enum ClientMode {
   Server,
@@ -23,20 +23,14 @@ export const ModeProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const execute = async () => {
       try {
-        const account = await axios.get(endpoint2+
-        "/services/account"
-        ,
-        {
-          withCredentials: true
-        });
-        
-      const accObj: Account | null = Account.fromJSON(account.data)
-      if(!accObj){
+      const account = await ClientHttp.getProfile();
+  
+      if(!account){
           console.warn("Eseguire il login");
           return;
         }
-      if (setAccount && accObj) {
-        setAccount(accObj);
+      if (setAccount && account) {
+        setAccount(account);
         setMode(ClientMode.Chats);
       }
       } catch (error) {
