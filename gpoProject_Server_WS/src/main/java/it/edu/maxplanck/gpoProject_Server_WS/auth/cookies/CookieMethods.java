@@ -11,9 +11,11 @@ public interface CookieMethods {
 	
 	public ArrayList<Cookie> findCookies(HttpServletRequest request, ArrayList<String> cookiesName);
 	
+	public int retrivePositionCookie(ArrayList<String> cookiesNames, String cookieName);
+	
 	public void updateCookie(Cookie cookie, String value, Boolean httpOnly, Boolean secure, String path, Integer maxAge);
 	
 	public boolean isCookieValid(Cookie cookie);
 	
-	public void removeCookie(Cookie cookie, String path);
+	public void revokeCookie(Cookie cookie, String path);
 }

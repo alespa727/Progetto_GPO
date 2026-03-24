@@ -10,7 +10,7 @@ public interface TokenMethods {
 
     String generateToken(Map<String, Object> claims, String subject, Key key, long expirationDate, SignatureAlgorithm algorithm);
 
-    Claims obtainTokenClaims(String token, Key key);
+    Claims retriveTokenClaims(String token, Key key);
 
     boolean isTokenValid(String token, Key key);
 }

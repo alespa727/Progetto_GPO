@@ -1,10 +1,14 @@
 package it.edu.maxplanck.gpoProject_Server_WS.auth.tokens;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.InvalidKeyException;
+import io.jsonwebtoken.security.SignatureException;
 
 import java.security.Key;
 import java.util.Date;
@@ -27,7 +31,7 @@ public class TokenManager implements TokenMethods {
     }
 
     @Override
-    public Claims obtainTokenClaims(String token, Key key) throws JwtException {
+    public Claims retriveTokenClaims(String token, Key key) throws ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
         
     	if(token == null || key == null) return null;
     	

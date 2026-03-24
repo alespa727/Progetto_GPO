@@ -45,6 +45,17 @@ public class CookieManager implements CookieMethods {
 	}
 
 	@Override
+	public int retrivePositionCookie(ArrayList<String> cookiesNames, String cookieName) {
+		// TODO Auto-generated method stub
+		
+		for(int i = 0; i < cookiesNames.size(); i++) {
+			if(cookiesNames.get(i).equals(cookieName)) return i;
+		}
+		
+		return -1;
+	}
+	
+	@Override
 	public void updateCookie(Cookie cookie, String value, Boolean httpOnly, Boolean secure, String path, Integer maxAge) {
 		// TODO Auto-generated method stub
 		
@@ -66,7 +77,7 @@ public class CookieManager implements CookieMethods {
 	}
 	
 	@Override
-	public void removeCookie(Cookie cookie, String path) {
+	public void revokeCookie(Cookie cookie, String path) {
 		// TODO Auto-generated method stub
 		
 		if(cookie == null) return;
