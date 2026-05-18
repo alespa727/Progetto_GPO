@@ -1,0 +1,861 @@
+package it.edu.maxplanck.gpoProject_Server.database.services;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+import it.edu.maxplanck.gpoProject_Server.database.model.*;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAttachedChatDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChatDTO;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import it.edu.maxplanck.gpoProject_Server.database.repositories.*;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DataException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DataExceptions;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseExceptions;
+import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
+import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase;
+
+/**
+ * Classe che serve come servizio per compiere le azioni sui dati del database
+ */
+@Transactional
+@Service
+public class DatabaseService {
+
+
+    private final AttachmentsCommunityRepo attachmentsCommunity;
+	private final AttachmentsRepo attachmentsRepo;
+	private final CallsRepo callsRepo;
+	private final ChannelsRepo channelsRepo;
+	private final ChatsRepo chatsRepo;
+	private final CommunitiesRepo communitiesRepo;
+	private final FriendshipsRepo friendshipsRepo;
+	private final MessagesChatRepo messagesChatRepo;
+    private final MessagesCommunityRepo messagesCommunityRepo;
+	private final RegistrationsRepo registrationsRepo;
+	private final SectionsRepo sectionsRepo;
+	private final UsersRepo usersRepo;
+
+	public DatabaseService(
+            AttachmentsCommunityRepo attachmentsCommunity, AttachmentsRepo attachmentsRepo,
+            CallsRepo callsRepo,
+            ChannelsRepo channelsRepo,
+            ChatsRepo chatsRepo,
+            CommunitiesRepo communitiesRepo,
+            FriendshipsRepo friendshipsRepo,
+            MessagesChatRepo messagesChatRepo,
+            MessagesCommunityRepo messagesCommunityRepo,
+            RegistrationsRepo registrationsRepo,
+            SectionsRepo sectionsRepo,
+            UsersRepo usersRepo
+		) {
+		super();
+        this.attachmentsCommunity = attachmentsCommunity;
+        this.attachmentsRepo = attachmentsRepo;
+		this.callsRepo = callsRepo;
+		this.channelsRepo = channelsRepo;
+		this.chatsRepo = chatsRepo;
+		this.communitiesRepo = communitiesRepo;
+		this.friendshipsRepo = friendshipsRepo;
+		this.messagesChatRepo = messagesChatRepo;
+		this.messagesCommunityRepo = messagesCommunityRepo;
+		this.registrationsRepo = registrationsRepo;
+		this.sectionsRepo = sectionsRepo;
+		this.usersRepo = usersRepo;
+	}
+
+
+    public AttachmentsCommunityRepo getAttachmentsCommunity() {
+        return attachmentsCommunity;
+    }
+
+	public AttachmentsRepo getAttachmentsRepo() {
+		return attachmentsRepo;
+	}
+
+	public CallsRepo getCallsRepo() {
+		return callsRepo;
+	}
+
+	public ChannelsRepo getChannelsRepo() {
+		return channelsRepo;
+	}
+
+	public ChatsRepo getChatsRepo() {
+		return chatsRepo;
+	}
+
+	public CommunitiesRepo getCommunitiesRepo() {
+		return communitiesRepo;
+	}
+
+	public FriendshipsRepo getFriendshipsRepo() {
+		return friendshipsRepo;
+	}
+
+	public MessagesChatRepo getMessagesChatRepo() {
+		return messagesChatRepo;
+	}
+
+	public MessagesCommunityRepo getMessagesCommunityRepo() {
+		return messagesCommunityRepo;
+	}
+
+	public RegistrationsRepo getRegistrationsRepo() {
+		return registrationsRepo;
+	}
+
+	public SectionsRepo getSectionsRepo() {
+		return sectionsRepo;
+	}
+
+	public UsersRepo getUsersRepo() {
+		return usersRepo;
+	}
+
+	/**
+	 * Crea un nuovo utente nel database
+	 * <br>Errore se i dati sono incorretti o un altro utente esiste gia' con le stesse credenziali
+	 * @param username
+	 * @param password
+	 * @throws DatabaseException
+	 */
+	public void createUser(String username, String password) throws DatabaseException  {
+		// TODO Auto-generated method stub
+		
+		if(username == null || password == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		
+		if(this.usersRepo.existsUserByUsername(username)) throw new DatabaseException(DatabaseExceptions.DB_USERNAME_IS_ALREADY_IN_USE);
+
+        do password = GenericUtil.passwordEncoder.encode(password);
+        while (GenericUtil.passwordEncoder.upgradeEncoding(password));
+		
+		User u = new User(username, password);
+		this.usersRepo.save(u);
+	}
+
+	/**
+	 * Cerca un utente in base ai dati inseriti
+	 * <br>Errore se i dati non sono validi, se esiste gia' un altro utente con le stesse credenziali o se le credenziali sono errate
+	 * @param username
+	 * @param password
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public int findUser(String username, String password) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(username == null || password == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		
+		User u = this.usersRepo.findUserByUsername(username);
+		if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
+		
+		if(!u.getUsername().equals(username) || !GenericUtil.passwordEncoder.matches(password, u.getPassword())) throw new DatabaseException(DatabaseExceptions.DB_CREDENTIALS_ARE_INCORRECT);
+		
+		return u.getId();
+	}
+	
+	/**
+	 * Cerca un utente in base all'id
+	 * <br>Errore se i dati inseriti non sono validi o se non viene trovato
+	 * @param id
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public User findUser(Integer id) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(id == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		
+		User u = this.getUsersRepo().findById(id).orElse(null);
+		if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
+		
+		return u;
+	}
+	
+	/**
+	 * Cerca un utente in base al nome
+	 * <br>Errore se i dati inseriti non sono validi o se non viene trovato
+	 * @param username
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public User findUser(String username) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(username == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		
+		User u = this.getUsersRepo().findUserByUsername(username);
+		if(u == null) throw new DatabaseException(DatabaseExceptions.DB_USER_NOT_FOUND);
+		
+		return u;
+	}
+
+    /**
+     * Cerca un utente in base al nome
+     * <br>Errore se i dati inseriti non sono validi o se non viene trovato
+     * @param username
+     * @return
+     * @throws DatabaseException
+     */
+    public User doesUserExist(String username) throws DatabaseException {
+        // TODO Auto-generated method stub
+
+        if(username == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+
+        User u = this.getUsersRepo().findUserByUsername(username);
+
+        return u;
+    }
+
+
+
+
+
+    public void updateStatusUser(User u, Boolean status) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(status) u.setTimeLastAccess(null);
+		else u.setTimeLastAccess(LocalDateTime.now());
+	}
+	
+	/**
+	 * Fa l'update dei dati dell'account dell'utente
+	 * <br>Errore se i dati inseriti non sono corretti
+	 * @param id
+	 * @param username
+	 * @throws DatabaseException
+	 */
+	public void updateUserAccount(Integer id, String username, String description) throws DatabaseException {
+
+		User u = this.findUser(id);
+		
+		System.out.println(username + u.getUsername());
+		if(username != null && !u.getUsername().equalsIgnoreCase(username)) {
+			if(this.usersRepo.existsUserByUsername(username)) throw new DatabaseException(DatabaseExceptions.DB_USERNAME_IS_ALREADY_IN_USE);
+			u.setUsername(username);
+		}
+
+        if(description != null) u.setDescription(description);
+	}
+
+	/**
+	 * Fa l'update dei dati del profilo dell'utente
+	 * @param id
+	 * @param imagePath
+	 * @throws DatabaseException
+	 */
+	public void updateUserProfile(Integer id, String imagePath) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		
+		u.setImagePath(imagePath);
+	}
+	
+	/**
+	 * Crea una amicizia tra utenti
+	 * <br>Errore se esiste gia'
+	 * @param id
+	 * @param username
+	 * @throws DatabaseException
+	 */
+	public void createFriendship(Integer id, String username) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		User u1 = this.findUser(id);
+		User u2 = this.findUser(username);
+
+		if(this.friendshipsRepo.existsByFkUser1AndFkUser2(u1, u2)) throw new DatabaseException(DatabaseExceptions.DB_FRIENDSHIP_ALREADY_CREATED);
+		Friendship f = new Friendship(u1, u2);
+
+		this.friendshipsRepo.save(f);
+	}
+	
+	/**
+	 * Cerca tutti gli utenti con cui lo user ha amicizie
+	 * @param id
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public List<User> findFriendsOfUser(Integer id) throws DatabaseException {
+
+		this.findUser(id);
+
+        return this.friendshipsRepo.findFriendsByUserId(id);
+	}
+
+    public List<User> findFriendRequestsOfUser(Integer id) throws DatabaseException {
+
+        this.findUser(id);
+
+        return this.friendshipsRepo.findFriendsRequestsByUserId(id);
+    }
+
+
+    /**
+	 * Crea una chat tra 2 utenti che sono amici
+	 * <br>Errore se la chat esiste gia'
+	 * @param id
+	 * @param username
+	 * @throws DatabaseException
+	 */
+	public void createChat(Integer id, String username) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		this.findUser(id);
+		User u2 = this.findUser(username);
+		
+		// Controlla che esista una amicizia
+		Friendship f = this.friendshipsRepo.findFriendByUser1IdUser2Id(id, u2.getId());
+		if(f == null) throw new DatabaseException(DatabaseExceptions.DB_FRIENDSHIP_NOT_CREATED);
+		
+		// Controlla che non esista gia'
+		if(this.chatsRepo.existsByFkFriendship(f)) throw new DatabaseException(DatabaseExceptions.DB_CHAT_ALREADY_CREATED);
+		
+		Chat c = new Chat(f);
+		this.chatsRepo.save(c);
+	}
+	
+	/**
+	 * Crea una community con owner l'utente
+	 * @param id
+	 * @param isInviteCodeValid
+	 * @param name
+	 * @param description
+	 * @throws DatabaseException
+	 */
+	public Community createCommunity(Integer id, boolean isInviteCodeValid, String name, String description) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		
+		String inviteCode = null;
+		do {
+			inviteCode = GenericUtil.generateString(UtilDatabase.CommunityData.inviteCodeLenght, GenericUtil.CHARSET).toUpperCase(Locale.ROOT);
+		}while(this.communitiesRepo.existsCommunityByInviteCode(inviteCode) && inviteCode.length() <= UtilDatabase.CommunityData.inviteCodeLenght);
+		
+		Community c = new Community(u, inviteCode, isInviteCodeValid, name, description);
+		this.communitiesRepo.save(c);
+        return c;
+	}
+
+    public String regenInviteCode(Integer id, Integer communityId) throws DatabaseException {
+
+        User u = this.findUser(id);
+
+        String inviteCode = null;
+        do {
+            inviteCode = GenericUtil.generateString(UtilDatabase.CommunityData.inviteCodeLenght, GenericUtil.CHARSET).toUpperCase(Locale.ROOT);
+        }while(this.communitiesRepo.existsCommunityByInviteCode(inviteCode) && inviteCode.length() <= UtilDatabase.CommunityData.inviteCodeLenght);
+
+        Community c = this.findCommunity(id, communityId);
+        if(!c.getFkUserOwner().getId().equals(id))throw new DatabaseException(DatabaseExceptions.DB_UNAUTHORIZED);
+
+        c.setInviteCode(inviteCode);
+        this.communitiesRepo.save(c);
+        return inviteCode;
+    }
+
+	/**
+	 * Controlla se lo user fa parte della chat
+	 * <br>Errore se non ne fa parte
+	 * @param id
+	 * @param c
+	 * @throws DatabaseException
+	 */
+	public boolean isUserPartOfChat(Integer id, Chat c) throws DatabaseException {
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_CHAT_NOT_FOUND);
+		return ((Objects.equals(c.getFkFriendship().getFkUser1().getId(), id)) || (Objects.equals(c.getFkFriendship().getFkUser2().getId(), id)));
+	}
+	
+	/**
+	 * Cerca la chat dell'utente
+	 * <br> Errore se non esiste o se lo user non ne fa parte
+	 * @param id
+	 * @param chatId
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public Chat findChat(Integer id, Integer chatId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(chatId == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		User user = this.findUser(id);
+		
+		Chat c = this.chatsRepo.findById(chatId).orElse(null);
+        System.out.println(user.isAdmin());
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_CHAT_NOT_FOUND);
+		if(!this.isUserPartOfChat(id, c) && !user.isAdmin()) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_CHAT);
+		
+		return c;
+	}
+	
+	/**
+	 * Cerca tutte le chat in cui e' stato aggiunto l'utente
+	 * @param id
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public List<Chat> findChatsOfUser(Integer id) throws DatabaseException {
+
+		this.findUser(id);
+		
+		List<Chat> chats = null;
+		chats = this.chatsRepo.findChatByUserId(id);
+		
+		return chats;
+	}
+	
+	/**
+	 * Crea un messaggio in una chat
+	 * @param id
+	 * @param chatId
+	 * @param message
+	 * @throws DatabaseException
+	 */
+	public MessageChat createMessageChat(Integer id, Integer chatId, String message) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		Chat c = this.findChat(id, chatId);
+		
+		MessageChat mChat = new MessageChat(c, u, message);
+		this.messagesChatRepo.save(mChat);
+        return mChat;
+	}
+
+    public MessageChat deleteMessageChat(Integer userId, Integer chatId, Integer messageId) throws DatabaseException {
+        // TODO Auto-generated method stub
+
+        User u = this.findUser(userId);
+        Chat c = this.findChat(userId, chatId);
+        MessageChat mChat = this.messagesChatRepo.findById(messageId).orElseThrow();
+
+        if(mChat.getFkChat().getId().equals(c.getId()) && mChat.getFkUser().getId().equals(u.getId())){
+            this.messagesChatRepo.deleteById(messageId);
+        }else{
+            throw new DatabaseException(DatabaseExceptions.DB_UNAUTHORIZED);
+        }
+
+        return mChat;
+    }
+
+    public MessageCommunity deleteMessageCommunity(Integer userId, Integer messageId) throws DatabaseException {
+        // TODO Auto-generated method stub
+
+        User u = this.findUser(userId);
+        MessageCommunity mChat = this.messagesCommunityRepo.findById(messageId).orElseThrow();
+        if(mChat.getFkUser().getId().equals(u.getId())){
+            this.messagesCommunityRepo.deleteById(messageId);
+        }else{
+            throw new DatabaseException(DatabaseExceptions.DB_UNAUTHORIZED);
+        }
+
+        return mChat;
+    }
+
+    public MessageChat modifyMessageChat(Integer userId, Integer chatId, Integer messageId, String text) throws DatabaseException {
+        // TODO Auto-generated method stub
+
+        User u = this.findUser(userId);
+        Chat c = this.findChat(userId, chatId);
+        MessageChat mChat = this.messagesChatRepo.findById(messageId).orElseThrow();
+
+        if(mChat.getFkChat().getId().equals(c.getId()) && mChat.getFkUser().getId().equals(u.getId())){
+            mChat.setMessage(text);
+        }else{
+            throw new DatabaseException(DatabaseExceptions.DB_UNAUTHORIZED);
+        }
+
+        return mChat;
+    }
+
+
+    /**
+	 * Elimina una chat
+	 * @param id
+	 * @param chatId
+	 * @throws DatabaseException
+	 */
+	public void deleteChat(Integer id, Integer chatId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		Chat c = this.findChat(id, chatId);
+		
+		this.chatsRepo.deleteById(c.getId());
+	}
+
+	/**
+	 * Ottiene tutti i messaggi inviati di recente in una chat
+	 * @param id
+	 * @param chatId
+	 * @param messageId
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public List<MessageChat> getMessagesChat(Integer id, Integer chatId, Integer messageId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		this.findChat(id, chatId);
+		if(messageId == null) messageId = 0;
+
+		List<MessageChat> messages = this.messagesChatRepo.findByFkChatIDAndIDGreaterThanOrderByPkIDAsc(chatId, messageId, UtilDatabase.maxMessagesRead);
+		return messages;
+	}
+
+	public Call createCall(Integer userId, Integer chatId) throws DatabaseException {
+        Chat chat = this.findChat(userId, chatId);
+		if(this.getCallsRepo().hasCallsOpen(userId)) throw new DatabaseException(DatabaseExceptions.DB_CALL_STILL_OPEN);
+		
+		Call c = new Call(chat);
+
+        return this.callsRepo.save(c);
+	}
+
+
+	public List<Call> getCalls(Integer userId, Integer chatId) throws DatabaseException {
+		this.findChat(userId, chatId);
+		
+		List<Call> calls = this.callsRepo.getCallsByFkChat(chatId);
+		return calls;
+	}
+
+	public void endCall(Integer callId) throws NoSuchElementException, DatabaseException {
+		Call c = this.callsRepo.findById(callId).orElseThrow();
+        c.setEndTime(LocalDateTime.now());
+	}
+
+	/**
+	 * Crea un allegato ad un messaggio nella chat
+	 * @param id
+	 * @param chatId
+	 * @param message
+	 * @throws DatabaseException
+	 */
+	public ResponseMessageChatDTO createAttachmentChat(int id, Integer chatId, List<String> originalNames, List<String> filename, List<String> extension, String message) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		Chat c = this.findChat(id, chatId);
+		MessageChat mc = new MessageChat(c, this.findUser(id), message);
+
+		this.messagesChatRepo.save(mc);
+
+        ArrayList<ResponseAttachedChatDTO> attachments = new ArrayList<>();
+		for(int i = 0; i < filename.size(); i++) {
+            AttachedChat a = null;
+            if(filename.get(i).length() <= UtilDatabase.AttachedData.filenameLenght && extension.get(i).length() <= UtilDatabase.AttachedData.extensionLenght){
+               a =  this.attachmentsRepo.save(new AttachedChat(mc, filename.get(i), originalNames.get(i), extension.get(i)));
+            }
+            if(a!=null){
+
+                attachments.add(new ResponseAttachedChatDTO(a.getId(), "/files/"+a.getFilename()+a.getExtension(), a.getOriginalname(), a.getFilename(), a.getExtension()));
+            }
+
+		}
+
+        return new ResponseMessageChatDTO(mc.getId(), mc.getFkUser().getUsername(), mc.getMessage(), mc.getSentAt(), attachments);
+	}
+
+    public ResponseMessageChatDTO createAttachmentCommunity(int id, Integer communityId, Integer sectionId, Integer channelId, List<String> originalNames, List<String> filename, List<String> extension, String message) throws DatabaseException {
+        // TODO Auto-generated method stub
+
+        Community c = this.findCommunity(id, communityId);
+        Section s = this.findSection(sectionId);
+        Channel ch = this.findChannel(channelId);
+
+        this.isUserPartOfCommunity(id, c);
+        this.isSectionPartOfCommunity(sectionId, c);
+        this.isChannelPartOfSection(channelId, s);
+
+        MessageCommunity mc = new MessageCommunity(ch, this.findUser(id), message);
+
+        this.messagesCommunityRepo.save(mc);
+
+        ArrayList<ResponseAttachedChatDTO> attachments = new ArrayList<>();
+        for(int i = 0; i < filename.size(); i++) {
+            AttachedCommunity a = null;
+            if(filename.get(i).length() <= UtilDatabase.AttachedData.filenameLenght && extension.get(i).length() <= UtilDatabase.AttachedData.extensionLenght){
+                a =  this.attachmentsCommunity.save(new AttachedCommunity(mc, filename.get(i), originalNames.get(i), extension.get(i)));
+            }
+            if(a!=null){
+
+                attachments.add(new ResponseAttachedChatDTO(a.getPkID(), "/files/"+a.getFilename()+a.getExtension(), a.getOriginalname(), a.getFilename(), a.getExtension()));
+            }
+
+        }
+
+        return new ResponseMessageChatDTO(mc.getPkID(), mc.getFkUser().getUsername(), mc.getMessage(), mc.getSentAt(), attachments);
+    }
+
+	/**
+	 * Cerca un allegato
+	 * @param id
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public AttachedChat findAttached(Integer id) throws DatabaseException {
+		if(id == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		AttachedChat a = this.attachmentsRepo.findById(id).orElse(null);
+		if(a == null) throw new DatabaseException(DatabaseExceptions.DB_ATTACHED_NOT_FOUND);
+		
+		return a;
+	}
+
+	public void updateAttached(Integer pkID, String fileName, String extension) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		AttachedChat a = this.findAttached(pkID);
+		
+		a.setFilename(fileName);
+		a.setExtension(extension);
+	}
+
+	/**
+	 * Elimina un allegato
+	 * @param pkID
+	 * @throws DatabaseException
+	 */
+	public void deleteAttached(Integer pkID) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		AttachedChat a = this.findAttached(pkID);
+		
+		this.attachmentsRepo.delete(a);
+	}
+
+	public Community findCommunity(Integer id, Integer commmunityId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		Community c = this.communitiesRepo.findById(commmunityId).orElse(null);
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
+		if(!this.isUserPartOfCommunity(id, c)) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_COMMUNITY);
+		
+		return c;
+	}
+
+	public boolean isUserPartOfCommunity(Integer id, Community c) throws DatabaseException {
+		// TODO Auto-generated method stub
+		User u = this.findUser(id);
+		
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
+		
+		return (c.getFkUserOwner().getId() == id || this.registrationsRepo.existsRegistrationByFkUserAndFkCommunity(u, c));
+	}
+	
+	public List<User> getUsersCommunity(Integer id, Integer communityId) throws DatabaseException {
+		
+		User u = this.findUser(id);
+		
+		Community c = this.communitiesRepo.findById(communityId).orElse(null);
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
+		
+		List<User> usersCommunity = this.registrationsRepo.findUsersOfCommunty(communityId);
+		if(usersCommunity == null) usersCommunity = new ArrayList<User>();
+		usersCommunity.add(u);
+		
+		return usersCommunity;
+	}
+
+	public List<Community> findCommunitiesOfUser(Integer id) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(id);
+		
+		List<Community> communities = this.registrationsRepo.findCommunitiesOfUser(id);
+		List<Community> owner = this.communitiesRepo.findCommunityByFkUserOwner(u);
+		
+		if(communities == null && owner == null) return null;
+		
+		if(communities == null) return owner;
+		if(owner == null) return communities;
+		
+		for(Community c : owner) communities.add(c);
+		
+		return communities;
+	}
+
+	public List<Section> findSectionsOfCommunity(Community community) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(community == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		List<Section> s = this.sectionsRepo.findSectionsByFkCommunity(community);
+		
+		return s;
+	}
+
+	public List<Channel> findChannelsOfSection(Section section) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(section == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		List<Channel> c = this.channelsRepo.findChannelsByFkSection(section);
+		
+		return c;
+	}
+
+	public void deleteCommunity(Integer id, Integer communityId) throws DatabaseException, DataException {
+		// TODO Auto-generated method stub
+		
+		Community c = this.findCommunity(id, communityId);
+		if(c.getFkUserOwner().getId() != id || this.findUser(id).isAdmin()) throw new DataException(DataExceptions.DATA_FORBIDDEN);
+		
+		this.communitiesRepo.delete(c);
+	}
+
+	public Section createSection(Integer id, Integer communityId, String name) throws DatabaseException, DataException {
+		// TODO Auto-generated method stub
+		
+		Community c = this.findCommunity(id, communityId);
+
+        if(!c.getFkUserOwner().getId().equals(id))
+            throw new DataException(DataExceptions.DATA_FORBIDDEN);
+
+		Section s = new Section(c, name);
+		
+		this.sectionsRepo.save(s);
+        return s;
+	}
+
+	public Channel createChannelCommunity(Integer userId, Integer sectionId, String name, String type, String description) throws DatabaseException, DataException {
+		// TODO Auto-generated method stub
+
+        Section s = this.findSection(sectionId);
+
+        System.out.println(s.getFkCommunity().getFkUserOwner().getId()+"/"+userId);
+        if(!s.getFkCommunity().getFkUserOwner().getId().equals(userId))
+            throw new DataException(DataExceptions.DATA_FORBIDDEN);
+
+		Channel ch = new Channel(s, name, type, description);
+		
+		this.channelsRepo.save(ch);
+        return ch;
+	}
+
+	public Section findSection(Integer sectionId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(sectionId == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		Section s = this.sectionsRepo.findById(sectionId).orElse(null);
+		if(s == null) throw new DatabaseException(DatabaseExceptions.DB_SECTION_NOT_FOUND);
+		
+		return s;
+	}
+
+	public MessageCommunity createMessageChannel(Integer id, Integer channelId, String message) throws DatabaseException, DataException {
+		// TODO Auto-generated method stub
+
+		User u = this.findUser(id);
+		Channel ch = this.findChannel(channelId);
+		
+		if(!ch.getType().equals("testo")) throw new DatabaseException(DatabaseExceptions.DB_CHANNEL_IS_NOT_FOR_TEXT);
+		
+		MessageCommunity m = new MessageCommunity(ch, u, message);
+		
+		return this.messagesCommunityRepo.save(m);
+	}
+
+	public Channel findChannel(Integer channelId) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(channelId == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		Channel c = this.channelsRepo.findById(channelId).orElse(null);
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_CHANNEL_NOT_FOUND);
+		
+		return c;
+	}
+
+	public List<MessageCommunity> getMessagesChannelSectionCommunity(Integer id, Integer channelId, Integer messageId)  throws DatabaseException, DataException {
+		// TODO Auto-generated method stub
+
+        Channel ch = this.findChannel(channelId);
+        Section s = ch.getFkSection();
+		Community c = s.getFkCommunity();
+
+		if(!this.isUserPartOfCommunity(id, c)) throw new DatabaseException(DatabaseExceptions.DB_USER_IS_NOT_PART_OF_COMMUNITY);
+
+		if(!this.isSectionPartOfCommunity(s.getPkID(), c)) throw new DatabaseException(DatabaseExceptions.DB_SECTION_IS_NOT_PART_OF_COMMUNITY);
+		if(!this.isChannelPartOfSection(ch.getPkID(), s)) throw new DatabaseException(DatabaseExceptions.DB_CHANNEL_IS_NOT_PART_OF_SECTION);
+		
+		if(messageId == null) messageId = 0;
+
+        return this.messagesCommunityRepo.findByFkChannelIDAndIDGreaterThanOrderByPkIDAsc(channelId, messageId, UtilDatabase.maxMessagesRead);
+	}
+	
+	public boolean isSectionPartOfCommunity(Integer sectionId, Community community) throws DatabaseException {
+		
+		if(community == null || sectionId == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		
+		return (this.sectionsRepo.existsSectionByPkIDAndFkCommunity(sectionId, community));
+	}
+
+	public boolean isChannelPartOfSection(Integer channelId, Section section) throws DatabaseException {
+		
+		if(section == null || channelId == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		
+		return (this.channelsRepo.existsChannelByPkIDAndFkSection(channelId, section));
+	}
+	
+	public void deleteSectionCommunity(int id, Integer sectionId) {
+		// TODO Auto-generated method stub
+
+        Section s = this.findSection(sectionId);
+        Community c = s.getFkCommunity();
+	
+		this.sectionsRepo.delete(s);
+	}
+
+	public void deleteChannelSectionCommunity(int id, Integer channelId) {
+		// TODO Auto-generated method stub
+        Channel ch = this.findChannel(channelId);
+		Community c = ch.getFkSection().getFkCommunity();
+
+		this.channelsRepo.delete(ch);
+	}
+
+	public Registration createRegistration(Integer userId, String inviteCode) throws DatabaseException {
+		// TODO Auto-generated method stub
+		
+		if(inviteCode == null) throw new DatabaseException(DatabaseExceptions.DB_DATA_INSERTED_IS_NOT_VALID);
+		
+		User u = this.findUser(userId);
+		Community c = this.communitiesRepo.getCommunityByInviteCode(inviteCode);
+
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
+        System.out.println(c.getName());
+		if(this.registrationsRepo.existsRegistrationByFkUserAndFkCommunity(u, c)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_ALREADY_CREATED);
+		if(c.getFkUserOwner().getId().equals(userId)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_ALREADY_CREATED);
+		if(!inviteCode.equals(c.getInviteCode()) || !c.isInviteCodeValid()) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_NOT_DONE);
+		
+		Registration r = new Registration(c, u);
+
+        return this.registrationsRepo.save(r);
+    }
+
+	public void deleteRegistration(int userId, Integer communityId) {
+		// TODO Auto-generated method stub
+		
+		User u = this.findUser(userId);
+		Community c = this.communitiesRepo.findById(communityId).orElse(null);
+		if(c == null) throw new DatabaseException(DatabaseExceptions.DB_COMMUNITY_NOT_FOUND);
+		
+		if(!this.registrationsRepo.existsRegistrationByFkUserAndFkCommunity(u, c)) throw new DatabaseException(DatabaseExceptions.DB_REGISTRATION_NOT_FOUND);
+		
+		Registration r = this.registrationsRepo.findByFkCommunityAndFkUser(c, u);
+		
+		this.registrationsRepo.delete(r);
+	}
+
+	public void updateCommunity(Integer userId, Integer communityId, Boolean inviteCodeValid, String name, String description) {
+		// TODO Auto-generated method stub
+		
+		Community c = this.findCommunity(userId,communityId);
+		
+		if(inviteCodeValid != null && ((c.isInviteCodeValid() && !inviteCodeValid) || (!c.isInviteCodeValid() && inviteCodeValid))) c.setInviteCodeValid(inviteCodeValid);
+		
+		if(name != null && !c.getName().equals(name)) c.setName(name);
+		
+		if(description != null && (c.getDescription() == null || !c.getDescription().equals(description))) c.setDescription(description);
+	}
+}

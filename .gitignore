@@ -7,6 +7,10 @@ dist-ssr/
 build/
 *.local
 
+target
+uploads
+classes
+
 # Variabili d'ambiente e segreti
 .env
 .env.*
