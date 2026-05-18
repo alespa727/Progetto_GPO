@@ -30,6 +30,14 @@ export class Account {
   }
 }
 
+
+interface Notification {
+  label: string;
+  from: Account;
+  text: string;
+}
+ 
+
 export class Friend {
   imagePath: string;
   username: string;

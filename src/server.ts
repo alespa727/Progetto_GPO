@@ -1,4 +1,3 @@
-
 import 'dotenv/config';
 import express from "express";
 import { createServer } from "http";
@@ -7,256 +6,335 @@ import cors from "cors";
 import { AccessToken } from 'livekit-server-sdk';
 import axios from "axios";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { use } from 'react';
 
-const apiKey = process.env.LIVEKIT_API_KEY;
-const apiSecret = process.env.LIVEKIT_API_SECRET;
+type SocketState = {
+    currentServerId?: number;
+    currentVC?: number;
+}; 
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-
-const keyBase64 = "Ink1VTlacUY0djlVLzVkRXFLc2pRWGZTZ1QwUUg4elh3WDdPZm1BNE1acTg9Ig==";
-const secret = Buffer.from(keyBase64, "base64");
-
-export function verifyAccessToken(token: string) {
-    try {
-        const decoded = jwt.verify(token, secret, {
-            algorithms: ["HS256"]
-        })
-        if (typeof decoded === "object" && decoded !== null && "username" in decoded) {
-            return { username: (decoded as JwtPayload).username as string };
-        }
-    } catch (err) {
-        console.error("Access token non valido:", err);
-        return null;
-    }
-}
-
-let cookies: any[] | null | undefined = null;
-const LOGIN_INTERVAL = (10+1) * 24 * 60 * 60 * 1000; 
-
-function doLogin() {
-    axios.post("http://localhost:8080/api/login", {
-        username: "ale",
-        password: "727"
-    }, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" }
-    })
-    .then((response) => {
-        cookies = response.headers["set-cookie"];
-        console.log("Login riuscito, cookies salvati:", cookies);
-    })
-    .catch((error) => {
-        console.log("Errore login:", error.response?.data || error.message);
-    })
-    .finally(() => {
-        setTimeout(doLogin, LOGIN_INTERVAL);
-    });
-}
-
-doLogin();
-
 
 const httpServer = createServer(app);
 const io = new SocketServer(httpServer, {
     cors: { origin: "*" },
 });
 
-const getChat = async (id: number) => {
-    const res = await axios.post(
-        "http://localhost:8080/api/admin/chat?chatId=" + id,
-        {},
-        {
-            withCredentials: true,
-            headers: {
-                Cookie: cookies?.join("; ")
-            }
-        }
-    )
-
-    const friendship = {
-        user_1: res.data.fkUser1.username,
-        user_2: res.data.fkUser2.username,
-    }
-    return friendship;
-}
-
+let cookies: any[] | null | undefined = null;
 let deviceCounters: Record<string, number> = {};
 
-io.on("connection", (socket) => {
+const apiKey = process.env.LIVEKIT_API_KEY;
+const apiSecret = process.env.LIVEKIT_API_SECRET;
 
-    // Codice di autenticazione
+/* ===================== UTILS ===================== */
+
+
+interface Notification {
+  label: string;
+  from: {
+      username: string;
+      description?: string;
+      path?: string;
+    };
+  text: string;
+}
+ 
+
+function sendNotification(room: string, notification: Notification){
+    console.log("notifica da community", room, "da", notification)
+    io.to(room).emit("notification", notification)
+}
+
+function getUsersInVoiceChannel(channelId: number) {
+    const roomName = `vc_${channelId}`;
+    const room = io.sockets.adapter.rooms.get(roomName);
+
+    if (!room) return [];
+
+    const users: any[] = [];
+
+    for (const socketId of room) {
+        const socket = io.sockets.sockets.get(socketId);
+
+        if (socket?.user) {
+            users.push({
+                socketId,
+                username: socket.user.username,
+                description: socket.user.description,
+                path: socket.user.path
+            });
+        }
+    }
+
+    return users;
+}
+
+const broadcastVoiceState = async (serverId: number) => {
+    const server = await getServer(serverId);
+
+    if (!server || !server.sections) {
+        console.log("[voice_state] server invalido:", serverId);
+        return;
+    }
+
+    const voiceState: Record<number, any[]> = {};
+
+    for (const section of server.sections) {
+        for (const channel of section.channels ?? []) {
+
+            if (channel.type !== "vocale") continue;
+
+            voiceState[channel.id] = getUsersInVoiceChannel(channel.id);
+        }
+    }
+
+    console.log("[voice_state] broadcast server:", serverId, voiceState);
+
+    io.to(`server_${serverId}`).emit(
+        "voice_state_update",
+        voiceState
+    );
+};
+
+/* ===================== AUTH ===================== */
+
+export async function verifyAccessToken(token: string) {
+    try {
+        const response = await fetch("http://localhost:8080/api/services/profile", {
+            headers: {
+                Cookie: `AccessCookie=${token}`
+            }
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+
+        return {
+            username: data.username,
+            description: data.description,
+            path: data.path
+        };
+    } catch (err) {
+        return null;
+    }
+}
+
+/* ===================== LOGIN ===================== */
+
+async function doLoginWithRetry(attempt = 0) {
+    try {
+        const response = await axios.post("http://localhost:8080/api/login", {
+            username: "ale727",
+            password: "727"
+        }, {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" }
+        });
+
+        cookies = response.headers["set-cookie"];
+    } catch {
+        const delay = Math.min(1000 * 2 ** attempt, 60000);
+        setTimeout(() => doLoginWithRetry(attempt + 1), delay);
+    }
+}
+
+doLoginWithRetry();
+
+/* ===================== API ===================== */
+
+const getChat = async (id: number, retry = true) => {
+    try {
+        const res = await axios.post(
+            "http://localhost:8080/api/admin/chat?chatId=" + id,
+            {},
+            { headers: { Cookie: cookies?.join("; ") } }
+        );
+
+        return {
+            user_1: res.data.fkUser1.username,
+            user_2: res.data.fkUser2.username,
+        };
+    } catch {
+        await doLoginWithRetry();
+    }
+
+    if (retry) return getChat(id, false);
+    return null;
+};
+
+const getServer = async (id: number, retry = true) => {
+    try {
+        const res = await axios.post(
+            "http://localhost:8080/api/admin/server?serverId=" + id,
+            {},
+            { headers: { Cookie: cookies?.join("; ") } }
+        );
+
+        return res.data;
+    } catch {
+        await doLoginWithRetry();
+    }
+
+    if (retry) return getChat(id, false);
+    return null;
+};
+
+/* ===================== CONNECTION ===================== */
+
+io.on("connection", async (socket) => {
+
     const token = socket.handshake.auth.token;
+    const user = await verifyAccessToken(token);
 
-    // Verifica il token di accesso
-    const user = verifyAccessToken(token);
-
-    // Chiusura connessione se token non valido o scaduto
     if (!user) {
-        console.log("Token non valido, chiudo connessione");
         socket.disconnect();
         return;
     }
 
-    // Salva l'essere online di un determinato utente
+
+    socket.state = {};
+    socket.user = user;
+
     if (!deviceCounters[user.username]) deviceCounters[user.username] = 0;
-    deviceCounters[user.username] += 1;
+    deviceCounters[user.username]++;
 
-    // Salva il numero di dispositivo con cui è online (incrementale)
-    const deviceId = deviceCounters[user.username];
-    const usernameWithDevice = `${user.username}:${deviceId}`;
-
-    // Logs
-    console.log("Utenti online:", deviceCounters);
-    console.log("Nuovo utente autenticato:", usernameWithDevice);
-
-    // Room di socket per comunicazione diretta (notifiche)
     socket.join(`user_${user.username}`);
 
-    // Gestione disconnessione
+    /* ===================== DISCONNECT ===================== */
     socket.on("disconnect", () => {
-        console.log("Utente disconnesso:", usernameWithDevice);
-        console.log("Utenti online:", deviceCounters);
-
-        // Toglie 1 al counter dei dispositivi online
-        deviceCounters[user.username] -= 1;
-        if (deviceCounters[user.username] <= 0) delete deviceCounters[user.username];
-    });
-
-    // Entra in una chat tra utenti privati
-    socket.on("join_chat", async (data) => {
-        const { chatId } = data;
-
-        const chat = getChat(chatId);
-        console.log(user, "è entrato in", await chat, "con chatId =", chatId);
-
-        // Entra in una room di socket con id della chat
-        socket.join(`chat_${chatId}`);
-    });
-
-
-    // Entra in una chat tra utenti privati
-    socket.on("leave_chat", async (data) => {
-        const { chatId } = data;
-
-        const chat = getChat(chatId);
-        console.log(user, "lascia la stanza", await chat, "con chatId =", chatId);
-
-
-        // Lascia la room di socket con id della chat
-        socket.leave(`chat_${chatId}`);
-    });
-
-    // Entra in una chiamata
-    socket.on("join_call", async (data) => {
-        const { chatId } = data;
-        const roomName = `call_${chatId}`;
-
-        // Recupera le informazioni della chat
-        const chat = await getChat(chatId);
-        console.log(user, "vuole entrare in", chat, "con chatId =", chatId);
-
-        // controlla se la room esiste
-        const room = io.sockets.adapter.rooms.get(roomName);
-        const callExists = room && room.size > 0;
-
-        if (callExists) {
-            console.log("La chiamata esiste già, utenti presenti:", room.size);
-        } else {
-            console.log("La chiamata NON esiste, la creo ora");
-            let otherUsername;
-            let caller;
-            if(chat.user_1===user.username){
-                caller = chat.user_1;
-                otherUsername = chat.user_2
-            }else{
-                caller = chat.user_2;
-                otherUsername = chat.user_1
-            }
-            io.to("user_"+otherUsername).emit("incomingCall", { caller });
+        deviceCounters[user.username]--;
+        if (deviceCounters[user.username] <= 0) {
+            delete deviceCounters[user.username];
         }
 
-        socket.join(roomName);
+        const serverId = socket.state.currentServerId;
+        const vcId = socket.state.currentVC;
+
+        if (serverId && vcId) {
+            console.log("Rimozione automatica VC:", vcId);
+
+            broadcastVoiceState(serverId)
+        }
+
     });
 
-    socket.on("leave_call", (data) => {
-        const { chatId } = data;
+    /* ===================== CHAT ===================== */
+    socket.on("join_chat", async ({ chatId }) => {
+        const chat = await getChat(chatId);
 
+        if (chat?.user_1 === user.username || chat?.user_2 === user.username) {
+            socket.join(`chat_${chatId}`);
+        }
+    });
+
+    socket.on("leave_chat", async ({ chatId }) => {
+        const chat = await getChat(chatId);
+
+        if (chat?.user_1 === user.username || chat?.user_2 === user.username) {
+            socket.leave(`chat_${chatId}`);
+        }
+    });
+
+    /* ===================== CALL ===================== */
+    socket.on("join_call", async ({ chatId }) => {
+        socket.join(`call_${chatId}`);
+    });
+
+    socket.on("leave_call", ({ chatId }) => {
         socket.leave(`call_${chatId}`);
     });
 
-    socket.on("join_server", (data) => {
-        const { serverId } = data;
+    socket.on("get_token_call", async ({ identity, roomName }) => {
+        const at = new AccessToken(apiKey, apiSecret, { identity });
+        at.addGrant({ roomJoin: true, room: roomName });
+
+        const token = await at.toJwt();
+
+        io.to(`user_${user.username}`).emit("tokenCall", { token });
+    });
+
+    /* ===================== SERVER ===================== */
+    socket.on("join_server", async ({ serverId }) => {
         if (!serverId) return;
 
         socket.join(`server_${serverId}`);
+        socket.state.currentServerId = serverId;
 
+        broadcastVoiceState(serverId)
     });
 
-    socket.on("leave_server", (data) => {
-        const { serverId } = data;
-        if (!serverId) return;
-
+    socket.on("leave_server", ({ serverId }) => {
         socket.leave(`server_${serverId}`);
     });
 
-    socket.on("join_channel", (data) => {
-        const { channelId } = data;
+    /* ===================== CHANNEL ===================== */
+    socket.on("join_channel", ({ channelId }) => {
         socket.join(`channel_${channelId}`);
     });
 
-    socket.on("leave_channel", (data) => {
-
-        const { channelId } = data;
+    socket.on("leave_channel", ({ channelId }) => {
         socket.leave(`channel_${channelId}`);
-
     });
 
+    socket.on("join_vc", async ({ serverId, channelId }) => {
+        socket.join(`vc_${channelId}`);
+        let identity = socket.user?.username;
+        if (!identity) return;
 
-    socket.on("sendMessage", (data) => {
-        const { id, type, message } = data;
-        console.log(data);
+        socket.state.currentVC = channelId;
 
+
+        broadcastVoiceState(serverId)
+       
+
+        const at = new AccessToken(apiKey, apiSecret, { identity });
+        at.addGrant({ roomJoin: true, room: "vc_" + channelId });
+
+        const token = await at.toJwt();
+
+        io.to(`user_${user.username}`).emit("tokenVC", { token });
+    });
+
+    socket.on("leave_vc", async ({ serverId, channelId }) => {
+        socket.leave(`vc_${channelId}`);
+
+        broadcastVoiceState(serverId)
+       
+        socket.state.currentVC = undefined;
+    });
+
+    /* ===================== MESSAGES ===================== */
+    socket.on("sendMessage", ({ id, type, message }) => {
+        sendNotification(`${type}_${id}`, {
+            label: "Messaggio su",
+            from: message.username,
+            text: message.message
+        })
         io.to(`${type}_${id}`).emit("newMessage", message);
-
-    })
-
-
-    socket.on("deleteMessage", (data) => {
-        const { id, type, messageId } = data;
-        console.log("messaggio da eliminare", data);
-
-        if (type === "channel") {
-            io.to(`channel_${id}`).emit("deletedMessage", { messageId });
-        } else if (type === "chat") {
-            io.to(`chat_${id}`).emit("deletedMessage", { messageId });
-
-        }
-    })
-
-
-});
-
-app.post('/token', async (req, res) => {
-    const { identity, roomName } = req.body;
-
-    const name = identity;
-
-    const at = new AccessToken(apiKey, apiSecret, { identity: name });
-    at.addGrant({
-        roomJoin: true,
-        room: roomName,
     });
 
-    const token = await at.toJwt();
-    console.log('Generated token for', name, 'room:', roomName);
-    console.log(token);
-    res.json({ token });
+    socket.on("deleteMessage", ({ id, type, messageId }) => {
+        io.to(`${type}_${id}`).emit("deletedMessage", { messageId });
+    });
+
+    socket.on("deletedMessageChat", ({ chatId, messageId }) => {
+        io.to(`chat_${chatId}`).emit("deletedMessage", { messageId });
+    });
+
+    socket.on("modifiedMessageChat", ({ chatId, messageId, message }) => {
+        io.to(`chat_${chatId}`).emit("modifiedMessage", {
+            messageId,
+            text: message
+        });
+    });
+
 });
+
+
+/* ===================== START ===================== */
 
 httpServer.listen(4000, () => {
-    console.log(`Server in ascolto sulla porta ${4000}`);
+    console.log(`Server in ascolto sulla porta 4000`);
 });
