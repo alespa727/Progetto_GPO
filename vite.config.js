@@ -10,6 +10,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src")
     }
   },
+  base: "./",
   server: {
     host: true,
     allowedHosts: true,
@@ -20,13 +21,10 @@ export default defineConfig({
         target: 'http://localhost:4000',
         ws: true,
         changeOrigin: true,
-        rewrite: (path) => {
-          if (!path.startsWith('/socket.io')) return path.replace(/^\/server1/, '')
-          return path;
-        },
-      }
-      ,
+        rewrite: (path) => path.replace(/^\/server1/, ''),
+      },
       
+
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,

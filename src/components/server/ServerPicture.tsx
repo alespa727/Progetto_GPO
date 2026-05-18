@@ -7,7 +7,7 @@ export function ServerPicture({ style, alt = "" }: { style: string, alt: string 
     const mode = useMode();
     const setServer = useActiveServerContext().setActiveServer;
     return (
-        <div className="w-10 aspect-square rounded-full overflow-hidden">
+        <div className="w-10 h-10 aspect-square rounded-full">
             <img
                 onClick={() => {
                     console.log("ciao");
@@ -17,7 +17,7 @@ export function ServerPicture({ style, alt = "" }: { style: string, alt: string 
                 src="/placeholder.png"
                 alt={server !== null ? server?.name : alt}
                 title={server !== null ? server?.name : alt}
-                className="w-full h-full object-cover"
+                className="w-full h-full rounded-full object-cover"
             />
         </div>
     );

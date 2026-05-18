@@ -3,7 +3,7 @@ import { Messaggio } from "../common/Messaggio";
 import { useEffect, useRef, useState, Fragment } from "react";
 import { useActiveServerContext } from "@/context/ActiveServerProvider";
 
-export function ListaMessaggi({ messages }: { messages: Message[] }) {
+export function ListaMessaggi({ messages }: { messages: React.RefObject<Message[]> }) {
     const channel = useActiveServerContext().activeChannel;
     const [selectedMsgIndex, setSelectedMsgIndex] = useState<number | null>(null);
     const messagesRef = useRef<null | HTMLDivElement>(null);
@@ -28,7 +28,7 @@ export function ListaMessaggi({ messages }: { messages: Message[] }) {
             className="flex-1 mb-3 overflow-y-auto flex flex-col-reverse messages-scrollbar"
             ref={messagesRef}
         >
-            {[...messages].reverse().map((msg, index, reversedArray) => {
+            {[...messages.current].reverse().map((msg, index, reversedArray) => {
                 const currentDate = msg.sentAt ? new Date(msg.sentAt).toLocaleDateString() : null;
             
                 const prevMsg = reversedArray[index + 1];
@@ -39,8 +39,8 @@ export function ListaMessaggi({ messages }: { messages: Message[] }) {
                 return (
                     <Fragment key={msg.messageId}>
                         <Messaggio
-                            messageType={"channel"}
-                            id={channel.id}
+                            messages={messages}
+                            obj={channel}
                             msg={msg}
                             style={selectedMsgIndex === index ? "bg-white/10 mr-4 rounded-md" : ""}
                             onCloseMenu={() => { setSelectedMsgIndex(null) }}

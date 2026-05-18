@@ -21,6 +21,7 @@ export const ServerProvider = ({ children }: { children: ReactNode }) => {
 
 
   useEffect(() => {
+    console.log("update");
     const fetchServers = async () => {
     
       try {

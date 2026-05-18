@@ -8,17 +8,21 @@ import { ServerPicture } from "./server/ServerPicture";
 import { Cog, PersonStanding } from "lucide-react";
 import { CreateServerButton } from "./server/CreaServer";
 import { motion } from "motion/react";
+import { useSettingsStatusContext } from "@/context/SettingsContext";
+import { useActiveChatContext } from "@/context/ActiveChatProvider";
 function Sidebar() {
 
   const setClientMode = useMode().setMode;
   const servers: Server[] | null = useServers() ?? null;
   const setActiveServer = useActiveServerContext().setActiveServer;
+  const setActiveChat = useActiveChatContext().setActiveChat;
   const circleStyle = "w-[65%] rounded-full aspect-square self-center ";
 
+  const settings = useSettingsStatusContext();
   if (servers === null) return;
 
   return (
-    <div className="shrink-0 w-16 items-center flex bg-(--background) content-center flex-col">
+    <div className="h-full shrink-0 w-16 items-center flex bg-(--background) content-center flex-col">
 
       <motion.div
         initial={{ background: "#FFFFFF10z"}}
@@ -30,7 +34,7 @@ function Sidebar() {
           damping: 20,
           mass: 0.5
         }}
-        onClick={() => { setActiveServer(null); setClientMode(ClientMode.Chats) }}
+        onClick={() => { setActiveChat(null); setActiveServer(null); setClientMode(ClientMode.Chats) }}
         className={circleStyle.concat("mb-1 text-5xl flex items-center justify-center active:bg-green-50 text-white font-semibold shadow-md hover:shadow-lg cursor-pointer select-none")}
       >
         <PersonStanding></PersonStanding>
@@ -43,9 +47,11 @@ function Sidebar() {
 
       <CreateServerButton></CreateServerButton>
 
-      <div className="h-full"></div>
+      <div className="grow"></div>
       <Cog
-        onClick={() => { }}
+        onClick={() => { 
+          settings.setState(true);
+        }}
         className="text-gray-300 mb-6 w-7 h-7 hover:rotate-360 duration-1000 transition-transform cursor-pointer  md:invisible"
       />
 

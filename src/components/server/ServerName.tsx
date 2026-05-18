@@ -3,10 +3,15 @@ import { useActiveServerContext } from "../../context/ActiveServerProvider";
 import { Server } from "../../types";
 import { ChevronDown, Wrench } from "lucide-react";
 import * as ContextMenu from "@radix-ui/react-context-menu"
+import { ManageServer } from "./ManageServer";
+import { useAccount } from "@/context/UserProvider";
 
 export function ServerName() {
     const { activeServer } = useActiveServerContext();
+    const account = useAccount();
+    const channel = useActiveServerContext().activeChannel;
     const [server, setServer] = useState<Server | null>(null);
+    const [active, setActive] = useState(false)
 
     useEffect(() => {
         if (activeServer) setServer(activeServer);
@@ -14,29 +19,29 @@ export function ServerName() {
 
     return (
         <>
-         <ContextMenu.Root >
-            <ContextMenu.Trigger>
-               <div className="border-b border-b-[#313244] text-gray-300 hover:bg-black/20 hover:text-white rounded-l-md rounded-r-none cursor-pointer p-4 flex items-center">
-                    <ChevronDown className="w-5 mr-1" /> 
-                    {server?.name}
-                </div>
-            </ContextMenu.Trigger>
+            <ManageServer active={active} setActive={setActive}></ManageServer>
 
-            <ContextMenu.Content className="bg-[#313244]  z-100  text-white rounded-md shadow-lg border border-white/10">
-                <ContextMenu.Item
-                    onSelect={() => {
+            <ContextMenu.Root>
+                <ContextMenu.Trigger asChild>
+                    <div className="border-b border-b-[#313244] text-gray-300 hover:bg-black/20 hover:text-white rounded-l-md rounded-r-none cursor-pointer p-4 flex items-center">
+                        <ChevronDown className="w-5 mr-1" />
+                        {server?.name}
+                    </div>
+                </ContextMenu.Trigger>
+                {activeServer?.owner===account?.username && <ContextMenu.Content className="bg-[#1e1e2e] text-white rounded-xl shadow-2xl border border-white/10 p-1.5 z-100 min-w-[180px]">
+                    <ContextMenu.Item
+                        onSelect={() => {
+                            if(activeServer?.owner===account?.username) 
+                                setActive(true)
 
-                    }}
-                    className="p-2 hover:bg-white/10 rounded flex items-center gap-2 text-white"
-                >
-                    <Wrench className="w-4 h-4 shrink-0" />
-                    <span>Modifica impostazioni</span>
-                </ContextMenu.Item>
-
-            </ContextMenu.Content>
-        </ContextMenu.Root>
+                        }}
+                        className="px-3 py-2 rounded-lg flex items-center gap-2.5 text-sm cursor-pointer transition-colors hover:bg-white/10 text-white/90"
+                    >
+                        <Wrench className="w-4 h-4" />
+                        <span>Modifica impostazioni</span>
+                    </ContextMenu.Item>
+                </ContextMenu.Content>}
+            </ContextMenu.Root>
         </>
-        
-
     );
 }

@@ -1,105 +1,63 @@
 import { createContext, useContext, useEffect, ReactNode, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { useAccount, useSetAccount } from "./UserProvider";
-import { endpoint2 } from "@/types";
+import { useSetAccount } from "./UserProvider";
+import { ClientHttp, endpoint2 } from "@/types";
 import axios from "axios";
 
 const SocketContext = createContext<Socket | null>(null);
 const SocketStatus = createContext<boolean>(false);
 
-// Gestore di connessione con il server consistente
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [status, setStatus] = useState<boolean>(false);
-  const account = useAccount();
+  const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken"));
   const setAccount = useSetAccount();
 
   useEffect(() => {
-    let newSocket: Socket;
+    if (!token) return;
 
-    if (!setAccount) return;
+    // Evita doppie connessioni
+    if (socket?.connected) return;
 
-    // Connessione
-    const connect = async () => {
-      if (!account) return;
+    console.log("connecting..");
+    const newSocket = io("", {
+      path: "/server1/socket.io",
+      auth: { token }
+    });
 
-      try {
-        // Recupera il token di accesso
-        const token = localStorage.getItem("accessToken");
+    newSocket.on("connect_error", (err) => {
+      console.log("connect_error:", err.message, err);
+    });
+    newSocket.on("connect", () => {
+      console.log("Socket connesso con ID:", newSocket.id);
+      setStatus(true);
+    });
 
-        if(!token) {
-          return;
-        };
-        
-        // Si connette al socket del server e gli passa il token d'autorizzazione
-        newSocket = io("", {
-          path: "/server1/socket.io",
-          transports: ["websocket"],
-          auth: {
-            token: token
-          }
-        });
-        console.log("connecting..")
-
-        // Connessione riuscita
-        newSocket.on("connect", () => {
-          console.log("Socket connesso con ID:", newSocket.id);
-          setStatus(true);
-        });
-
-        // Disconnessione 
-        newSocket.on('disconnect', (reason) => {
-          console.log('Disconnesso dal server:', reason);
-          setStatus(false);
-
-          // Tenta il login con il refreshToken
-          const execute = async () => {
-            try {
-              const res = await axios.post(
-                endpoint2 + "/login",
-                {
-                  withCredentials: true,
-                  headers: {
-                    "Content-Type": "application/json"
-                  }
-                }
-              );
-
-              localStorage.setItem("accessToken", res.data.accessToken);
-
-            } catch (error) {
-              localStorage.clear();
-            }
-
-          }
-          execute()
-        });
-
-        newSocket.on("incomingCall", (data) => {
-          const { caller } = data;
-          alert("Chiamata in arrivo...");
-          console.log(caller)
-        });
-
-        // Setta il socket globale
-        setSocket(newSocket);
-      } catch (e) {
-
-        setStatus(false);
-        console.log("error", e);
-
-      }
-    };
-
-    connect()
-    
-    // Evita memory leak
-    return () => {
+    newSocket.on("disconnect", async (reason) => {
+      console.log("Disconnesso:", reason);
       setStatus(false);
-      if (newSocket)
-        newSocket.disconnect();
+
+      const res = await axios.post(
+        endpoint2 + "/login",
+        {},
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      setToken(res.data.accessToken)
+
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
     };
-  }, [account]);
+  }, [token]);
 
   return (
     <SocketContext.Provider value={socket}>
@@ -110,10 +68,5 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useSocket = () => {
-  return useContext(SocketContext);
-};
-
-export const useSocketStatus = () => {
-  return useContext(SocketStatus);
-};
+export const useSocket = () => useContext(SocketContext);
+export const useSocketStatus = () => useContext(SocketStatus);

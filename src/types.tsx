@@ -20,17 +20,85 @@ const communitiesUrl = services + "/communities";
 export class ClientHttp {
 
 
-   /**
-     * @return i server
-     */
+  /**
+    * @return i server
+    */
   static async getProfile(): Promise<Account> {
-    const res = await axios.get<Account>(services+"/profile",
+    const res = await axios.get<Account>(services + "/profile",
       {
         withCredentials: true
       });
-      console.log(res)
+
 
     return res.data;
+  }
+
+  static async createSection(serverId: number, name: string) {
+    const res = await axios.post<any>(communitiesUrl + "/" + serverId + "/sections",
+      {
+        name
+      }
+      , {
+        withCredentials: true
+      });
+    console.log(res.data)
+    return res.data;
+  }
+  static async deleteSection(serverId: number, sectionId: number) {
+    const res = await axios.delete<any>(communitiesUrl + "/" + serverId + "/sections/" + sectionId,
+      {
+        withCredentials: true
+      });
+    console.log(res.data)
+    return res.data;
+  }
+
+  static async deleteChannel(serverId: number, sectionId: number, channelId: number) {
+    const res = await axios.delete<any>(communitiesUrl + "/" + serverId + "/sections/" + sectionId + "/channels/" + channelId,
+      {
+        withCredentials: true
+      });
+    console.log(res.data)
+    return res.data;
+  }
+
+  static async createChannel(serverId: number, sectionId: number, name: string, description: string, type: string) {
+    const res = await axios.post<any>(communitiesUrl + "/" + serverId + "/sections/" + sectionId + "/channels",
+      {
+        name,
+        description,
+        type
+      }
+      , {
+        withCredentials: true
+      });
+    console.log(res.data)
+    return res.data;
+  }
+
+  static async updateChannel(serverId: number, sectionId: number, channelId: number, name: string, description: string, type: string) {
+    const res = await axios.patch<any>(communitiesUrl + "/" + serverId + "/sections/" + sectionId + "/channels/" + channelId,
+      {
+        name,
+        description,
+        type
+      }
+      , {
+        withCredentials: true
+      });
+    console.log(res.data)
+    return res.data;
+  }
+
+
+  static async regenerateInviteCode(serverId: number): Promise<string> {
+    const res = await axios.post<any>(communitiesUrl + "/" + serverId + "/inviteCode",
+      {
+        withCredentials: true
+      });
+
+
+    return res.data.code;
   }
   /**
      * @return i server
@@ -41,10 +109,78 @@ export class ClientHttp {
       {
         withCredentials: true
       });
-      console.log(res)
 
     return res.data;
   }
+
+  static async joinByInviteCode(inviteCode: string): Promise<boolean> {
+    try {
+      const res = await axios.post<Message[]>(communitiesUrl + "/subscribe",
+        {
+          inviteCode
+        },
+
+
+        {
+          withCredentials: true
+        });
+      console.log(res);
+    } catch (error) {
+      return false;
+    }
+
+
+    return true;
+  }
+
+  /**
+     * @return i server
+     */
+  static async deleteMessage(chatId: number, messageId: number): Promise<boolean> {
+    try {
+      await axios.delete<DefaultResponse>(chatsUrl + "/" + chatId + "/messages/" + messageId,
+        {
+          withCredentials: true
+        });
+
+      return true;
+    } catch (error) {
+
+      return false;
+    }
+
+
+  }
+
+  static async deleteMessageCommunity(commId: number, sectionId: number, channelId: number, messageId: number): Promise<boolean> {
+    try {
+      await axios.delete<DefaultResponse>(communitiesUrl + "/" + commId + "/sections/" + sectionId + "/channels/" + channelId + "/messages/" + messageId,
+        {
+          withCredentials: true
+        });
+
+      return true;
+    } catch (error) {
+      console.log(error)
+      return false;
+    }
+
+
+  }
+
+  static async modifyMessage(chatId: number, messageId: number, message: string): Promise<boolean> {
+    try {
+      await axios.patch<Message[]>(
+        chatsUrl + "/" + chatId + "/messages/" + messageId,
+        { message },
+        { withCredentials: true }
+      );
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
 
   /**
      * @return i server
@@ -62,6 +198,21 @@ export class ClientHttp {
 
     return res.data;
   }
+
+  static async updateCommunity(id: number, name: string, description: string): Promise<DefaultResponse> {
+    const res = await axios.patch<DefaultResponse>(communitiesUrl + "/" + id,
+      {
+        "isInviteCodeValid": true,
+        "name": name,
+        "description": description
+      },
+      {
+        withCredentials: true
+      });
+
+    return res.data;
+  }
+
 
   /**
    * @return i server
@@ -83,8 +234,7 @@ export class ClientHttp {
       {
         withCredentials: true
       });
-    console.log("chats:", res.data);
-
+    console.log(res.data)
     return res.data;
   }
 
@@ -101,7 +251,7 @@ export class ClientHttp {
       {
         withCredentials: true
       });
-      
+
     return res;
   }
 
@@ -109,12 +259,53 @@ export class ClientHttp {
    * @returns gli account dei tuoi amici
    */
   static async fetchFriends(): Promise<Account[]> {
-    const res = await axios.get<Account[]>(friendsUrl,
+    const res = await axios.get<any>(friendsUrl,
       {
         withCredentials: true
       });
 
-    console.log(res.data)
+    console.log(res.data.friends)
+    return res.data.friends;
+  }
+
+  static async patchProfile({ username, description }: { username: string, description: string }): Promise<boolean> {
+    await axios.patch(services + "/profile",
+      {
+        "username": username,
+        "description": description
+      },
+      {
+        withCredentials: true
+      });
+
+    return true;
+  }
+
+  static async patchPfp(file: File): Promise<boolean> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    await axios.patch(services + "/profile/pfp", formData, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    return true;
+  }
+
+  /**
+  * @returns gli account dei tuoi amici
+  */
+  static async isUsernameFree({ username }: { username: string }): Promise<boolean> {
+    const res = await axios.post(services + "/isUsernameFree?username=" + username,
+      {
+      },
+      {
+        withCredentials: true
+      });
+
+
     return res.data;
   }
 
@@ -137,54 +328,62 @@ export class Account {
   createdAt: Date;
   isAdmin: boolean;
   path: string;
+  description: string;
   username: string;
 
   constructor(
     createdAt: Date,
     isAdmin: boolean,
     path: string,
+    description: string,
     username: string
   ) {
     this.createdAt = createdAt;
     this.isAdmin = isAdmin;
+    this.description = description;
     this.path = path;
     this.username = username;
   }
 
   static fromJSON(json: any): Account | null {
     if (!json) return null;
-    return new Account(json.createdAt, json.isAdmin, json.path, json.username);
+    return new Account(json.createdAt, json.isAdmin, json.path, json.description, json.username);
   }
 }
 
 export class Friend {
-  imagePath: string;
+  path: string;
+  description: string;
   username: string;
 
   constructor(
     path: string,
+    description: string,
     username: string
   ) {
-    this.imagePath = path;
+    this.path = path;
+    this.description = description;
     this.username = username;
   }
 
   static fromJSON(json: any): Friend {
-    return new Friend(json.imagePath, json.username);
+    return new Friend(json.property, json.description, json.username);
   }
 }
 
 export class Chat {
   id: number;
-  friend: Friend
+  lastMessage: Date;
+  friend: Friend;
 
-  constructor(id: number, friend: Friend) {
+  constructor(id: number, date: Date, friend: Friend) {
     this.id = id;
+    this.lastMessage = date;
     this.friend = friend;
   }
 
   static fromJSON(json: any): Chat {
-    return new Chat(json.id, json.friend);
+    return new Chat(json.id, json.lastMessage, json.friend);
   }
 }
 
@@ -192,18 +391,20 @@ export class Attachment {
   id: number;
   path: string;
   filename: string;
+  originalname: string;
   extension: string;
 
-  constructor(id: number, path: string, filename: string, extension: string) {
+  constructor(id: number, path: string, originalname: string, filename: string, extension: string) {
     this.id = id;
     this.path = path;
+    this.originalname = originalname;
     this.filename = filename;
     this.extension = extension;
   }
 
   static fromJSON(json: any): Attachment {
 
-    let attachment = new Attachment(json.id, json.path, json.filename, json.extension.replace(".", ""));
+    let attachment = new Attachment(json.id, json.path, json.originalname, json.filename, json.extension);
     return attachment
   }
 }
@@ -266,6 +467,7 @@ export class Channel {
   name: string;
   description?: string;
   createdAt?: Date;
+  users: Account[];
 
   constructor(id: number, sectionId: number, communityId: number, type: ChannelType, name: string, description?: string, createdAt?: Date) {
     this.id = id;
@@ -275,10 +477,16 @@ export class Channel {
     this.createdAt = createdAt;
     this.sectionId = sectionId;
     this.communityId = communityId;
+    this.users = [];
+  }
+
+  public addUsers(user: Account) {
+    if (this.type === ChannelType.VOICE)
+      this.users.push(user);
   }
 
   static fromJSON(json: any): Channel {
-    console.log(json)
+
     return new Channel(json.id, json.sectionId, json.communityId, json.type, json.name, json.description);
   }
 }
@@ -315,6 +523,7 @@ export class Section {
 export class Server {
   id: number;
   name: string;
+  inviteCode?: string;
   description?: string;
   owner?: string;
   createdAt?: Date;
@@ -325,13 +534,17 @@ export class Server {
     name: string,
     sections: Section[] = [],
     description?: string,
-    createdAt?: Date
+    owner?: string,
+    createdAt?: Date,
+    inviteCode?: string
   ) {
     this.id = id;
     this.name = name;
     this.sections = sections;
+    this.owner = owner;
     this.description = description;
     this.createdAt = createdAt;
+    this.inviteCode = inviteCode;
   }
 
   addSection(section: Section) {
@@ -348,8 +561,11 @@ export class Server {
       }
       ) : [],
       json.description,
-      json.createdAt ? new Date(json.createdAt) : undefined
+      json.owner,
+      json.createdAt ? new Date(json.createdAt) : undefined,
+      json.inviteCode,
     );
+    console.log(server)
 
     return server;
   }

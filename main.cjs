@@ -1,40 +1,58 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, net } = require('electron')
 const path = require('path')
 
-let n = 2
+let mainWin = null
+
+function checkConnection() {
+  return net.isOnline()
+}
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWin = new BrowserWindow({
     width: 900,
     height: 600,
     autoHideMenuBar: true,
     frame: false,
     webPreferences: {
-      partition: `persist:account${n++}`,
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false
     }
   })
-
-  if (process.env.NODE_ENV === 'development') {
-    win.loadURL('http://localhost:5173')
+  mainWin.loadFile(
+    path.join(__dirname, "./dist/index.html")
+  );
+  /*
+  if (checkConnection()) {
+    mainWin.loadURL('http://localhost:5173')
   } else {
-    win.loadFile(path.join(__dirname, 'dist/index.html'))
-  }
-
-
-  ipcMain.handle('download-remote', async (event, url) => {
-    try {
-      const dl = await download(win, url, { directory: app.getPath('downloads') });
-      return { success: true, path: dl.getSavePath() };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
-  });
+  
+    const interval = setInterval(() => {
+      if (checkConnection()) {
+        mainWin.loadURL('https://ale727.duckdns.org')
+        clearInterval(interval)
+      }
+    }, 5000)
+  }*/
 }
+
+ipcMain.handle('download-remote', async (event, url) => {
+  try {
+    const dl = await download(mainWin, url, { directory: app.getPath('downloads') })
+    return { success: true, path: dl.getSavePath() }
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
+})
 
 app.whenReady().then(() => {
   createWindow()
-  createWindow()
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
 })

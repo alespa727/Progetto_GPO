@@ -7,11 +7,14 @@ import { ContextProvider } from './context/ContextProvider.tsx'
 import { ClientHttp } from './types.tsx'
 
 createRoot(document.getElementById('root')).render(
+  <StrictMode>
     <ContextProvider>
       <Topbar />
       
       <Menu />
-    </ContextProvider>,
+    </ContextProvider>
+    </StrictMode>,
+    
 )
 
 

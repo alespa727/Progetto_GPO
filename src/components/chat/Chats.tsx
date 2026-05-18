@@ -67,7 +67,7 @@ function Chats() {
       <div className="flex w-full flex-col overflow-hidden">
         <div className="flex w-full">
           <SearchBar onClick={()=>{}} filter={filter} setFilter={setFilter}></SearchBar>
-         <AddFriendButton></AddFriendButton>
+          <AddFriendButton></AddFriendButton>
         </div>
         
         <ChatLoop filter={filter} chats={chats}>

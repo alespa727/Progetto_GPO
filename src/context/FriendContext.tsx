@@ -13,7 +13,8 @@ export const FriendProvider = ({ children }: { children: ReactNode }) => {
         if(!account) return;
 
         const friends = await ClientHttp.fetchFriends();
-        setFriends(friends)
+        await setFriends(friends)
+        console.log(friends);
       } catch (err) {
         console.error("Errore nel fetch degli amici:", err);
       }

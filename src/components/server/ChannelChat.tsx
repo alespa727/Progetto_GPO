@@ -15,7 +15,6 @@ function ChannelChat() {
   const [, forceUpdate] = useState(0);
   const channel = useActiveServerContext().activeChannel;
   const account = useAccount();
-  const messages = messagesRef.current;
   const [header, setHeader] = useState<string>("");
 
   function addMessage(msg: Message) {
@@ -72,6 +71,8 @@ function ChannelChat() {
         withCredentials: true
       });
 
+      console.log(res.data)
+
       const newMessages = res.data.messages.map((msg: any) => Message.fromJSON(msg));
       messagesRef.current = newMessages;
       forceUpdate(prev => prev + 1);
@@ -88,7 +89,7 @@ function ChannelChat() {
         <div className="flex flex-col flex-1 min-h-0">
 
           <Header value={header}></Header>
-          <ListaMessaggi messages={messages} />
+          <ListaMessaggi messages={messagesRef} />
           <MessageInput forceUpdate={forceUpdate} addMessage={addMessage}></MessageInput>
 
         </div>

@@ -8,9 +8,11 @@ import { SocketProvider } from "./SocketProvider";
 import { AccountProvider } from "./UserProvider";
 import { ModeProvider } from "./ModeProvider";
 import { SettingsStatusProvider } from "./SettingsContext";
-import { RoomContext } from "@livekit/components-react";
-import { ActiveRoomProvider } from "./CallContext";
+import { ActiveRoomProvider } from "./RoomContext";
 import { TracksProvider } from "./TracksContext";
+import { AudioControlsProvider } from "./AudioControlContext";
+import { IncomingCallStatusProvider } from "./CallContext";
+import { NotificationHandler } from "./NotificationContext";
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
     return (
@@ -18,22 +20,29 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
             <SocketProvider>
                 <ActiveRoomProvider>
                     <TracksProvider>
-                        <ServerProvider>
-                            <ActiveServerProvider>
-                                <FriendProvider>
-                                    <ChatProvider>
-                                        <ActiveChatProvider>
-                                            <SettingsStatusProvider>
-                                                <ModeProvider>
+                        <AudioControlsProvider>
+                            <ServerProvider>
+                                <ActiveServerProvider>
+                                    <FriendProvider>
+                                        <ChatProvider>
+                                            <ActiveChatProvider>
+                                                <SettingsStatusProvider>
+                                                    <ModeProvider>
+                                                        <NotificationHandler>
+                                                            <IncomingCallStatusProvider>
 
-                                                    {children}
-                                                </ModeProvider>
-                                            </SettingsStatusProvider>
-                                        </ActiveChatProvider>
-                                    </ChatProvider>
-                                </FriendProvider>
-                            </ActiveServerProvider>
-                        </ServerProvider>
+                                                                {children}
+                                                            </IncomingCallStatusProvider>
+                                                        </NotificationHandler>
+
+                                                    </ModeProvider>
+                                                </SettingsStatusProvider>
+                                            </ActiveChatProvider>
+                                        </ChatProvider>
+                                    </FriendProvider>
+                                </ActiveServerProvider>
+                            </ServerProvider>
+                        </AudioControlsProvider>
                     </TracksProvider>
                 </ActiveRoomProvider>
             </SocketProvider>

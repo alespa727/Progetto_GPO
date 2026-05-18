@@ -6,15 +6,14 @@ import { useChatContext } from "../../context/ChatContext.tsx";
 import { Header } from "./ChatHeader.tsx";
 import { ListaMessaggi } from "./ListaMessaggi.tsx";
 import { MessageInput } from "./MessageInput.tsx";
-import axios from "axios";
 import { useAccount } from "@/context/UserProvider.tsx";
 import ChatCall from "../chiamata/ChatCall.tsx";
-import { data } from "framer-motion/client";
 
 function Chat() {
   const socket = useSocket();
   const messagesRef = useRef<Message[]>([]);
   const [, forceUpdate] = useState(0);
+  const [fetched, setFetched] = useState(false);
   const chat = useChatContext();
   const account = useAccount();
   const messages = messagesRef.current;
@@ -28,16 +27,23 @@ function Chat() {
   useEffect(() => {
     if (!chat) return;
     if (!socket) return;
+
     const chatId = chat.id;
+    window.location.hash = "/chat/" + chat.friend.username;
     joinChat(chat.id, chat.friend.username);
+
+    messagesRef.current = [];
+    forceUpdate(prev => prev + 1);
+
+    setFetched(false);
 
     return () => { socket.emit("leave_chat", { chatId }); };
   }, [chat, socket]);
 
   useEffect(() => {
     if (!socket) return;
+
     const handleNewMessage = (data: any) => {
-      console.log(data)
       if (!data) {
         console.warn("Received null message from socket", data);
         return;
@@ -51,13 +57,33 @@ function Chat() {
     socket.on("newMessage", handleNewMessage);
 
     const handleDeletedMessage = (data: any) => {
+      
       removeMessageById(data.messageId);
+      forceUpdate(prev => prev + 1);
+    }
+
+    const handleModifiedMessage = (data: any) => {
+      
+      modifyMessageById(data.messageId, data.text);
+      forceUpdate(prev => prev + 1);
     }
 
     const removeMessageById = (id: number) => {
       messagesRef.current = messagesRef.current.filter(msg => msg.messageId !== id);
     }
+    const modifyMessageById = (id: number, text: string) => {
+      let message = messagesRef.current.find(msg =>
+        msg.messageId === id
+      );
+
+      if(message) {
+        message.message = text;
+        forceUpdate(prev => prev + 1);
+      }
+    }
     socket.on("deletedMessage", handleDeletedMessage);
+    socket.on("modifiedMessage", handleModifiedMessage);
+
 
     return () => {
       socket.off("newMessage", handleNewMessage);
@@ -65,14 +91,15 @@ function Chat() {
     };
   }, [socket]);
 
-  const fetchMessages = async (id: number) => {
+  const fetchMessages = async () => {
 
     if (!chat) return
 
     try {
       const newMessages = await ClientHttp.getMessages(chat.id);
-      newMessages.forEach(m=>m.sent=true)
+      newMessages.forEach(m => m.sent = true)
       messagesRef.current = newMessages;
+      setFetched(true);
       forceUpdate(prev => prev + 1);
     } catch (err) {
       console.error("Errore fetch messages:", err);
@@ -88,7 +115,7 @@ function Chat() {
 
           <Header value={header}></Header>
           <ChatCall></ChatCall>
-          <ListaMessaggi messages={messages} />
+          <ListaMessaggi messages={messagesRef} skeleton={!fetched} empty={messages.length === 0} />
           <MessageInput forceUpdate={forceUpdate} addMessage={addMessage}></MessageInput>
 
         </div>
@@ -100,7 +127,7 @@ function Chat() {
   const joinChat = (chatId: number, otherUser: string) => {
     if (!socket) return;
     setHeader(otherUser);
-    fetchMessages(chatId);
+    fetchMessages();
     socket.emit("join_chat", { chatId });
   }
 

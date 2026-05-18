@@ -10,11 +10,6 @@ const AccountContext = createContext<AccountProps | null>(null);
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [account, setAccount] = useState<Account | null>(null);
 
-  useEffect(()=>{
-    if(account)
-      console.log(account);
-  }, [account]);
-
   return (
     <AccountContext.Provider value={{ account, setAccount }}>
       {children}

@@ -17,13 +17,10 @@ enum ResponseType {
 
 
 export function AddFriendButton() {
-    const updateChats = useChats()?.forceUpdate;
     const [username, setUsername] = useState<string>("");
     const [isActive, setActive] = useState<boolean>(false)
     const [response, setResponse] = useState<string>("")
     const [type, setType] = useState<ResponseType>(ResponseType.SUCCESSFUL)
-
-    if (!updateChats) return;
 
     useEffect(() => {
         setUsername("")
@@ -41,10 +38,11 @@ export function AddFriendButton() {
         try {
             const res = await ClientHttp.addFriend(username);
 
-            if (res.data.message)
+            if (res.data.message){
+                setType(ResponseType.SUCCESSFUL)
                 setResponse(res.data.message);
-
-            updateChats();
+            }
+                
         } catch (error: unknown) {
             setType(ResponseType.ERROR);
 

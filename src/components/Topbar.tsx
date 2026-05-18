@@ -3,7 +3,7 @@ import "../styles/Topbar.css";
 
 function Topbar() {
   const topbar = useRef<HTMLDivElement>(null);
-  const [header, setHeader] = useState<string>("Discord")
+  const [header, setHeader] = useState<string>("Astro")
  
 
   return (

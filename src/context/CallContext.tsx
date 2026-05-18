@@ -1,128 +1,123 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Room, RoomEvent } from "livekit-client";
 import { useSocket } from "./SocketProvider";
-import { RoomAudioRenderer, RoomContext } from "@livekit/components-react";
+import Modal from "@/components/common/Modal";
+import axios from "axios";
+import { endpoint } from "@/types";
+import { useAccount } from "./UserProvider";
+import { useChats } from "./ChatListContext";
+import { useActiveRoomContext } from "./RoomContext";
+import { useActiveChatContext } from "./ActiveChatProvider";
 
-interface ActiveRoomContextType {
-  url: string;
-  token: string;
-  room: Room;
-  title: string;
-  setTitle: (title: string) => void;
-  setUrl: (url: string) => void;
-  setToken: (token: string) => void;
+interface IncomingCallContextType {
+    state: boolean;
+    setState: (state: boolean) => void;
 }
 
-const ActiveRoomContext = createContext<ActiveRoomContextType | null>(null);
+const IncomingCallContext = createContext<IncomingCallContextType | null>(null);
 
-export const ActiveRoomProvider = ({ children }: { children: ReactNode }) => {
-  const [url, setUrl] = useState<string>("");
-  const [token, setToken] = useState<string>("");
-  const [title, setTitle] = useState<string>("");
-  const [room] = useState<Room>(new Room());
-  const socket = useSocket();
-  useEffect(() => {
-    if (!url || !token) return;
-    if (token.length === 0) {
-      if (room.state === "connected") {
-        const channelId = room.name.replace(/^channel_/, "");
-        socket?.emit("leave_channel", { channelId });
-        room.disconnect();
-        setTitle("");
-      }
-      return;
+export const IncomingCallStatusProvider = ({
+    children,
+}: {
+    children: ReactNode;
+}) => {
+    const account = useAccount();
+    const chats = useChats()?.chats;
+
+    const url = "wss://progettogpo-dfna4rrr.livekit.cloud";
+    const { setUrl, setToken, setTitle } = useActiveRoomContext()
+
+    const [state, setState] = useState(false);
+    const setActiveChat = useActiveChatContext().setActiveChat;
+    const [caller, setCaller] = useState("");
+    const socket = useSocket();
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleIncomingCall = (data: { caller: string }) => {
+            console.log("Chiamata in arrivo da:", data.caller);
+            setCaller(data.caller)
+            setState(true)
+        }
+        socket.on("incomingCall", handleIncomingCall);
+        return () => {
+            socket.off("incomingCall", handleIncomingCall);
+        };
+    }, [socket]);
+
+    const handleAccept = async () => {
+        const chat = chats?.find((c) => c.friend.username === caller);
+        if (!chat) {
+            setState(false)
+            setCaller("");
+            return;
+        }
+        const res = await axios.post(endpoint + "/token", {
+            identity: account?.username,
+            roomName: "chat_" + chat.id
+        });
+        setUrl(url);
+        setToken(res.data.token);
+        setTitle(chat.friend.username);
+        setState(false);
+        setActiveChat(chat);
+        setCaller("");
+    };
+
+    const handleReject = ()=>{
+        setState(false);
+        setCaller("");
     }
 
-    // Event listeners
-    const handleEvents = () => {
-      const onConnected = () => {
-        console.log("Connesso alla stanza:", room.name);
-        //socket?.emit("join_channel", { channelId: result });
-      
-      };
+    return (
+        <IncomingCallContext.Provider value={{ state, setState }}>
+            {state && (
+                <Modal open={state} onOpenChange={setState} className="w-[360px]">
+                    <div className="bg-(--base) flex flex-col overflow-hidden">
 
-      const onDisconnected = () => {
-        console.log("Disconnesso da:", room.name);
-        //socket?.emit("leave_call", {chatId: chat.activeChat?.id});
-      };
+                        {/* Top */}
+                        <div className="bg-(--mantle) px-6 py-8 flex items-center gap-4">
+                            <img
+                                src="/placeholder.png"
+                                className="rounded-full w-14 h-14 object-cover"
+                            />
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-white/40 text-xs tracking-wider uppercase">Chiamata in arrivo</span>
+                                <h2 className="text-white text-lg font-semibold">{caller}</h2>
+                            </div>
+                        </div>
 
-      room.on(RoomEvent.Connected, onConnected);
+                        {/* Divider animato */}
+                        <div className="h-[2px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
 
-      room.on(RoomEvent.Disconnected, onDisconnected);
+                        {/* Azioni */}
+                        <div className="px-6 py-5 flex gap-3">
+                            <button onClick={handleReject} className="flex-1 py-2.5 rounded-(--radius) bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-white/50 text-sm transition-colors">
+                                Rifiuta
+                            </button>
+                            <button  onClick={handleAccept} className="flex-1 py-2.5 rounded-(--radius) bg-indigo-500/20 hover:bg-indigo-500 border border-indigo-500/30 text-indigo-300 hover:text-white text-sm transition-colors">
+                                Accetta
+                            </button>
+                        </div>
 
-      room.on(RoomEvent.ParticipantConnected, (p) => {
-        console.log("Partecipante connesso:", p.identity);
-      });
+                    </div>
+                </Modal>
+            )}
 
-      room.on(RoomEvent.ParticipantDisconnected, (p) => {
-        console.log("Partecipante disconnesso:", p.identity);
-      });
-      
-      room.on(RoomEvent.TrackPublished, ()=>{
 
-      });
-
-      return ()=>{
-          room.off(RoomEvent.Connected, onConnected);
-          room.off(RoomEvent.Disconnected, onDisconnected);
-
-      }
-    };
-
-    handleEvents();
-
-    // Connect
-    const connectRoom = async () => {
-      try {
-        console.log(url, token);
-        await room.connect(url, token, { rtcConfig: { iceTransportPolicy: "all" } });
-      } catch (err) {
-        console.error("Errore connessione stanza:", err);
-      }
-    };
-
-    connectRoom();
-
-    // Cleanup
-    return () => {
-      const channelId = room.name.replace(/^channel_/, "");
-      console.log("leave");
-      console.log(socket);
-
-      if (socket && socket.connected) {
-        socket.emit("leave_channel", { channelId: channelId.toString() });
-        console.log("Evento leave_channel inviato:", channelId);
-      }
-      if (room.state === "connected") {
-        room.disconnect();
-        console.log("Room disconnect eseguito");
-      }
-
-    };
-
-  }, [url, token]);
-
-  return (
-    <ActiveRoomContext.Provider value={{ title, url, token, room, setTitle, setUrl, setToken }}>
-      <RoomContext value={room}>
-          {children}
-        <RoomAudioRenderer></RoomAudioRenderer>
-      </RoomContext>
-    </ActiveRoomContext.Provider>
-  );
+            {children}
+        </IncomingCallContext.Provider>
+    );
 };
 
-export const useActiveRoomContext = () => {
-  const ctx = useContext(ActiveRoomContext);
-  if (!ctx)
-    throw new Error("useActiveRoomContext deve essere usato dentro ActiveRoomProvider");
-  return ctx;
-};
+export const useIncomingCallContext = () => {
+    const context = useContext(IncomingCallContext);
 
+    if (!context) {
+        throw new Error(
+            "useIncomingCallContext deve essere usato dentro IncomingCallStatusProvider"
+        );
+    }
 
-export const useRoomStatus = () => {
-  const ctx = useContext(ActiveRoomContext);
-  if (!ctx)
-    throw new Error("useActiveRoomContext deve essere usato dentro ActiveRoomProvider");
-  return ctx.room.state==="connected";
+    return context;
 };

@@ -1,31 +1,29 @@
+import React from "react";
 import { useChatContext } from "@/context/ChatContext";
 
-export function ProfilePicture({ className, src="" }: { className: string, src?: string }) {
-    const imagePath = getImagePath();
-    console.log(imagePath);
-    if(imagePath) src = imagePath;
-    return (
-        <div className={`rounded-full overflow-hidden ${className}`}>
-            <img
-                src={src!=="" ? (src ? src : "/placeholder.png") : "/placeholder.png"}
-                alt=""
-                className="w-full h-full object-cover"
-            />
-        </div>
-    );
-}
+export const ProfilePicture = React.memo(function ProfilePicture({ 
+  className, 
+  src = "" 
+}: { 
+  className: string, 
+  src?: string 
+}) {
+  const chat = useChatContext();
+  
+  const resolvedSrc = React.useMemo(() => {
+    if (!chat) return src || "/placeholder.png";
+    if (chat.friend.path === "default") return "/placeholder.png";
+    if (chat.friend.path) return chat.friend.path.replace("http://localhost:8080/", "");
+    return src || "/placeholder.png";
+  }, [chat?.friend?.path, src]); // ← dipende SOLO dal path, non da lastMessage
 
-export function getImagePath(){
-    const chat = useChatContext();
-    
-    if(chat){
-        if(chat.friend.imagePath==="default"){
-            return "/placeholder.png";
-        }
-        if(chat.friend.imagePath){
-            console.log("Chat",chat, chat.friend.imagePath.replace("http://localhost:8080/images","/pfp"));
-            return chat.friend.imagePath.replace("http://localhost:8080/","");
-        }
-        return "";
-    } 
-}
+  return (
+    <div className={`rounded-full overflow-hidden ${className}`}>
+      <img
+        src={resolvedSrc}
+        alt=""
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+});

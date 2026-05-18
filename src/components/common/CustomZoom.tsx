@@ -8,11 +8,13 @@ import { Attachment } from "@/types"
 export default function MyCustomZoom({
     src,
     alt,
+    className,
     attachment
 }: {
     src: string
     alt: string
-    attachment: Attachment
+    className?: string
+    attachment?: Attachment
 }) {
     const [isZoomed, setIsZoomed] = useState(false)
 
@@ -22,9 +24,9 @@ export default function MyCustomZoom({
                 src={src}
                 alt={alt}
                 onClick={() => setIsZoomed(true)}
-                className="rounded-lg cursor-pointer max-w-[30vw]"
-            />
+                className={"cursor-pointer object-contain max-w-full max-h-[40vh] min-h-[60px] min-w-[60px] md:min-h-[100px] md:min-w-[100px] md:max-h-[50vh] md:max-w-[70%] "+className}
 
+            />
             {typeof window !== "undefined" &&
                 createPortal(
                     <AnimatePresence>
@@ -37,7 +39,7 @@ export default function MyCustomZoom({
                                 onClick={() => setIsZoomed(false)}
                             >
                                 <div className="flex absolute gap-2 top-5 right-5">
-                                    <motion.button
+                                    {attachment && (<motion.button
                                         className=" flex items-center justify-center p-2 
                                     w-[52px] h-[52px] border-4 border-white/10 
                                     rounded-[var(--radius)] bg-[var(--background)]"
@@ -61,13 +63,13 @@ export default function MyCustomZoom({
 
                                                 URL.revokeObjectURL(blobUrl);
                                             };
-                                            downloadFile(`/files/${attachment.filename}.${attachment.extension}`, `${attachment.filename}.${attachment.extension}`);
+                                            downloadFile(`/files/${attachment.filename}${attachment.extension}`, `${attachment.originalname}${attachment.extension}`);
 
                                             setIsZoomed(false);
                                         }}
                                     >
                                         <Download />
-                                    </motion.button>
+                                    </motion.button>)}
                                     <motion.button
                                         className=" flex items-center justify-center p-2 
                                     w-[52px] h-[52px] border-4 border-white/10 
@@ -94,7 +96,7 @@ export default function MyCustomZoom({
                                 <motion.img
                                     src={src}
                                     alt={alt}
-                                    className="max-h-[90vh] max-w-[90vw] md:max-h-[70vh] md:max-w-[70vw] rounded-(--radius)"
+                                    className=" min-h-[180px] min-w-[180px] max-h-[70vh] max-w-[90vw] md:max-h-[vh] md:max-w-[70vw] rounded-(--radius)"
                                     initial={{ scale: 0.8 }}
                                     animate={{ scale: 1 }}
                                     exit={{ scale: 0.9, rotate: 10 }}

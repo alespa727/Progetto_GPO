@@ -1,6 +1,6 @@
 
 import { PhoneOffIcon, Wifi, VideoIcon, ScreenShare } from "lucide-react";
-import { useActiveRoomContext } from "../../context/CallContext";
+import { useActiveRoomContext } from "../../context/RoomContext";
 import { useEffect, useState } from "react";
 import { RoomEvent } from "livekit-client";
 import * as motion from "motion/react-client"

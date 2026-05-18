@@ -1,10 +1,11 @@
 import { Chat, ClientHttp, endpoint2 } from "@/types";
 import axios from "axios";
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, SetStateAction, Dispatch } from "react";
 import { useAccount } from "./UserProvider";
 
-type ChatContextProps={
+type ChatContextProps = {
   chats: Chat[],
+  setChats: Dispatch<SetStateAction<Chat[]>>;
   forceUpdate: () => void
 }
 
@@ -15,16 +16,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [update, setUpdate] = useState<boolean>(false);
   const account = useAccount();
 
-  const forceUpdate = ()=>{
+  const forceUpdate = () => {
     setUpdate(!update);
   }
 
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        if(!account) return;
+        if (!account) return;
         const chats = await ClientHttp.fetchChats()
-        
+
         setChats(chats);
       } catch (err) {
         console.error("Errore nel fetch utente:", err);
@@ -35,7 +36,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [account, update]);
 
   return (
-    <ChatContext.Provider value={{chats, forceUpdate}}>
+    <ChatContext.Provider value={{ chats, setChats, forceUpdate }}>
       {children}
     </ChatContext.Provider>
   );

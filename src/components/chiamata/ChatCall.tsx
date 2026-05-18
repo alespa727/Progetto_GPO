@@ -1,5 +1,5 @@
 
-import { useActiveRoomContext } from "../../context/CallContext";
+import { useActiveRoomContext } from "../../context/RoomContext";
 import { useEffect, useState } from "react";
 import { RoomEvent, Track } from "livekit-client";
 import { ParticipantContext, TrackRefContext, TrackReference, useParticipants, useTracks } from "@livekit/components-react";
@@ -8,16 +8,18 @@ import { Camera, CameraOff, Mic, MicOff, PhoneOff, ScreenShare, ScreenShareOff }
 import { Button } from "../animate-ui/primitives/buttons/button";
 import { useSocket } from "@/context/SocketProvider";
 import { ParticipantTileCustom } from "./ParticipantTile";
-import { useScreenShare } from "./ScreenShareHelper";
+
 import { AnimatePresence, motion } from "framer-motion";
+import { useAudioControls } from "@/context/AudioControlContext";
 
 
 
 function ChatCall() {
     const room = useActiveRoomContext().room;
-    const { isScreenSharing, toggleScreenShare } = useScreenShare(room);
     const [isLeaving, setIsLeaving] = useState(false);
 
+    const { muted, setMuted, deafened, setDeafened } = useAudioControls();
+    
     const chat = useChatContext();
     const socket = useSocket();
     const trackReferences: TrackReference[] = useTracks(
@@ -30,7 +32,6 @@ function ChatCall() {
     );
 
     const [isActive, setIsActive] = useState<boolean>(false);
-    const [isMicrophoneEnabled, setMicrophoneEnabled] = useState(false);
     const [isCameraEnabled, setCameraEnabled] = useState(false);
 
     useEffect(() => {
@@ -44,7 +45,6 @@ function ChatCall() {
 
         const handleConnected = () => {
             setIsActive(true);
-            setMicrophoneEnabled(true)
             socket?.emit("join_call", { chatId: chat?.id });
         };
 
@@ -61,6 +61,7 @@ function ChatCall() {
             room.off(RoomEvent.Connected, handleConnected);
             room.off(RoomEvent.Disconnected, handleDisconnected);
         };
+
     }, [room, socket, chat?.id]);
 
     const participantMap: Record<string, { screen?: TrackReference, video?: TrackReference; audio?: TrackReference }> = {};
@@ -84,23 +85,22 @@ function ChatCall() {
         }
         setCamera();
 
-        room.localParticipant.setMicrophoneEnabled(isMicrophoneEnabled);
+        room.localParticipant.setMicrophoneEnabled(!muted);
 
-    }, [isMicrophoneEnabled, isCameraEnabled, isScreenSharing]);
-
-    useEffect(() => {
-        if (!room) return;
-        toggleScreenShare(isScreenSharing);
-    }, [isScreenSharing, room]);
+    }, [muted, isCameraEnabled]);
 
     if (!isActive) return;
+    
+    if(chat && chat.id && room.name!=="chat_"+chat.id){
+        return <></>;
+    }
 
     return (
         <>
             <AnimatePresence>
                 {!isLeaving && (
                     <motion.div
-                        initial={{ scale: 0.5, opacity: 0, y: -100 }}
+                        initial={{ scale: 0.9, opacity: 0, y: -10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.96, opacity: 0, y: -30 }}
                         transition={{ type: "spring", stiffness: 260, damping: 25 }}
@@ -124,9 +124,9 @@ function ChatCall() {
                 </div>
 
                 <div className="absolute bottom-0 flex items-center justify-center w-full h-25 px-10 gap-3 sm:gap-6 transition-all ease-in duration-200">
-                    <Button onClick={() => toggleScreenShare(!isScreenSharing)} className={"group aspect-square flex items-center justify-center  h-12 sm:h-17 " + (!isScreenSharing ? "bg-red-700" : "bg-gray-700") + " border border-red-950 rounded-full shadow-md " + (isScreenSharing ? "hover:bg-blue-950" : "") + " transition-colors duration-200"}>
+                    {/*<Button onClick={() => room.localParticipant.setScreenShareEnabled(room.localParticipant.isScreenShareEnabled)} className={"group aspect-square flex items-center justify-center  h-12 sm:h-17 " + (!room.localParticipant.isScreenShareEnabled ? "bg-red-700" : "bg-gray-700") + " border border-red-950 rounded-full shadow-md " + (room.localParticipant.isScreenShareEnabled ? "hover:bg-blue-950" : "") + " transition-colors duration-200"}>
                         {
-                            isScreenSharing ? (
+                            room.localParticipant.isScreenShareEnabled ? (
                                 <ScreenShare className="h-6 w-6 text-red-100 group-hover:text-red-200 transition-colors" />
                             ) :
                                 (
@@ -134,7 +134,7 @@ function ChatCall() {
                                 )
 
                         }
-                    </Button>
+                    </Button>*/}
                     <Button onClick={() => { setCameraEnabled(!isCameraEnabled) }} className={"group aspect-square flex items-center justify-center h-12 sm:h-17 " + (!isCameraEnabled ? "bg-red-700" : "bg-gray-700") + " border border-red-950 rounded-full shadow-md " + (isCameraEnabled ? "hover:bg-red-950" : "") + " transition-colors duration-200"}>
                         {
                             isCameraEnabled ? (
@@ -146,9 +146,9 @@ function ChatCall() {
 
                         }
                     </Button>
-                    <Button onClick={() => { setMicrophoneEnabled(!isMicrophoneEnabled) }} className={"group aspect-square flex items-center justify-center h-12 sm:h-17 " + (!isMicrophoneEnabled ? "bg-red-700" : "bg-gray-700") + " border border-red-950 rounded-full shadow-md " + (isMicrophoneEnabled ? "hover:bg-red-950" : "") + " transition-colors duration-200"}>
+                    <Button onClick={() => { setMuted(!muted) }} className={"group aspect-square flex items-center justify-center h-12 sm:h-17 " + (muted ? "bg-red-700" : "bg-gray-700") + " border border-red-950 rounded-full shadow-md " + (!muted ? "hover:bg-red-950" : "") + " transition-colors duration-200"}>
                         {
-                            isMicrophoneEnabled ? (
+                            !muted ? (
                                 <Mic className="h-6 w-6 text-red-100 group-hover:text-red-200 transition-colors" />
                             ) :
                                 (

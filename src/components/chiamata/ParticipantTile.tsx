@@ -9,8 +9,9 @@ import {
 } from "@livekit/components-react";
 import axios from "axios";
 import * as motion from "motion/react-client";
+import myPlaceholder from "../../../public/placeholder.png";
 import { useEffect, useState } from "react";
-import { useScreenShare } from "./ScreenShareHelper";
+import { useAudioControls } from "@/context/AudioControlContext";
 
 export function ParticipantTileCustom({
     videoTrack,
@@ -25,6 +26,7 @@ export function ParticipantTileCustom({
     const participant = useParticipantContext();
     const { audioLevel } = participant;
     const room = useRoomContext();
+    const { deafened, muted, setDeafened, setMuted } = useAudioControls();
 
     const [pfp, setPfp] = useState("");
     const [state, setState] = useState("");
@@ -42,15 +44,14 @@ export function ParticipantTileCustom({
                         },
                     ]
                 }),
-                { 
+                {
                     withCredentials: true,
                     headers: {
                         "Content-Type": "application/json"
                     }
-                 },
+                },
             );
-
-            setPfp(res.data.friends[0].imagePath.replace("http://localhost:8080", ""));
+            setPfp(res.data.friends[0].imagePath?.replace("http://localhost:8080", "") ?? "");
         };
 
         downloadPfp();
@@ -59,39 +60,6 @@ export function ParticipantTileCustom({
     useEffect(() => {
         setState(room.state);
     }, [room.state]);
-
-    if (screenShare && participant.isScreenShareEnabled) {
-        console.log("SCREENSHARE")
-        return (
-            <TrackRefContext value={screenShare} key={participant.identity}>
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.1 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30, mass: 0.1 }}
-                    className={`aspect-video h-30 sm:h-50 mb-5 p-1/2 flex items-center backdrop-blur-2xl justify-center m-1 rounded-md border-4
-        ${audioLevel > 0 ? "border-green-500" : "border-gray-500"}`}
-                >
-                    <div className="relative w-full h-full">
-                        {audioTrack && <AudioTrack trackRef={audioTrack} />}
-
-                        {
-                            screenShare && (
-                                <VideoTrack style={{
-                                    objectFit: 'cover',
-                                }} trackRef={screenShare} className="w-full h-full" />
-                            )
-                        }
-
-                        <div className="absolute top-0 left-0 w-full px-4 py-3 text-gray-200">
-                            <h3 className="text-xl font-medium">
-                                {participant.identity}
-                            </h3>
-                        </div>
-                    </div>
-                </motion.div>
-            </TrackRefContext>
-        );
-    }
 
     if (participant.isCameraEnabled) {
         return (
@@ -141,10 +109,14 @@ export function ParticipantTileCustom({
                     mass: 0.1,
                 }}
                 className={`aspect-square h-32 p-1/2 flex items-center backdrop-blur-2xl justify-center m-1 rounded-full border-4
-          ${audioLevel > 0 ? "border-green-500" : "border-gray-500"}`}
+                ${(participant.isLocal && muted) || (!participant.isLocal && deafened)
+                        ? "border-red-500"
+                        : audioLevel > 0
+                            ? "border-green-500"
+                            : "border-gray-500"}`}
             >
                 <img
-                    src={pfp || "null"}
+                    src={pfp || myPlaceholder}
                     alt=""
                     className="aspect-square h-full rounded-full"
                 />

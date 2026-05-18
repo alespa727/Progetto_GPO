@@ -1,6 +1,6 @@
 import { endpoint2 } from "@/types";
 import axios, { AxiosError, HttpStatusCode } from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 enum Mode {
     REGISTER,
@@ -73,6 +73,17 @@ function Start() {
     const [confirm, setConfirm] = useState<string>("");
     const [mode, setMode] = useState<Mode>(Mode.LOGIN);
 
+
+    useEffect(() => {
+        if (mode === Mode.LOGIN) {
+            window.location.hash = "/login"
+        } else if (mode === Mode.REGISTER) {
+            window.location.hash = "/register"
+        } else {
+            window.location.hash = ""
+        }
+    }, [mode]);
+
     const updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value);
     };
@@ -97,34 +108,54 @@ function Start() {
 
     const reload = () => {
         (async () => {
-            await countdown(3);
+            await countdown(1);
             window.location.reload();
         })();
     }
 
     const login = async () => {
         if (!areCredentialsCorrect()) return;
-        const res = await axios.post(
-            endpoint2 + "/login",
-            { username, password },
-            {
-                withCredentials: true,
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            }
-        );
 
-        if (res.status === HttpStatusCode.Ok) {
-            setErrore(null)
-            setSuccesso(true);
+        try {
+
+            const res = await axios.post(
+                endpoint2 + "/login",
+                { username, password },
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            if (res.status === HttpStatusCode.Ok) {
+                setErrore(null)
+                setSuccesso(true);
+            }
+
+            localStorage.setItem("accessToken", res.data.accessToken);
+            reload()
+
+        } catch (error: any) {
+
+            if (error.response) {
+             
+                setErrore(AuthError.INVALID_CREDENTIALS);
+                
+            } else {
+                // Errore di rete o richiesta non partita
+                setErrore(AuthError.NETWORK_ERROR);
+            }
+            console.log(errore)
+
+            setSuccesso(false);
+            return;
         }
 
-        localStorage.setItem("accessToken", res.data.accessToken);
-        reload()
     };
-    
-    const reset=()=>{
+
+    const reset = () => {
         setConfirm("")
         setPassword("")
         setUsername("")
@@ -140,7 +171,7 @@ function Start() {
 
 
         try {
-            
+
             const res = await axios.post(
                 endpoint2 + "/registration",
                 { username, password },
@@ -159,7 +190,7 @@ function Start() {
             }
 
         } catch (error: any) {
-          
+
             if (error.response) {
                 // Il server ha risposto con uno status fuori dal range 2xx
                 if (error.response.status === HttpStatusCode.Conflict) {
@@ -171,6 +202,7 @@ function Start() {
                 // Errore di rete o richiesta non partita
                 setErrore(AuthError.NETWORK_ERROR);
             }
+            console.log(errore)
 
             setSuccesso(false);
             return;
@@ -181,16 +213,14 @@ function Start() {
     return (
         <div
             onKeyDown={(e) => e.key === "Enter" && ((mode === Mode.LOGIN && login()) || (mode === Mode.REGISTER && registra()))}
-            className="min-h-screen flex w-full  overflow-y-auto items-center justify-center"
+            className="min-h-screen w-full flex items-center justify-center py-8"
         >
-            <div className="w-full max-w-md bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl p-8 flex flex-col gap-6 transition-all duration-300">
+            <div className="w-full max-w-md sm:max-w-sm mx-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl p-8 flex flex-col gap-6 transition-all duration-300">
 
-                {/* Title */}
                 <h3 className="text-center text-white text-3xl font-bold border-b border-white/20 pb-4">
                     {mode === Mode.LOGIN ? "Login" : "Registrazione"}
                 </h3>
 
-                {/* Username */}
                 <div className="flex flex-col gap-2">
                     <label className="text-white/80 text-sm">Username</label>
                     <input
@@ -202,7 +232,6 @@ function Start() {
                     />
                 </div>
 
-                {/* Password */}
                 <div className="flex flex-col gap-2">
                     <label className="text-white/80 text-sm">Password</label>
                     <input
@@ -214,7 +243,6 @@ function Start() {
                     />
                 </div>
 
-                {/* Confirm password solo in REGISTER */}
                 {mode === Mode.REGISTER && (
                     <div className="flex flex-col gap-2">
                         <label className="text-white/80 text-sm">
@@ -243,7 +271,6 @@ function Start() {
                 }
 
 
-                {/* Buttons */}
                 <div className={"flex gap-3 " + (!errore && "pt-4")}>
                     <button
                         className="flex-1 bg-black/40 hover:bg-black/60 text-white py-3 rounded-lg transition-all duration-200 hover:-translate-y-1"
