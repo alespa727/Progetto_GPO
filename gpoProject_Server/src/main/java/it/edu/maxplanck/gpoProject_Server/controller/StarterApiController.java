@@ -3,16 +3,20 @@ package it.edu.maxplanck.gpoProject_Server.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.jsonwebtoken.Claims;
-import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
-import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import io.jsonwebtoken.Claims;
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccessDTO;
+import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -73,7 +77,7 @@ public class StarterApiController extends BasicApiRestController {
             HttpServletResponse response,
             @RequestBody(required = false) RequestAccessDTO body
     ) {
-        // 1️⃣ Controllo se c'è un refresh token valido
+        // Controllo se c'è un refresh token valido
         Cookie[] cookies = request.getCookies();
         String refreshToken = null;
 
@@ -86,7 +90,7 @@ public class StarterApiController extends BasicApiRestController {
             }
         }
 
-        // 2️⃣ Se esiste un refresh token valido -> login automatico
+        // Se esiste un refresh token valido -> login automatico
         if (refreshToken != null) {
             try {
                 Claims claims = this.authenticationService.getTokenService().getClaimsRefresh(refreshToken);
@@ -112,7 +116,7 @@ public class StarterApiController extends BasicApiRestController {
             }
         }
 
-        // 3️⃣ Login normale con username/password
+        // Login normale con username/password
         if (body == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Nessun refresh token valido e nessun body login fornito"));

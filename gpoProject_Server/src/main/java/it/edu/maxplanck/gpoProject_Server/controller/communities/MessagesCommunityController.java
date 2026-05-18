@@ -1,8 +1,29 @@
 package it.edu.maxplanck.gpoProject_Server.controller.communities;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
-import it.edu.maxplanck.gpoProject_Server.database.model.*;
+import it.edu.maxplanck.gpoProject_Server.database.model.AttachedCommunity;
+import it.edu.maxplanck.gpoProject_Server.database.model.Channel;
+import it.edu.maxplanck.gpoProject_Server.database.model.Community;
+import it.edu.maxplanck.gpoProject_Server.database.model.MessageCommunity;
+import it.edu.maxplanck.gpoProject_Server.database.model.Section;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAttachedChatDTO;
@@ -11,15 +32,6 @@ import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageCommunityD
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessagesChannelDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/services/communities/{communityId}/sections/{sectionId}/channels/{channelId}/messages")
@@ -38,11 +50,7 @@ public class MessagesCommunityController extends BasicApiRestController {
             return false;
         }
 
-        if(!databaseService.isChannelPartOfSection(channel.getPkID(), section)){
-            return false;
-        }
-
-        return true;
+        return databaseService.isChannelPartOfSection(channel.getPkID(), section);
     }
 
 
@@ -145,8 +153,7 @@ public class MessagesCommunityController extends BasicApiRestController {
                     .body(Map.of("message", "Parametri non validi"));
         }
 
-        MessageCommunity m = this.databaseService.deleteMessageCommunity(userId, messageId);
-
+        this.databaseService.deleteMessageCommunity(userId, messageId);
 
         return ResponseEntity.noContent().build();
     }

@@ -8,7 +8,12 @@ import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import it.edu.maxplanck.gpoProject_Server.cookies.CookieService;
-import it.edu.maxplanck.gpoProject_Server.exceptions.*;
+import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.AuthentificationExceptions;
+import it.edu.maxplanck.gpoProject_Server.exceptions.CookieException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.CookieExceptions;
+import it.edu.maxplanck.gpoProject_Server.exceptions.TokenException;
+import it.edu.maxplanck.gpoProject_Server.exceptions.TokenExceptions;
 import it.edu.maxplanck.gpoProject_Server.token.TokenService;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.Cookie;
@@ -65,7 +70,7 @@ public class AuthenticationService {
 		 * Controllo se ha cookies/ cookies non validi:
 		 * 		- No -> Errore
 		 */
-		ArrayList<String> cookiesNames = new ArrayList<String>();
+		ArrayList<String> cookiesNames = new ArrayList<>();
 		cookiesNames.add(UtilServer.accessCookieName);
 		cookiesNames.add(UtilServer.refreshCookieName);
 		HashMap<String, Cookie> cookies;

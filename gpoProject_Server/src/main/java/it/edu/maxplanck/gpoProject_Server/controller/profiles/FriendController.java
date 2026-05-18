@@ -1,5 +1,16 @@
 package it.edu.maxplanck.gpoProject_Server.controller.profiles;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
@@ -11,13 +22,6 @@ import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessage;
 import it.edu.maxplanck.gpoProject_Server.exceptions.DatabaseException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/services/friends")
@@ -32,7 +36,7 @@ public class FriendController extends BasicApiRestController {
         int userId = this.authenticationService.authenticate(request, response);
 
         List<User> listFriends = this.databaseService.findFriendsOfUser(userId);
-        List<ResponseFriendDTO> f = new ArrayList<ResponseFriendDTO>();
+        List<ResponseFriendDTO> f = new ArrayList<>();
         for(User u : listFriends) {
             String image = this.findImage(u);
 
@@ -56,7 +60,7 @@ public class FriendController extends BasicApiRestController {
         int userId = this.authenticationService.authenticate(request, response);
 
         List<User> listFriends = this.databaseService.findFriendRequestsOfUser(userId);
-        List<ResponseFriendDTO> f = new ArrayList<ResponseFriendDTO>();
+        List<ResponseFriendDTO> f = new ArrayList<>();
         for(User u : listFriends) {
             String image = this.findImage(u);
 

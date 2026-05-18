@@ -5,31 +5,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
-import it.edu.maxplanck.gpoProject_Server.database.model.*;
-import it.edu.maxplanck.gpoProject_Server.dto.response.*;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
+import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
+import it.edu.maxplanck.gpoProject_Server.database.model.Channel;
+import it.edu.maxplanck.gpoProject_Server.database.model.Community;
+import it.edu.maxplanck.gpoProject_Server.database.model.Registration;
+import it.edu.maxplanck.gpoProject_Server.database.model.Section;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestChannelDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCommunityDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestMessageCommunityDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestSubscriptionDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChannelDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunityDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessage;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseSectionDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Rest Controller che contiene gli endpoint per i servizi delle communities

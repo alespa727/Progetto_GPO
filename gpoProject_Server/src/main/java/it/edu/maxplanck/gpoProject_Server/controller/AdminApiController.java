@@ -3,16 +3,28 @@ package it.edu.maxplanck.gpoProject_Server.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.edu.maxplanck.gpoProject_Server.database.model.*;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestProfileDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.response.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
+import it.edu.maxplanck.gpoProject_Server.database.model.Channel;
+import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
+import it.edu.maxplanck.gpoProject_Server.database.model.Community;
+import it.edu.maxplanck.gpoProject_Server.database.model.Section;
+import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestFriendDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.RequestFriendsDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChannelDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseCommunityDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendsDTO;
+import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseSectionDTO;
 import it.edu.maxplanck.gpoProject_Server.exceptions.DataException;
 import it.edu.maxplanck.gpoProject_Server.exceptions.DataExceptions;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,13 +76,13 @@ public class AdminApiController extends BasicApiRestController {
 		
 		this.authenticationService.authenticate(request, response);
 
-		List<ResponseFriendDTO> usersImagePaths = new ArrayList<ResponseFriendDTO>();
+		List<ResponseFriendDTO> usersImagePaths = new ArrayList<>();
 		for(RequestFriendDTO r : body.users()) {
 			User utente = null;
 			try{
 				utente = this.databaseService.findUser(r.username());
 			} catch(Exception e) {
-				e.printStackTrace();
+				// e.printStackTrace();
 			}
             assert utente != null;
             usersImagePaths.add(new ResponseFriendDTO(utente.getUsername(), utente.getDescription(), this.findImage(utente)));

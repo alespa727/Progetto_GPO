@@ -1,17 +1,17 @@
 package it.edu.maxplanck.gpoProject_Server.controller;
 
-import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
-import it.edu.maxplanck.gpoProject_Server.database.model.User;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestAccessDTO;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
+import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
-
-import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Rest Controller che contiene gli endpoint per i servizi di test

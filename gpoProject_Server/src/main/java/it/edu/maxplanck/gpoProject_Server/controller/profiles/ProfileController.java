@@ -1,12 +1,28 @@
 package it.edu.maxplanck.gpoProject_Server.controller.profiles;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
 import it.edu.maxplanck.gpoProject_Server.database.model.User;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
 import it.edu.maxplanck.gpoProject_Server.dto.request.DeleteAccountDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.request.PatchProfileDTO;
-import it.edu.maxplanck.gpoProject_Server.dto.request.RequestCredentials;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAccountDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessage;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseProfileDTO;
@@ -17,17 +33,6 @@ import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase;
 import it.edu.maxplanck.gpoProject_Server.util.UtilServer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jspecify.annotations.NonNull;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/services/profile")

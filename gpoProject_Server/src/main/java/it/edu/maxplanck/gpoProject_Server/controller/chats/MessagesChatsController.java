@@ -1,5 +1,20 @@
 package it.edu.maxplanck.gpoProject_Server.controller.chats;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
 import it.edu.maxplanck.gpoProject_Server.database.model.AttachedChat;
@@ -11,12 +26,6 @@ import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseAttachedChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseMessageChatDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("api/services/chats/{chatId}/messages")
@@ -72,10 +81,10 @@ public class MessagesChatsController extends BasicApiRestController {
 
         List<MessageChat> messages = this.databaseService.getMessagesChat(id, chatId, messageId);
         if(messages==null) messages = new ArrayList<>();
-        List<ResponseMessageChatDTO> mess = new ArrayList<ResponseMessageChatDTO>();
+        List<ResponseMessageChatDTO> mess = new ArrayList<>();
         for(MessageChat m : messages) {
             List<AttachedChat> attachedChatMessage = this.databaseService.getAttachmentsRepo().findByFkMessage(m.getId());
-            List<ResponseAttachedChatDTO> attachements = new ArrayList<ResponseAttachedChatDTO>();
+            List<ResponseAttachedChatDTO> attachements = new ArrayList<>();
 
             for(AttachedChat a : attachedChatMessage) {
                 String path = this.findAttachment(a);

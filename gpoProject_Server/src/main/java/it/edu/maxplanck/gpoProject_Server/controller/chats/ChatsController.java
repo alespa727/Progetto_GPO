@@ -1,5 +1,18 @@
 package it.edu.maxplanck.gpoProject_Server.controller.chats;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
 import it.edu.maxplanck.gpoProject_Server.database.model.Chat;
@@ -10,11 +23,6 @@ import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseChatDTO;
 import it.edu.maxplanck.gpoProject_Server.dto.response.ResponseFriendDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("api/services/chats")
@@ -57,7 +65,7 @@ public class ChatsController extends BasicApiRestController {
             return ResponseEntity.ok(new ArrayList<>());
         }
 
-        List<ResponseChatDTO> responseChatDTOS = new ArrayList<ResponseChatDTO>();
+        List<ResponseChatDTO> responseChatDTOS = new ArrayList<>();
         for(Chat ch : listChats) {
             User u = (ch.getFkFriendship().getFkUser1().getId() == userId)? ch.getFkFriendship().getFkUser2() : ch.getFkFriendship().getFkUser1();
 

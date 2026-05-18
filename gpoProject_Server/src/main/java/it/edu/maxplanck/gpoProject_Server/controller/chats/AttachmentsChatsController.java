@@ -1,5 +1,24 @@
 package it.edu.maxplanck.gpoProject_Server.controller.chats;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import it.edu.maxplanck.gpoProject_Server.authentication.AuthenticationService;
 import it.edu.maxplanck.gpoProject_Server.controller.BasicApiRestController;
 import it.edu.maxplanck.gpoProject_Server.database.services.DatabaseService;
@@ -10,20 +29,6 @@ import it.edu.maxplanck.gpoProject_Server.util.GenericUtil;
 import it.edu.maxplanck.gpoProject_Server.util.UtilDatabase;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.tika.Tika;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("api/services/chats/{chatId}/attachments")
@@ -42,9 +47,9 @@ public class AttachmentsChatsController extends BasicApiRestController {
         this.databaseService.findUser(userId);
 
 
-        List<String> originalNames = new ArrayList<String>();
-        List<String> filename = new ArrayList<String>();
-        List<String> extension = new ArrayList<String>();
+        List<String> originalNames = new ArrayList<>();
+        List<String> filename = new ArrayList<>();
+        List<String> extension = new ArrayList<>();
 
         /*
          * Permette tutti i file
@@ -83,7 +88,7 @@ public class AttachmentsChatsController extends BasicApiRestController {
                 try {
                     tikaMime = mimeTypes.forName(mimeType);
                 } catch (MimeTypeException e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
                     throw new DataException(DataExceptions.DATA_FILES_NOT_VALID);
                 }
 
@@ -92,7 +97,7 @@ public class AttachmentsChatsController extends BasicApiRestController {
                 GenericUtil.saveFile(uploadPath, file.getBytes(), fileName + extenc);
 
             } catch (IOException e) {
-                e.printStackTrace();
+                // e.printStackTrace();
                 fileName = null;
             }
 
