@@ -4,6 +4,9 @@
 
 ---
 
+Hosted on:
+[La nostra piattaforma](https://ale727.duckdns.org)
+
 ## 📋 Descrizione
 
 Sviluppata con React (frontend), Spring Boot (backend REST), Node.js (WebSocket) e MySQL (database). Offre autenticazione sicura tramite JWT, gestione di community con sezioni e canali, sistema di amicizie e supporto agli allegati.
