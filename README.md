@@ -12,20 +12,26 @@ Sviluppata con React (frontend), Spring Boot (backend REST), Node.js (WebSocket)
 
 ## 🏗️ Architettura
 
-```
-┌─────────────────┐     REST API      ┌──────────────────────┐
-│   React Client  │ ◄────────────────► │  Spring Boot Backend │
-│   (Vite + TSX)  │                   │   (API REST + JWT)   │
-│                 │     WebSocket     ├──────────────────────┤
-│                 │ ◄────────────────► │  Node.js WS Server   │
-└─────────────────┘                   │   (Socket.io)        │
-                                      └──────────┬───────────┘
-                                                 │
-                                      ┌──────────▼───────────┐
-                                      │     MySQL Database    │
-                                      └──────────────────────┘
-```
+Il sistema è composto da quattro componenti principali che comunicano tra loro:
 
+- **React Client** comunica con Spring Boot tramite REST API e con Node.js tramite WebSocket.
+- **Spring Boot** gestisce la logica applicativa, l'autenticazione JWT e l'accesso al database.
+- **Node.js** gestisce la messaggistica in tempo reale tramite Socket.io.
+- **MySQL** è il database condiviso da entrambi i backend.
+
+| Componente | Tecnologie | Ruolo |
+|---|---|---|
+| React Client | Vite, React Router, Axios, Socket.io-client | Interfaccia utente |
+| Spring Boot | REST API, Spring Security, JWT, JPA | Backend applicativo |
+| Node.js | Socket.io, Express, jsonwebtoken | Messaggistica real-time |
+| MySQL | — | Persistenza dei dati |
+
+**Comunicazioni:**
+- React ↔ Spring Boot: HTTP REST (JSON)
+- React ↔ Node.js: WebSocket (Socket.io)
+- Spring Boot → MySQL: JPA / Hibernate
+- Node.js → MySQL: mysql2
+- 
 ---
 
 ## 🛠️ Stack Tecnologico
