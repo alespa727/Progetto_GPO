@@ -31,7 +31,7 @@ Il sistema è composto da quattro componenti principali che comunicano tra loro:
 - React ↔ Node.js: WebSocket (Socket.io)
 - Spring Boot → MySQL: JPA / Hibernate
 - Node.js → MySQL: mysql2
-- 
+
 ---
 
 ## 🛠️ Stack Tecnologico
